@@ -5,3 +5,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+// Forzando despliegue limpio en vercel
