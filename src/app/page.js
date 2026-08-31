@@ -428,13 +428,13 @@ function PlataformaFonica() {
         {/* MODIFICADO: BOTONES DEL PIE DE PÁGINA CON COLOR #303030 Y TEXTO OPACIDAD BLANCA EN PANTALLA 2 */}
         <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-current/10 z-10">
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
           }`}>✓ Acceso Seguro</div>
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
           }`}>✓ Cuentas Verificadas</div>
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
           }`}>✓ Progreso Guardado</div>
         </div>
       </div>
