@@ -408,10 +408,14 @@ function PlataformaFonica() {
             Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
-            {/* BOTÓN INTERACTIVO QUE DISPARA EL POPUP REAL DE GOOGLE */}
+            {/* MODIFICADO: BOTÓN DE GOOGLE CON COLOR #303030 Y TEXTO OPACIDAD BLANCA EN PANTALLA 2 */}
             <button 
               onClick={() => signIn('google')} 
-              className="w-full bg-[#000000] hover:bg-[#1E293B] text-white font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform scale-[1.03] active:scale-[0.98]"
+              className={`w-full font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98] ${
+                currentSlide === 1 
+                  ? 'bg-[#303030] text-white/60 hover:bg-[#404040]' 
+                  : 'bg-[#000000] hover:bg-[#1E293B] text-white'
+              }`}
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.13 1 1.15 5.925 1.15 12s4.98 11 11.09 11c6.38 0 10.614-4.474 10.614-10.794 0-.727-.078-1.282-.175-1.921H12.24z"/>
@@ -421,10 +425,17 @@ function PlataformaFonica() {
           </div>
         </div>
 
+        {/* MODIFICADO: BOTONES DEL PIE DE PÁGINA CON COLOR #303030 Y TEXTO OPACIDAD BLANCA EN PANTALLA 2 */}
         <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-current/10 z-10">
-          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Acceso Seguro</div>
-          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Cuentas Verificadas</div>
-          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Progreso Guardado</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+          }`}>✓ Acceso Seguro</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+          }`}>✓ Cuentas Verificadas</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
+          }`}>✓ Progreso Guardado</div>
         </div>
       </div>
     );
@@ -435,6 +446,7 @@ function PlataformaFonica() {
   // ==========================================================================
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
+
 
 
       {/* HEADER DE LA PLATAFORMA */}

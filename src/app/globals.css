@@ -642,7 +642,7 @@
 }
 
 .bg-slider-gris {
-    background-color: #1E293B !important; /* Tono gris oscuro corporativo de Figma */
+    background-color: #000000 !important; /* Cambiado de gris oscuro a negro puro */
 }
 
 .bg-slider-naranja {
