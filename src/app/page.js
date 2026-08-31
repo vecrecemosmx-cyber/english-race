@@ -403,7 +403,7 @@ function PlataformaFonica() {
             {currentSlide === 1 ? (
               <>
                 <span className="text-[#F2C83B]">APRENDE INGLES</span> <br />
-                <span className="text-white/90">EN ESPAÑOL</span>
+                <span className="text-white/60">EN ESPAÑOL</span>
               </>
             ) : (
               <>
