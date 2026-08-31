@@ -433,7 +433,7 @@ function PlataformaFonica() {
               onClick={() => signIn('google')} 
               className={`w-full font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98] ${
                 currentSlide === 1 
-                  ? 'bg-[#303030] text-white/60 hover:bg-[#404040]' 
+                  ? 'bg-[#303030] text-white/90 hover:bg-[#404040]' 
                   : 'bg-[#000000] hover:bg-[#1E293B] text-white'
               }`}
             >
