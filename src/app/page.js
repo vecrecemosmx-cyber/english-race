@@ -387,28 +387,48 @@ function PlataformaFonica() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full text-center my-10 z-10">
-          {/* CORREGIDO: SE QUEDA CON OPACIDAD BLANCA ORIGINAL EN PANTALLA 2 */}
           <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">
             BIENVENIDO A
           </span>
-          {/* CORREGIDO: SOLO ESTE TEXTO ES AMARILLO EN LA PANTALLA 2 (ÍNDICE 1) */}
+          
+          {/* MODIFICADO: COLORES DIVIDIDOS EN LA PANTALLA 2 */}
           <h1 
             className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
             style={{ 
               WebkitTextStroke: currentSlide === 0 ? '8px #000000' : '8px transparent', 
               paintOrder: 'stroke fill',
-              color: currentSlide === 0 ? '#000000' : currentSlide === 1 ? '#F2C83B' : '#FFFFFF'
+              color: currentSlide === 0 ? '#000000' : undefined
             }}
           >
-            APRENDE INGLES <br /> EN ESPAÑOL
+            {currentSlide === 1 ? (
+              <>
+                <span className="text-[#F2C83B]">APRENDE INGLES</span> <br />
+                <span className="text-white/90">EN ESPAÑOL</span>
+              </>
+            ) : (
+              <>
+                <span className={currentSlide === 0 ? 'text-[#000000]' : 'text-white'}>
+                  APRENDE INGLES <br /> EN ESPAÑOL
+                </span>
+              </>
+            )}
           </h1>
 
-          {/* CORREGIDO: SE QUEDA CON OPACIDAD BLANCA ORIGINAL EN TODAS LAS PANTALLAS OSCURAS */}
-          <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight opacity-90">
-            Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
+          {/* MODIFICADO: COLORES DIVIDIDOS EN EL PÁRRAFO DESCRIPTIVO DE LA PANTALLA 2 */}
+          <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight">
+            {currentSlide === 1 ? (
+              <>
+                <span className="text-white/90">Desde cero absoluto hasta hablar con confianza —</span> <br />
+                <span className="text-[#F2C83B]">paso a paso, día a día.</span>
+              </>
+            ) : (
+              <span className="text-white opacity-90">
+                Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
+              </span>
+            )}
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
-            {/* MODIFICADO: BOTÓN DE GOOGLE CON COLOR #303030 Y TEXTO OPACIDAD BLANCA EN PANTALLA 2 */}
+            {/* BOTÓN DE GOOGLE CON TEXTO EN WHITE/60 FIJO EN PANTALLA 2 */}
             <button 
               onClick={() => signIn('google')} 
               className={`w-full font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98] ${
@@ -425,16 +445,16 @@ function PlataformaFonica() {
           </div>
         </div>
 
-        {/* MODIFICADO: BOTONES DEL PIE DE PÁGINA CON COLOR #303030 Y TEXTO OPACIDAD BLANCA EN PANTALLA 2 */}
+        {/* BOTONES DEL PIE DE PÁGINA CON TEXTO EN WHITE/60 FIJO EN PANTALLA 2 */}
         <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-current/10 z-10">
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
           }`}>✓ Acceso Seguro</div>
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
           }`}>✓ Cuentas Verificadas</div>
           <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-[#F2C83B]' : 'bg-white text-black'
+            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
           }`}>✓ Progreso Guardado</div>
         </div>
       </div>
@@ -446,6 +466,7 @@ function PlataformaFonica() {
   // ==========================================================================
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
+
 
 
 
