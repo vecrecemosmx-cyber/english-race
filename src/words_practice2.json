@@ -222,8 +222,8 @@
     {
         "fonema_id":2,
         "word":"Large",
-        "f":4,
-        "fc":3,
+        "f":3,
+        "fc":2,
         "fv":1,
         "stress":1,
         "consonant":"\/ʤ\/",

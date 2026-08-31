@@ -636,3 +636,26 @@
         font-size: 0.95rem !important; 
     }
 }
+
+/* ==========================================================================
+   CLASES DE COLOR EXCLUSIVAS PARA EL SLIDER DE LOGIN
+   ========================================================================== */
+.bg-slider-amarillo {
+    background-color: #F2C83B !important;
+}
+
+.bg-slider-gris {
+    background-color: #1E293B !important; /* Tono gris oscuro corporativo de Figma */
+}
+
+.bg-slider-naranja {
+    background-color: #F97316 !important; /* Tono naranja vibrante */
+}
+
+.bg-slider-azul {
+    background-color: #0284C7 !important; /* Color idéntico al botón Palabra */
+}
+
+.bg-slider-verde {
+    background-color: #10B981 !important; /* Color idéntico al botón Vocal */
+}

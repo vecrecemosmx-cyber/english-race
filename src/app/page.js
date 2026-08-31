@@ -211,22 +211,43 @@ function PlataformaFonica() {
         return;
       }
       setErrorMessage("");
-      const vocalesLimpiasJson = currentData.vocalesIPA.replace(/\\/g, "").split(",").map(v => v.trim());
+
+      // Helper para limpiar barras diagonales y unificar los caracteres de dos puntos (: o ː)
+      const limpiarFormato = (txt) => txt.replace(/\\|\/|\s/g, "").replace(/:/g, "ː");
+
+      // Helper que mapea las vocales cortas a sus equivalentes largas normalizadas
+      const normalizarFonema = (fonema) => {
+        const textoLimpio = limpiarFormato(fonema);
+        const equivalencias = {
+          "a": "aː",
+          "e": "eː",
+          "i": "iː",
+          "ɔ": "ɔː",
+          "u": "uː"
+        };
+        return equivalencias[textoLimpio] || textoLimpio;
+      };
+
+      // 1. Procesamos y normalizamos los fonemas que vienen del JSON de la base de datos
+      const vocalesLimpiasJson = currentData.vocalesIPA
+        .split(",")
+        .map(v => normalizarFonema(v));
       
-      const todosEstan = vocalesLimpiasJson.every(v => studentSelectedVocals.includes(v));
-      const longitudIgual = vocalesLimpiasJson.length === studentSelectedVocals.length;
+      // 2. Procesamos y normalizamos los fonemas seleccionados por el estudiante en la botonera
+      const vocalesSeleccionadasEstudiante = studentSelectedVocals
+        .map(v => normalizarFonema(v));
+
+      // 3. Realizamos la comparación con los arreglos completamente normalizados
+      const todosEstan = vocalesLimpiasJson.every(v => vocalesSeleccionadasEstudiante.includes(v));
+      const longitudIgual = vocalesLimpiasJson.length === vocalesSeleccionadasEstudiante.length;
       
       isCorrect = (todosEstan && longitudIgual);
       if (isCorrect) {
-        successNote = `¡Felicidades! Has identificado correctamente todos los fonemas vocales presentes: ${vocalesLimpiasJson.join(", ")}.`;
+        // Para la nota de éxito, mostramos los fonemas originales del JSON limpios
+        const vocalesOriginalesVisibles = currentData.vocalesIPA.replace(/\\/g, "");
+        successNote = `¡Felicidades! Has identificado correctamente todos los fonemas vocales presentes: ${vocalesOriginalesVisibles}.`;
       }
     }
-
-    setFeedbackIsCorrect(isCorrect);
-    setFeedbackSuccessNote(successNote);
-    setHasAnsweredCorrectly(isCorrect);
-    setShowFeedback(true);
-  };
 
   // --- NAVEGACIÓN Y DISPARADORES DE FLUJO ---
   const handleNextQuestion = (e) => {
@@ -304,29 +325,91 @@ function PlataformaFonica() {
     );
   }
 
-  // 2. VISTA A: PANTALLA LOGIN COMPLETA CON BOTÓN DE GOOGLE MANDATORIO
+  // ==========================================================================
+  // RENDER CONDICIONAL DE SEGURIDAD (CONECTADO 100% A GOOGLE)
+  // ==========================================================================
+  
+  // Estado para controlar la pantalla activa del slider de login (0 a 4)
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Efecto para la transición automática de pantallas cada 4 segundos
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % 5);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
+
+  // Arreglo con las 5 clases de color de fondo especificadas
+  const slideBackgrounds = [
+    "bg-slider-amarillo text-black", // Pantalla 1: Amarillo original
+    "bg-slider-gris text-white",     // Pantalla 2: Gris oscuro de Figma
+    "bg-slider-naranja text-white",  // Pantalla 3: Naranja de Figma
+    "bg-slider-azul text-white",     // Pantalla 4: Azul del botón Palabra
+    "bg-slider-verde text-white"     // Pantalla 5: Verde del botón Vocal
+  ];
+
+  // 1. Pantalla de carga intermedia mientras Google valida la sesión del alumno
+  if (status === "loading") {
+    return (
+      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
+        <div className="text-xl font-bold text-black uppercase tracking-widest animate-pulse">
+          Cargando plataforma...
+        </div>
+      </div>
+    );
+  }
+
+  // 2. VISTA A: PANTALLA LOGIN COMPLETA CON SLIDER DE 5 COLORES
   if (status === "unauthenticated" || !session) {
     return (
       <div 
-        className="fixed inset-0 w-full h-full flex flex-col justify-between p-6 md:p-12 text-[#000000] overflow-hidden select-none"
-        style={{ backgroundColor: '#F2C83B', fontFamily: 'var(--font-redondeada), sans-serif', zIndex: 9999 }}
+        className={`fixed inset-0 w-full h-full flex flex-col justify-between p-6 md:p-12 overflow-hidden select-none transition-all duration-700 ease-in-out ${slideBackgrounds[currentSlide]}`}
+        style={{ fontFamily: 'var(--font-redondeada), sans-serif', zIndex: 9999 }}
       >
         {/* CÍRCULOS DECORATIVOS CON OPACIDAD */}
         <div className="absolute -right-40 top-1/4 w-[600px] h-[600px] rounded-full bg-white/10 pointer-events-none z-0" />
         <div className="absolute -left-20 -top-20 w-[400px] h-[400px] rounded-full bg-black/5 pointer-events-none z-0" />
         <div className="absolute left-10 -bottom-40 w-[500px] h-[500px] rounded-full bg-white/15 pointer-events-none z-0" />
 
-        <div className="absolute top-8 left-8 bg-[#000000] text-[#F2C83B] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10">
+        {/* INDICADORES LATERALES ESTILO FIGMA (PUNTOS DERECHOS) */}
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+          {[0, 1, 2, 3, 4].map((index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                currentSlide === index 
+                  ? 'bg-current scale-125 opacity-100' 
+                  : 'bg-current opacity-30 hover:opacity-60'
+              }`}
+              title={`Ir a pantalla ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        <div className="absolute top-8 left-8 bg-black text-[#F2C83B] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10">
           ★ 30+ AÑOS DE EXPERIENCIA
         </div>
-        <div className="absolute top-8 right-8 text-[#000000]/40 text-sm font-bold tracking-widest z-10">1 / 7</div>
+        <div className="absolute top-8 right-16 text-sm font-bold tracking-widest z-10 opacity-60">
+          {currentSlide + 1} / 5
+        </div>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full text-center my-10 z-10">
-          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] text-[#000000]/60 mb-6">BIENVENIDO A</span>
-          <h1 className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase text-[#000000]" style={{ WebkitTextStroke: '8px #000000', paintOrder: 'stroke fill' }}>
+          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">BIENVENIDO A</span>
+          <h1 
+            className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
+            style={{ 
+              WebkitTextStroke: currentSlide === 0 ? '8px #000000' : '8px transparent', 
+              paintOrder: 'stroke fill',
+              color: currentSlide === 0 ? '#000000' : '#FFFFFF'
+            }}
+          >
             APRENDE INGLES <br /> EN ESPAÑOL
           </h1>
-          <p className="text-base md:text-2xl font-bold text-[#000000]/80 max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight">
+          <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight opacity-90">
             Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
@@ -343,14 +426,15 @@ function PlataformaFonica() {
           </div>
         </div>
 
-        <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-[#000000]/10 z-10">
-          <div className="bg-white px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-[#000000]/5">✓ Acceso Seguro</div>
-          <div className="bg-white px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-[#000000]/5">✓ Cuentas Verificadas</div>
-          <div className="bg-white px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-[#000000]/5">✓ Progreso Guardado</div>
+        <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-current/10 z-10">
+          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Acceso Seguro</div>
+          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Cuentas Verificadas</div>
+          <div className="bg-white text-black px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5">✓ Progreso Guardado</div>
         </div>
       </div>
     );
   }
+
 
   // 3. VISTA B: INTERFAZ INTERNA PARA ALUMNOS LOGUEADOS CORRECTAMENTE
   return (
