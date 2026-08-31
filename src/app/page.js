@@ -376,7 +376,7 @@ function PlataformaFonica() {
           ))}
         </div>
 
-        {/* MODIFICADO: TEXTO BLANCO EN PANTALLAS 3, 4 Y 5 */}
+        {/* MANTIENE: TEXTO BLANCO EN PANTALLAS 3, 4 Y 5 */}
         <div className={`absolute top-8 left-8 bg-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10 ${
           currentSlide >= 2 ? 'text-white' : 'text-[#F2C83B]'
         }`}>
@@ -387,12 +387,11 @@ function PlataformaFonica() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full text-center my-10 z-10">
-          {/* MODIFICADO: TEXTO AMARILLO EN PANTALLA 2 (ÍNDICE 1) */}
-          <span className={`text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] mb-6 ${
-            currentSlide === 1 ? 'text-[#F2C83B]' : 'opacity-60'
-          }`}>
+          {/* CORREGIDO: SE QUEDA CON OPACIDAD BLANCA ORIGINAL EN PANTALLA 2 */}
+          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">
             BIENVENIDO A
           </span>
+          {/* CORREGIDO: SOLO ESTE TEXTO ES AMARILLO EN LA PANTALLA 2 (ÍNDICE 1) */}
           <h1 
             className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
             style={{ 
@@ -404,17 +403,15 @@ function PlataformaFonica() {
             APRENDE INGLES <br /> EN ESPAÑOL
           </h1>
 
-          {/* MODIFICADO: PARRAFO DESCRIPTIVO AMARILLO EN PANTALLA 2 (ÍNDICE 1) */}
-          <p className={`text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight ${
-            currentSlide === 1 ? 'text-[#F2C83B]' : 'opacity-90'
-          }`}>
+          {/* CORREGIDO: SE QUEDA CON OPACIDAD BLANCA ORIGINAL EN TODAS LAS PANTALLAS OSCURAS */}
+          <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight opacity-90">
             Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
             {/* BOTÓN INTERACTIVO QUE DISPARA EL POPUP REAL DE GOOGLE */}
             <button 
               onClick={() => signIn('google')} 
-              className="w-full bg-[#000000] hover:bg-[#1E293B] text-white font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98]"
+              className="w-full bg-[#000000] hover:bg-[#1E293B] text-white font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform scale-[1.03] active:scale-[0.98]"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.13 1 1.15 5.925 1.15 12s4.98 11 11.09 11c6.38 0 10.614-4.474 10.614-10.794 0-.727-.078-1.282-.175-1.921H12.24z"/>
@@ -438,6 +435,7 @@ function PlataformaFonica() {
   // ==========================================================================
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
+
 
       {/* HEADER DE LA PLATAFORMA */}
       <header className="app-header">
