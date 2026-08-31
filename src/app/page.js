@@ -376,7 +376,10 @@ function PlataformaFonica() {
           ))}
         </div>
 
-        <div className="absolute top-8 left-8 bg-black text-[#F2C83B] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10">
+        {/* MODIFICADO: TEXTO BLANCO EN PANTALLAS 3, 4 Y 5 */}
+        <div className={`absolute top-8 left-8 bg-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10 ${
+          currentSlide >= 2 ? 'text-white' : 'text-[#F2C83B]'
+        }`}>
           ★ 30+ AÑOS DE EXPERIENCIA
         </div>
         <div className="absolute top-8 right-16 text-sm font-bold tracking-widest z-10 opacity-60">
@@ -384,19 +387,27 @@ function PlataformaFonica() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full text-center my-10 z-10">
-          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">BIENVENIDO A</span>
+          {/* MODIFICADO: TEXTO AMARILLO EN PANTALLA 2 (ÍNDICE 1) */}
+          <span className={`text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] mb-6 ${
+            currentSlide === 1 ? 'text-[#F2C83B]' : 'opacity-60'
+          }`}>
+            BIENVENIDO A
+          </span>
           <h1 
             className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
             style={{ 
               WebkitTextStroke: currentSlide === 0 ? '8px #000000' : '8px transparent', 
               paintOrder: 'stroke fill',
-              color: currentSlide === 0 ? '#000000' : '#FFFFFF'
+              color: currentSlide === 0 ? '#000000' : currentSlide === 1 ? '#F2C83B' : '#FFFFFF'
             }}
           >
             APRENDE INGLES <br /> EN ESPAÑOL
           </h1>
 
-          <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight opacity-90">
+          {/* MODIFICADO: PARRAFO DESCRIPTIVO AMARILLO EN PANTALLA 2 (ÍNDICE 1) */}
+          <p className={`text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight ${
+            currentSlide === 1 ? 'text-[#F2C83B]' : 'opacity-90'
+          }`}>
             Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
