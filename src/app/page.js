@@ -374,21 +374,21 @@ function PlataformaFonica() {
         <div className="absolute -left-20 -top-20 w-[400px] h-[400px] rounded-full bg-black/5 pointer-events-none z-0" />
         <div className="absolute left-10 -bottom-40 w-[500px] h-[500px] rounded-full bg-white/15 pointer-events-none z-0" />
 
-        {/* INDICADORES LATERALES ESTILO FIGMA (PUNTOS DERECHOS) */}
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
-          {[0, 1, 2, 3, 4].map((index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentSlide === index 
-                  ? 'bg-current scale-125 opacity-100' 
-                  : 'bg-current opacity-30 hover:opacity-60'
-              }`}
-              title={`Ir a pantalla ${index + 1}`}
-            />
-          ))}
-        </div>
+{/* INDICADORES LATERALES ESTILO FIGMA (PUNTOS DERECHOS) */}
+<div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+  {[0, 1, 2, 3, 4].map((index) => (
+    <button
+      key={index}
+      onClick={() => setCurrentSlide(index)}
+      className={`w-3 h-3 rounded-full transition-all duration-300 ${
+        currentSlide === index 
+          ? 'bg-current scale-125 opacity-100' 
+          : 'bg-current opacity-30 hover:opacity-60'
+      }`}
+      title={`Ir a pantalla ${index + 1}`}
+    />
+  ))}
+</div>
 
         <div className="absolute top-8 left-8 bg-black text-[#F2C83B] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10">
           ★ 30+ AÑOS DE EXPERIENCIA
@@ -691,5 +691,4 @@ function PlataformaFonica() {
       </div>
     </div>
   );
-}
 }
