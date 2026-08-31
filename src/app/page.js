@@ -393,7 +393,7 @@ function PlataformaFonica() {
           
           {/* MODIFICADO: COLORES DIVIDIDOS EN LA PANTALLA 2 */}
           <h1 
-            className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
+            className="text-5xl sm:text-7xl md:text-[8rem] font-extrabold tracking-tight leading-[0.95] mb-12 uppercase" 
             style={{ 
               WebkitTextStroke: currentSlide === 0 ? '8px #000000' : '8px transparent', 
               paintOrder: 'stroke fill',
