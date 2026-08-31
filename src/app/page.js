@@ -36,6 +36,9 @@ function PlataformaFonica() {
   const [feedbackSuccessNote, setFeedbackSuccessNote] = useState('');
   const [feedbackIsCorrect, setFeedbackIsCorrect] = useState(false);
   const [audioSpeed, setAudioSpeed] = useState(1.25);
+  
+  // Estado para controlar la pantalla activa del slider de login (0 a 4)
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const answerInputRef = useRef(null);
 
@@ -69,6 +72,25 @@ function PlataformaFonica() {
     "ɪ", "ʌ", "ʊ", "ə", "ɒ", "æ", "e", "i:", "ɑ:", "u:", "ɜ:", "ɔ:", 
     "aɪ", "eɪ", "ɔɪ", "aʊ", "oʊ", "ɑːr", "ɜːr", "ɔːr", "ər"
   ];
+
+  // Arreglo con las 5 clases de color de fondo especificadas para el slider de login
+  const slideBackgrounds = [
+    "bg-slider-amarillo text-black", // Pantalla 1: Amarillo original
+    "bg-slider-gris text-white",     // Pantalla 2: Gris oscuro de Figma
+    "bg-slider-naranja text-white",  // Pantalla 3: Naranja de Figma
+    "bg-slider-azul text-white",     // Pantalla 4: Azul del botón Palabra
+    "bg-slider-verde text-white"     // Pantalla 5: Verde del botón Vocal
+  ];
+
+  // Efecto para la transición automática de pantallas del login cada 4 segundos
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % 5);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
 
   // --- FILTRADO DINÁMICO DE PALABRAS POR ID NUMÉRICO SEGÚN LA PRÁCTICA ACTIVA ---
   const obtenerPalabrasFiltradas = () => {
@@ -219,11 +241,7 @@ function PlataformaFonica() {
       const normalizarFonema = (fonema) => {
         const textoLimpio = limpiarFormato(fonema);
         const equivalencias = {
-          "a": "aː",
-          "e": "eː",
-          "i": "iː",
-          "ɔ": "ɔː",
-          "u": "uː"
+          "a": "aː", "e": "eː", "i": "iː", "ɔ": "ɔː", "u": "uː"
         };
         return equivalencias[textoLimpio] || textoLimpio;
       };
@@ -243,11 +261,16 @@ function PlataformaFonica() {
       
       isCorrect = (todosEstan && longitudIgual);
       if (isCorrect) {
-        // Para la nota de éxito, mostramos los fonemas originales del JSON limpios
         const vocalesOriginalesVisibles = currentData.vocalesIPA.replace(/\\/g, "");
         successNote = `¡Felicidades! Has identificado correctamente todos los fonemas vocales presentes: ${vocalesOriginalesVisibles}.`;
       }
     }
+
+    setHasAnsweredCorrectly(isCorrect);
+    setFeedbackIsCorrect(isCorrect);
+    setFeedbackSuccessNote(successNote);
+    setShowFeedback(true);
+  };
 
   // --- NAVEGACIÓN Y DISPARADORES DE FLUJO ---
   const handleNextQuestion = (e) => {
@@ -311,10 +334,8 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDER CONDICIONAL DE SEGURIDAD (CONECTADO 100% A GOOGLE)
+  // ÚNICA DECLARACIÓN DE RENDER DE CARGA INTERMEDIA
   // ==========================================================================
-  
-  // 1. Pantalla de carga intermedia mientras Google valida la sesión del alumno
   if (status === "loading") {
     return (
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
@@ -326,43 +347,8 @@ function PlataformaFonica() {
   }
 
   // ==========================================================================
-  // RENDER CONDICIONAL DE SEGURIDAD (CONECTADO 100% A GOOGLE)
+  // VISTA A: PANTALLA LOGIN COMPLETA CON SLIDER DE 5 COLORES
   // ==========================================================================
-  
-  // Estado para controlar la pantalla activa del slider de login (0 a 4)
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Efecto para la transición automática de pantallas cada 4 segundos
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % 5);
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [status]);
-
-  // Arreglo con las 5 clases de color de fondo especificadas
-  const slideBackgrounds = [
-    "bg-slider-amarillo text-black", // Pantalla 1: Amarillo original
-    "bg-slider-gris text-white",     // Pantalla 2: Gris oscuro de Figma
-    "bg-slider-naranja text-white",  // Pantalla 3: Naranja de Figma
-    "bg-slider-azul text-white",     // Pantalla 4: Azul del botón Palabra
-    "bg-slider-verde text-white"     // Pantalla 5: Verde del botón Vocal
-  ];
-
-  // 1. Pantalla de carga intermedia mientras Google valida la sesión del alumno
-  if (status === "loading") {
-    return (
-      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
-        <div className="text-xl font-bold text-black uppercase tracking-widest animate-pulse">
-          Cargando plataforma...
-        </div>
-      </div>
-    );
-  }
-
-  // 2. VISTA A: PANTALLA LOGIN COMPLETA CON SLIDER DE 5 COLORES
   if (status === "unauthenticated" || !session) {
     return (
       <div 
@@ -409,6 +395,7 @@ function PlataformaFonica() {
           >
             APRENDE INGLES <br /> EN ESPAÑOL
           </h1>
+
           <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight opacity-90">
             Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
           </p>
@@ -435,11 +422,12 @@ function PlataformaFonica() {
     );
   }
 
-
-  // 3. VISTA B: INTERFAZ INTERNA PARA ALUMNOS LOGUEADOS CORRECTAMENTE
+  // ==========================================================================
+  // VISTA B: INTERFAZ INTERNA PARA ALUMNOS LOGUEADOS CORRECTAMENTE
+  // ==========================================================================
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
-      
+
       {/* HEADER DE LA PLATAFORMA */}
       <header className="app-header">
         <div className="header-left">
@@ -462,7 +450,7 @@ function PlataformaFonica() {
           <span id="progress-text" className="progress-text">Pregunta {currentQuestionIndex + 1} de {currentPractice === '3' ? 5 : 6}</span>
         </div>
 
-        {/* AVATAR DINÁMICO: Muestra la inicial real del correo del alumno extraída de Google */}
+        {/* AVATAR DINÁMICO */}
         <div 
           className="avatar" 
           onClick={() => signOut()} 
@@ -491,7 +479,7 @@ function PlataformaFonica() {
               <span className="menu-number">3</span>
               <span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
-            
+
             <li className="menu-item" id="menu-grafemas"><span className="menu-number">4</span><span className="menu-text">Primeros Grafemas.</span></li>
 
             <li 
@@ -565,9 +553,6 @@ function PlataformaFonica() {
           </div>
 
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
-            /* ========================================================
-               PREGUNTA 5 DE PRÁCTICA 2: DOS BOTONES INTERACTIVOS DINÁMICOS
-               ======================================================== */
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
               <div className="flex gap-4 justify-center">
@@ -599,9 +584,6 @@ function PlataformaFonica() {
               {errorMessage && <p className="error-text text-center mt-2">{errorMessage}</p>}
             </div>
           ) : currentPractice === '5' && currentQuestionIndex === 5 ? (
-            /* ========================================================
-               PREGUNTA 6 CON CUADRÍCULA DE BOTONES ACTUALIZADA (21 FONEMAS)
-               ======================================================== */
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm flex flex-col gap-4">
               <span className="response-title">Selecciona las vocales presentes</span>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[180px] overflow-y-auto p-2 border border-zinc-100 rounded-xl bg-zinc-50">
@@ -621,9 +603,6 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : (
-            /* ========================================================
-               PREGUNTAS GENERALES 1 A 4 (Y PREGUNTA 5 DE LA PRÁCTICA 1)
-               ======================================================== */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
