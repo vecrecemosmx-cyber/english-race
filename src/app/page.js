@@ -419,7 +419,7 @@ function PlataformaFonica() {
             {currentSlide === 1 ? (
               <>
                 <span className="text-white/90">Desde cero absoluto hasta hablar con confianza —</span> <br />
-                <span className="text-[#F2C83B]">paso a paso, día a día.</span>
+                <span className="text-white/90">paso a paso, día a día.</span>
               </>
             ) : (
               <span className="text-white opacity-90">
