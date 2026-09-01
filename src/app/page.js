@@ -5,9 +5,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react';
 // Importación oficial confirmada con alias absoluto y mayúsculas exactas
 import { IconoBocina, IconoNota } from '@/Iconos';
-// Bases de datos oficiales cargadas localmente
-import datasetP1 from '../words_practice1.json';
-import datasetP2 from '../words_practice2.json';
+// Bases de datos oficiales cargadas localmente (Nuevos Nombres)
+import datasetP1 from '../database_practice1.json';
+import datasetP2 from '../database_practice2.json';
+import datasetP3 from '../database_practice3.json';
 
 // COMPONENTE CONTENEDOR EXCLUSIVO DE NEXTAUTH (Envoltura Obligatoria)
 export default function Home() {
@@ -42,11 +43,12 @@ function PlataformaFonica() {
 
   const answerInputRef = useRef(null);
 
-  // Mapeos oficiales para traducir los IDs de tus menús desplegables
+  // Mapeos para traducir los IDs de los menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
+  const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
-  // El arreglo base de preguntas cambia dinámicamente si es Práctica 1 o Práctica 2
-  const questionsTexts = currentPractice === '3' 
+  // El arreglo base de preguntas cambia dinámicamente según la práctica activa
+  const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
         "1. ¿Cuántos sonidos componen la palabra?",
         "2. ¿Cuántos fonemas consonantes tiene?",
@@ -65,13 +67,12 @@ function PlataformaFonica() {
 
   // Ruta local para reproducir los audios fónicos desde public/audio/
   const baseAudioUrl = "/audio/";
-  const vocalAudioFiles = { "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3" };
-
-  // Lista de los 21 fonemas para la pregunta 6 (Botonera)
-  const vocalOptionsP2 = [
-    "ɪ", "ʌ", "ʊ", "ə", "ɒ", "æ", "e", "i:", "ɑ:", "u:", "ɜ:", "ɔ:", 
-    "aɪ", "eɪ", "ɔɪ", "aʊ", "oʊ", "ɑːr", "ɜːr", "ɔːr", "ər"
-  ];
+  const vocalAudioFiles = { 
+    // Práctica 1
+    "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3",
+    // Práctica 2 (Nuevos Diptongos)
+    "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "bay.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
+  };
 
   // Arreglo con las 5 clases de color de fondo especificadas para el slider de login
   const slideBackgrounds = [
@@ -82,15 +83,17 @@ function PlataformaFonica() {
     "bg-slider-verde text-white"     // Pantalla 5: Verde del botón Vocal
   ];
 
-  // Efecto para la transición automática de pantallas del login cada 4 segundos
   useEffect(() => {
-    if (status === "unauthenticated") {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % 5);
-      }, 4000);
-      return () => clearInterval(interval);
+    if (currentPractice === '3') {
+      setCurrentFonema('ə');
+    } else if (currentPractice === '4') {
+      setCurrentFonema('aɪ');
+    } else {
+      setCurrentFonema('1'); // Práctica 3 inicia en el bloque 1 de consonantes
     }
-  }, [status]);
+    resetEntireExercise();
+  }, [currentPractice]);
+
 
   // --- FILTRADO DINÁMICO DE PALABRAS POR ID NUMÉRICO SEGÚN LA PRÁCTICA ACTIVA ---
   const obtenerPalabrasFiltradas = () => {
@@ -102,8 +105,16 @@ function PlataformaFonica() {
       return filtradasCrudas.map(item => ({
         word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), posVocal: String(item.posVocal)
       }));
+    } else if (currentPractice === '4') {
+      const filtradasCrudas = datasetP2.filter(item => {
+        const symbol = mappingP2[String(item.fonema_id)] || item.fonema_simbolo;
+        return symbol === currentFonema;
+      });
+      return filtradasCrudas.map(item => ({
+        word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), posVocal: String(item.posVocal)
+      }));
     } else {
-      const filtradasCrudas = datasetP2.filter(item => String(item.fonema_id) === String(currentFonema));
+      const filtradasCrudas = datasetP3.filter(item => String(item.fonema_id) === String(currentFonema));
       return filtradasCrudas.map(item => ({
         word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), consonant: String(item.consonant), vocalesIPA: String(item.vocalesIPA)
       }));
@@ -156,7 +167,7 @@ function PlataformaFonica() {
 
   const handlePlayVocalAudio = (e) => {
     if (e) e.preventDefault();
-    if (currentPractice !== '3') return;
+    if (currentPractice !== '3' && currentPractice !== '4') return;
     const fileName = vocalAudioFiles[currentFonema];
     if (fileName) {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -200,9 +211,10 @@ function PlataformaFonica() {
       }
       isCorrect = (value === correctValue);
     } 
+
     // CASO B: EVALUACIÓN DE LA PREGUNTA 5
     else if (currentQuestionIndex === 4) {
-      if (currentPractice === '3') {
+      if (currentPractice === '3' || currentPractice === '4') {
         if (value === "") { setErrorMessage("⚠️ Escribe tu respuesta antes de comprobar."); setShowFeedback(false); return; }
         const dbValue = currentData.posVocal;
         if (dbValue.length === 2) {
@@ -224,7 +236,8 @@ function PlataformaFonica() {
           successNote = `¡Excelente elección! El fonema consonántico correcto de la palabra es ${consonantLimpia}.`;
         }
       }
-    } 
+    }
+
     // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (EXCLUSIVA PRÁCTICA 2 - CUADRÍCULA DE BOTONES)
     else if (currentQuestionIndex === 5 && currentPractice === '5') {
       if (studentSelectedVocals.length === 0) {
@@ -561,6 +574,15 @@ function PlataformaFonica() {
                   <option value="æ">Fonema /æ/</option>
                   <option value="ʌ">Fonema /ʌ/</option>
                 </select>
+              ) : currentPractice === '4' ? (
+                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                  <option value="" disabled hidden>Elige un fonema</option>
+                  <option value="aɪ">Fonema /aɪ/</option>
+                  <option value="eɪ">Fonema /eɪ/</option>
+                  <option value="ɔɪ">Fonema /ɔɪ/</option>
+                  <option value="aʊ">Fonema /aʊ/</option>
+                  <option value="oʊ">Fonema /oʊ/</option>
+                </select>
               ) : (
                 <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
                   <option value="" disabled hidden>Elige un fonema</option>
@@ -571,6 +593,7 @@ function PlataformaFonica() {
                 </select>
               )}
             </div>
+
 
             <div className="media-buttons-row">
               <div className="media-column-left">
