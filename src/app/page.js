@@ -147,6 +147,14 @@ function PlataformaFonica() {
     resetEntireExercise();
   }, [currentPractice]);
 
+  // Función para cerrar el menú lateral automáticamente en móviles
+  const cerrarSidebarMovil = () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.classList.remove('open');
+    }
+  };
+
   const resetEntireExercise = () => {
     setCurrentQuestionIndex(0);
     setStudentAnswer('');
@@ -429,28 +437,41 @@ function PlataformaFonica() {
       </header>
 
       <div className="app-layout">
+        {/* MENÚ LATERAL IZQUIERDO INTERACTIVO CON CIERRE AUTOMÁTICO */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
-            <li className="menu-item" id="menu-metodologia"><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
-            <li className="menu-item" id="menu-alfabeto"><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
+            <li className="menu-item" id="menu-metodologia" onClick={cerrarSidebarMovil}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
+            <li className="menu-item" id="menu-alfabeto" onClick={cerrarSidebarMovil}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
             
-            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => setCurrentPractice('3')}>
+            <li 
+              className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} 
+              id="menu-practica-1" 
+              onClick={() => { setCurrentPractice('3'); cerrarSidebarMovil(); }}
+            >
               <span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => setCurrentPractice('4')}>
+            <li 
+              className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} 
+              id="menu-diptongos" 
+              onClick={() => { setCurrentPractice('4'); cerrarSidebarMovil(); }}
+            >
               <span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => setCurrentPractice('5')}>
+            <li 
+              className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} 
+              id="menu-practica-2" 
+              onClick={() => { setCurrentPractice('5'); cerrarSidebarMovil(); }}
+            >
               <span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span>
             </li>
 
-            <li className="menu-item" id="menu-grafemas"><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
-            <li className="menu-item" id="menu-sopa"><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
-            <li className="menu-item" id="menu-flashcards"><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
-            <li className="menu-item" id="menu-frases"><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
+            <li className="menu-item" id="menu-grafemas" onClick={cerrarSidebarMovil}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className="menu-item" id="menu-sopa" onClick={cerrarSidebarMovil}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
+            <li className="menu-item" id="menu-flashcards" onClick={cerrarSidebarMovil}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
+            <li className="menu-item" id="menu-frases" onClick={cerrarSidebarMovil}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
           </ul>
         </aside>
 
