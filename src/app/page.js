@@ -506,7 +506,7 @@ function PlataformaFonica() {
       {/* CUERPO DEL LAYOUT EN REJILLA */}
       <div className="app-layout">
         
-        {/* MENÚ LATERAL IZQUIERDO INTERACTIVO */}
+        {/* MENÚ LATERAL IZQUIERDO INTERACTIVO REESCRITO Y REORDENADO */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
@@ -522,7 +522,10 @@ function PlataformaFonica() {
               <span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
 
-            <li className="menu-item" id="menu-grafemas"><span className="menu-number">4</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className="menu-item" id="menu-diptongos">
+              <span className="menu-number">4</span>
+              <span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
+            </li>
 
             <li 
               className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} 
@@ -530,10 +533,10 @@ function PlataformaFonica() {
               onClick={() => setCurrentPractice('5')}
             >
               <span className="menu-number">5</span>
-              <span className="menu-text">Práctica 2 Listening de Consonantes.</span>
+              <span className="menu-text">Práctica 3 Listening de Consonantes.</span>
             </li>
-            
-            <li className="menu-item" id="menu-diptongos"><span className="menu-number">6</span><span className="menu-text">Diptongos (i, u).</span></li>
+
+            <li className="menu-item" id="menu-grafemas"><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
             <li className="menu-item" id="menu-sopa"><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
             <li className="menu-item" id="menu-flashcards"><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
             <li className="menu-item" id="menu-frases"><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
