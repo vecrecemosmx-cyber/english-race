@@ -72,7 +72,7 @@ function PlataformaFonica() {
     // Práctica 1
     "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3",
     // Práctica 2
-    "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "bay.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
+    "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "boy.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
   };
 
   // Lista de los 21 fonemas para la pregunta 6 (Botonera Práctica 3)
