@@ -588,71 +588,107 @@
     padding-top: 0.5rem;
 }
 
-/* OPTIMIZACIÓN RESPONSIVA MÓVIL */
+/* ==========================================================================
+   OPTIMIZACIÓN RESPONSIVA MÓVIL AVANZADA (ADICIÓN PARA GLOBALS.CSS)
+   ========================================================================== */
 @media (max-width: 768px) {
-    .plataforma-body .menu-toggle-btn { 
-        display: flex; 
+    /* Ajustes en la cabecera para evitar amontonamiento */
+    .plataforma-body .app-header {
+        padding: 1rem 1rem !important;
+        gap: 8px;
     }
-    
+
+    .plataforma-body .logo {
+        font-size: 1.1rem !important;
+    }
+
+    /* Reducción inteligente de la barra de progreso en móviles */
+    .plataforma-body .progress-container {
+        width: 45% !important;
+        gap: 6px !important;
+    }
+
+    .plataforma-body .progress-text {
+        font-size: 0.75rem !important;
+    }
+
+    /* Layout en una sola columna vertical */
     .plataforma-body .app-layout { 
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr !important; 
         position: relative; 
     }
     
+    /* Menú lateral como panel flotante oculto por defecto */
     .plataforma-body .sidebar {
-        position: absolute; 
-        top: 0; 
+        position: fixed !important; 
+        top: 73px; 
         left: -280px; 
         width: 280px; 
-        height: 100%;
+        height: calc(100vh - 73px);
         z-index: 50; 
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
     }
     
     .plataforma-body .sidebar.open { 
-        left: 0; 
+        left: 0 !important; 
     }
     
+    /* Contenedor central adaptable */
     .plataforma-body .main-container { 
-        padding: 1rem 0.75rem; 
-        gap: 1rem; 
+        padding: 1rem 0.75rem !important; 
+        gap: 1rem !important; 
     }
 
-    .plataforma-body .split-response-card { 
-        gap: 0.75rem !important; 
-        padding: 1rem !important; 
+    /* La tarjeta de instrucción reduce el tamaño de letra para que no ocupe toda la pantalla */
+    .plataforma-body .instruction-text {
+        font-size: 1.3rem !important;
+    }
+
+    /* Las columnas multimedia (Palabra / Vocal) se apilan verticalmente si el espacio es muy reducido */
+    .plataforma-body .media-buttons-row {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    .plataforma-body .media-column-left, 
+    .plataforma-body .media-column-right {
+        width: 100% !important;
     }
     
+    /* La tarjeta de respuesta se vuelve vertical para que la caja de texto y el botón no se aplasten */
+    .plataforma-body .split-response-card { 
+        flex-direction: column !important;
+        gap: 1rem !important; 
+        padding: 1.25rem !important; 
+    }
+
+    .plataforma-body .response-left-pane {
+        width: 100% !important;
+    }
+
+    /* El divisor pasa de ser una línea vertical a una línea horizontal */
     .plataforma-body .response-divider-line { 
-        margin: 0 0.25rem !important; 
+        width: 100% !important;
+        height: 2px !important;
+        margin: 0.5rem 0 !important; 
+    }
+
+    .plataforma-body .response-right-pane {
+        width: 100% !important;
     }
     
     .plataforma-body .check-green-btn { 
-        padding: 1rem 1.25rem !important; 
-        font-size: 0.95rem !important; 
+        width: 100% !important;
+        padding: 1rem !important; 
+        font-size: 1rem !important; 
+        text-align: center;
     }
-}
 
-/* ==========================================================================
-   CLASES DE COLOR EXCLUSIVAS PARA EL SLIDER DE LOGIN
-   ========================================================================== */
-.bg-slider-amarillo {
-    background-color: #F2C83B !important;
-}
-
-.bg-slider-gris {
-    background-color: #000000 !important; /* Cambiado de gris oscuro a negro puro */
-}
-
-.bg-slider-naranja {
-    background-color: #F97316 !important; /* Tono naranja vibrante */
-}
-
-.bg-slider-azul {
-    background-color: #0284C7 !important; /* Color idéntico al botón Palabra */
-}
-
-.bg-slider-verde {
-    background-color: #10B981 !important; /* Color idéntico al botón Vocal */
+    /* Botones de navegación inferior ocupan el ancho completo de forma ordenada */
+    .plataforma-body .navigation-buttons {
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+    }
 }
