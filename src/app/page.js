@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react';
 // Importación oficial confirmada con alias absoluto y mayúsculas exactas
 import { IconoBocina, IconoNota } from '@/Iconos';
-// Bases de datos oficiales cargadas localmente (Nuevos Nombres)
+// Bases de datos oficiales cargadas localmente (Homologadas)
 import datasetP1 from '../database_practice1.json';
 import datasetP2 from '../database_practice2.json';
 import datasetP3 from '../database_practice3.json';
@@ -25,7 +25,8 @@ function PlataformaFonica() {
   const { data: session, status } = useSession();
   
   // --- ESTADOS DE CONTROL GLOBALES (Sincronizados con Google) ---
-  const [currentPractice, setCurrentPractice] = useState('3'); // '3' = Práctica 1, '5' = Práctica 2
+  // '3' = Práctica 1, '4' = Práctica 2, '5' = Práctica 3
+  const [currentPractice, setCurrentPractice] = useState('3'); 
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -43,7 +44,7 @@ function PlataformaFonica() {
 
   const answerInputRef = useRef(null);
 
-  // Mapeos para traducir los IDs de los menús desplegables
+  // Mapeos oficiales para traducir los IDs de tus menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
@@ -70,30 +71,34 @@ function PlataformaFonica() {
   const vocalAudioFiles = { 
     // Práctica 1
     "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3",
-    // Práctica 2 (Nuevos Diptongos)
+    // Práctica 2
     "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "bay.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
   };
 
-  // Arreglo con las 5 clases de color de fondo especificadas para el slider de login
-  const slideBackgrounds = [
-    "bg-slider-amarillo text-black", // Pantalla 1: Amarillo original
-    "bg-slider-gris text-white",     // Pantalla 2: Gris oscuro de Figma
-    "bg-slider-naranja text-white",  // Pantalla 3: Naranja de Figma
-    "bg-slider-azul text-white",     // Pantalla 4: Azul del botón Palabra
-    "bg-slider-verde text-white"     // Pantalla 5: Verde del botón Vocal
+  // Lista de los 21 fonemas para la pregunta 6 (Botonera Práctica 3)
+  const vocalOptionsP2 = [
+    "ɪ", "ʌ", "ʊ", "ə", "ɒ", "æ", "e", "i:", "ɑ:", "u:", "ɜ:", "ɔ:", 
+    "aɪ", "eɪ", "ɔɪ", "aʊ", "oʊ", "ɑːr", "ɜːr", "ɔːr", "ər"
   ];
 
-  useEffect(() => {
-    if (currentPractice === '3') {
-      setCurrentFonema('ə');
-    } else if (currentPractice === '4') {
-      setCurrentFonema('aɪ');
-    } else {
-      setCurrentFonema('1'); // Práctica 3 inicia en el bloque 1 de consonantes
-    }
-    resetEntireExercise();
-  }, [currentPractice]);
+  // Arreglo con las 5 clases de color de fondo especificadas para el slider de login
+  const slideBackgrounds = [
+    "bg-slider-amarillo text-black", 
+    "bg-slider-gris text-white",     
+    "bg-slider-naranja text-white",  
+    "bg-slider-azul text-white",     
+    "bg-slider-verde text-white"     
+  ];
 
+  // Efecto para la transición automática de pantallas del login cada 4 segundos
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % 5);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
 
   // --- FILTRADO DINÁMICO DE PALABRAS POR ID NUMÉRICO SEGÚN LA PRÁCTICA ACTIVA ---
   const obtenerPalabrasFiltradas = () => {
@@ -134,6 +139,8 @@ function PlataformaFonica() {
   useEffect(() => {
     if (currentPractice === '3') {
       setCurrentFonema('ə');
+    } else if (currentPractice === '4') {
+      setCurrentFonema('aɪ');
     } else {
       setCurrentFonema('1');
     }
@@ -149,7 +156,7 @@ function PlataformaFonica() {
     setHasAnsweredCorrectly(false);
   };
 
-  // --- REPRODUCCIÓN AUDIO LOCAL (Integrados 100% sin internet) ---
+  // --- REPRODUCCIÓN AUDIO LOCAL ---
   const handlePlayWordAudio = (e) => {
     if (e) e.preventDefault();
     if (answerInputRef.current) answerInputRef.current.focus();
@@ -176,7 +183,7 @@ function PlataformaFonica() {
     }
   };
 
-  // --- MOTOR DE EVALUACIÓN MULTI-CASO (Soporta Pregunta 5 de Botones y Pregunta 6 de Cuadrícula de Botones) ---
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO ---
   const handleCheckAnswer = (e, valorBotonP5 = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
@@ -185,7 +192,7 @@ function PlataformaFonica() {
     let isCorrect = false;
     let successNote = "";
 
-    // CASO A: EVALUACIÓN DE LAS PREGUNTAS GENERALES 1 A 4 (Común para P1 y P2)
+    // CASO A: EVALUACIÓN DE LAS PREGUNTAS GENERALES 1 A 4
     if (currentQuestionIndex < 4) {
       let isTwoDigitQuestion = (currentQuestionIndex === 0);
       let isValidFormat = isTwoDigitQuestion ? /^[0-9]{1,2}$/.test(value) : /^[0-9]$/.test(value);
@@ -211,7 +218,6 @@ function PlataformaFonica() {
       }
       isCorrect = (value === correctValue);
     } 
-
     // CASO B: EVALUACIÓN DE LA PREGUNTA 5
     else if (currentQuestionIndex === 4) {
       if (currentPractice === '3' || currentPractice === '4') {
@@ -233,12 +239,11 @@ function PlataformaFonica() {
         const consonantLimpia = currentData.consonant.replace(/\\/g, "");
         isCorrect = (valorBotonP5 === consonantLimpia);
         if (isCorrect) {
-          successNote = `¡Excelente elección! El fonema consonántico correcto de la palabra es ${consonantLimpia}.`;
+          successNote = `¡Excelente elección! El fonema consonántico correcto de la palabra es ${consonantLinter}.`;
         }
       }
-    }
-
-    // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (EXCLUSIVA PRÁCTICA 2 - CUADRÍCULA DE BOTONES)
+    } 
+    // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (EXCLUSIVA PRÁCTICA 3)
     else if (currentQuestionIndex === 5 && currentPractice === '5') {
       if (studentSelectedVocals.length === 0) {
         setErrorMessage("⚠️ Selecciona al menos un fonema vocal de la cuadrícula antes de comprobar.");
@@ -247,28 +252,16 @@ function PlataformaFonica() {
       }
       setErrorMessage("");
 
-      // Helper para limpiar barras diagonales y unificar los caracteres de dos puntos (: o ː)
       const limpiarFormato = (txt) => txt.replace(/\\|\/|\s/g, "").replace(/:/g, "ː");
-
-      // Helper que mapea las vocales cortas a sus equivalentes largas normalizadas
       const normalizarFonema = (fonema) => {
         const textoLimpio = limpiarFormato(fonema);
-        const equivalencias = {
-          "a": "aː", "e": "eː", "i": "iː", "ɔ": "ɔː", "u": "uː"
-        };
+        const equivalencias = { "a": "aː", "e": "eː", "i": "iː", "ɔ": "ɔː", "u": "uː" };
         return equivalencias[textoLimpio] || textoLimpio;
       };
 
-      // 1. Procesamos y normalizamos los fonemas que vienen del JSON de la base de datos
-      const vocalesLimpiasJson = currentData.vocalesIPA
-        .split(",")
-        .map(v => normalizarFonema(v));
-      
-      // 2. Procesamos y normalizamos los fonemas seleccionados por el estudiante en la botonera
-      const vocalesSeleccionadasEstudiante = studentSelectedVocals
-        .map(v => normalizarFonema(v));
+      const vocalesLimpiasJson = currentData.vocalesIPA.split(",").map(v => normalizarFonema(v));
+      const vocalesSeleccionadasEstudiante = studentSelectedVocals.map(v => normalizarFonema(v));
 
-      // 3. Realizamos la comparación con los arreglos completamente normalizados
       const todosEstan = vocalesLimpiasJson.every(v => vocalesSeleccionadasEstudiante.includes(v));
       const longitudIgual = vocalesLimpiasJson.length === vocalesSeleccionadasEstudiante.length;
       
@@ -290,7 +283,7 @@ function PlataformaFonica() {
     if (e) e.preventDefault();
     if (!hasAnsweredCorrectly) return;
 
-    const maxPreguntas = currentPractice === '3' ? 5 : 6;
+    const maxPreguntas = (currentPractice === '3' || currentPractice === '4') ? 5 : 6;
 
     if (currentQuestionIndex < maxPreguntas - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -346,9 +339,6 @@ function PlataformaFonica() {
     }
   };
 
-  // ==========================================================================
-  // ÚNICA DECLARACIÓN DE RENDER DE CARGA INTERMEDIA
-  // ==========================================================================
   if (status === "loading") {
     return (
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
@@ -359,40 +349,28 @@ function PlataformaFonica() {
     );
   }
 
-  // ==========================================================================
-  // VISTA A: PANTALLA LOGIN COMPLETA CON SLIDER DE 5 COLORES
-  // ==========================================================================
   if (status === "unauthenticated" || !session) {
     return (
       <div 
         className={`fixed inset-0 w-full h-full flex flex-col justify-between p-6 md:p-12 overflow-hidden select-none transition-all duration-700 ease-in-out ${slideBackgrounds[currentSlide]}`}
         style={{ fontFamily: 'var(--font-redondeada), sans-serif', zIndex: 9999 }}
       >
-        {/* CÍRCULOS DECORATIVOS CON OPACIDAD */}
         <div className="absolute -right-40 top-1/4 w-[600px] h-[600px] rounded-full bg-white/10 pointer-events-none z-0" />
         <div className="absolute -left-20 -top-20 w-[400px] h-[400px] rounded-full bg-black/5 pointer-events-none z-0" />
         <div className="absolute left-10 -bottom-40 w-[500px] h-[500px] rounded-full bg-white/15 pointer-events-none z-0" />
 
-        {/* INDICADORES LATERALES ESTILO FIGMA (PUNTOS DERECHOS) */}
         <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
           {[0, 1, 2, 3, 4].map((index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentSlide === index 
-                  ? 'bg-current scale-125 opacity-100' 
-                  : 'bg-current opacity-30 hover:opacity-60'
-              }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === index ? 'bg-current scale-125 opacity-100' : 'bg-current opacity-30 hover:opacity-60'}`}
               title={`Ir a pantalla ${index + 1}`}
             />
           ))}
         </div>
 
-        {/* MANTIENE: TEXTO BLANCO EN PANTALLAS 3, 4 Y 5 */}
-        <div className={`absolute top-8 left-8 bg-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10 ${
-          currentSlide >= 2 ? 'text-white' : 'text-[#F2C83B]'
-        }`}>
+        <div className={`absolute top-8 left-8 bg-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-md z-10 ${currentSlide >= 2 ? 'text-white' : 'text-[#F2C83B]'}`}>
           ★ 30+ AÑOS DE EXPERIENCIA
         </div>
         <div className="absolute top-8 right-16 text-sm font-bold tracking-widest z-10 opacity-60">
@@ -400,153 +378,73 @@ function PlataformaFonica() {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full text-center my-10 z-10">
-          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">
-            BIENVENIDO A
-          </span>
-          
-          {/* MODIFICADO: CONTORNO DE 8PX INTEGRADO EN TODAS LAS PANTALLAS PARA LOGRAR EL MISMO GROSOR */}
+          <span className="text-xs md:text-sm font-extrabold uppercase tracking-[0.4em] opacity-60 mb-6">BIENVENIDO A</span>
           <h1 
             className="text-5xl sm:text-7xl md:text-[8rem] font-black tracking-tight leading-[0.95] mb-12 uppercase" 
-            style={{ 
-              WebkitTextStroke: currentSlide === 0 ? '8px #000000' : currentSlide === 1 ? '8px #F2C83B' : '8px #FFFFFF', 
-              paintOrder: 'stroke fill',
-              color: currentSlide === 0 ? '#000000' : undefined
-            }}
+            style={{ WebkitTextStroke: currentSlide === 0 ? '8px #000000' : currentSlide === 1 ? '8px #F2C83B' : '8px #FFFFFF', paintOrder: 'stroke fill', color: currentSlide === 0 ? '#000000' : undefined }}
           >
-            {currentSlide === 1 ? (
-              <>
-                <span className="text-[#F2C83B]">APRENDE INGLES</span> <br />
-                <span className="text-[#F2C83B]">EN ESPAÑOL</span>
-              </>
-            ) : (
-              <>
-                <span className={currentSlide === 0 ? 'text-[#000000]' : 'text-white'}>
-                  APRENDE INGLES <br /> EN ESPAÑOL
-                </span>
-              </>
-            )}
+            {currentSlide === 1 ? (<><span className="text-[#F2C83B]">APRENDE INGLES</span> <br /><span className="text-[#F2C83B]">EN ESPAÑOL</span></>) : (<><span className={currentSlide === 0 ? 'text-[#000000]' : 'text-white'}>APRENDE INGLES <br /> EN ESPAÑOL</span></>)}
           </h1>
-
-          {/* MANTIENE: COLORES DIVIDIDOS EN EL PÁRRAFO DESCRIPTIVO DE LA PANTALLA 2 */}
           <p className="text-base md:text-2xl font-bold max-w-2xl mx-auto mb-14 leading-relaxed tracking-tight">
-            {currentSlide === 1 ? (
-              <>
-                <span className="text-white/90">Desde cero absoluto hasta hablar con confianza —</span> <br />
-                <span className="text-white/90">paso a paso, día a día.</span>
-              </>
-            ) : (
-              <span className="text-white opacity-90">
-                Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.
-              </span>
-            )}
+            {currentSlide === 1 ? (<><span className="text-white/90">Desde cero absoluto hasta hablar con confianza —</span> <br /><span className="text-white/90">paso a paso, día a día.</span></>) : (<span className="text-white opacity-90">Desde cero absoluto hasta hablar con confianza — <br /> paso a paso, día a día.</span>)}
           </p>
           <div className="w-full max-w-[360px] md:max-w-[440px] mx-auto">
-            {/* MANTIENE: BOTÓN DE GOOGLE CON TEXTO EN WHITE/60 FIJO EN PANTALLA 2 */}
-            <button 
-              onClick={() => signIn('google')} 
-              className={`w-full font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98] ${
-                currentSlide === 1 
-                  ? 'bg-[#303030] text-white/90 hover:bg-[#404040]' 
-                  : 'bg-[#000000] hover:bg-[#1E293B] text-white'
-              }`}
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.13 1 1.15 5.925 1.15 12s4.98 11 11.09 11c6.38 0 10.614-4.474 10.614-10.794 0-.727-.078-1.282-.175-1.921H12.24z"/>
-              </svg>
+            <button onClick={() => signIn('google')} className={`w-full font-bold py-5 px-8 rounded-full transition-all shadow-xl flex items-center justify-center gap-3 tracking-wide text-base uppercase transform hover:scale-[1.03] active:scale-[0.98] ${currentSlide === 1 ? 'bg-[#303030] text-white/90 hover:bg-[#404040]' : 'bg-[#000000] hover:bg-[#1E293B] text-white'}`}>
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.13 1 1.15 5.925 1.15 12s4.98 11 11.09 11c6.38 0 10.614-4.474 10.614-10.794 0-.727-.078-1.282-.175-1.921H12.24z"/></svg>
               <span>Ingresa con Google</span>
             </button>
           </div>
         </div>
 
-        {/* MANTIENE: BOTONES DEL PIE DE PÁGINA CON TEXTO EN WHITE/60 FIJO EN PANTALLA 2 */}
         <div className="w-full max-w-3xl mx-auto flex flex-wrap justify-center items-center gap-3 md:gap-4 pt-5 border-t border-current/10 z-10">
-          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
-          }`}>✓ Acceso Seguro</div>
-          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
-          }`}>✓ Cuentas Verificadas</div>
-          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${
-            currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'
-          }`}>✓ Progreso Guardado</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'}`}>✓ Acceso Seguro</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'}`}>✓ Cuentas Verificadas</div>
+          <div className={`px-5 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-sm uppercase tracking-wide border border-black/5 ${currentSlide === 1 ? 'bg-[#303030] text-white/60' : 'bg-white text-black'}`}>✓ Progreso Guardado</div>
         </div>
       </div>
     );
   }
 
-  // ==========================================================================
-  // VISTA B: INTERFAZ INTERNA PARA ALUMNOS LOGUEADOS CORRECTAMENTE
-  // ==========================================================================
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-
-
-
-      {/* HEADER DE LA PLATAFORMA */}
       <header className="app-header">
         <div className="header-left">
-          <button id="menu-toggle" className="menu-toggle-btn" onClick={(e) => {
-            e.stopPropagation();
-            document.getElementById('sidebar')?.classList.toggle('open');
-          }}>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
+          <button id="menu-toggle" className="menu-toggle-btn" onClick={(e) => { e.stopPropagation(); document.getElementById('sidebar')?.classList.toggle('open'); }}>
+            <span className="hamburger-line"></span><span className="hamburger-line"></span><span className="hamburger-line"></span>
           </button>
           <div className="logo">English For All</div>
         </div>
 
-        {/* BARRA DE PROGRESO */}
         <div className="progress-container">
           <div className="progress-bar-bg">
-            <div id="progress-bar" className="progress-bar-fill" style={{ width: `${((currentQuestionIndex + 1) / (currentPractice === '3' ? 5 : 6)) * 100}%` }}></div>
+            <div id="progress-bar" className="progress-bar-fill" style={{ width: `${((currentQuestionIndex + 1) / ((currentPractice === '3' || currentPractice === '4') ? 5 : 6)) * 100}%` }}></div>
           </div>
-          <span id="progress-text" className="progress-text">Pregunta {currentQuestionIndex + 1} de {currentPractice === '3' ? 5 : 6}</span>
+          <span id="progress-text" className="progress-text">Pregunta {currentQuestionIndex + 1} de {(currentPractice === '3' || currentPractice === '4') ? 5 : 6}</span>
         </div>
 
-        {/* AVATAR DINÁMICO */}
-        <div 
-          className="avatar" 
-          onClick={() => signOut()} 
-          style={{ cursor: 'pointer', backgroundColor: '#F2C83B', color: '#000000', fontWeight: 'bold' }} 
-          title="Haz clic para Cerrar Sesión"
-        >
+        <div className="avatar" onClick={() => signOut()} style={{ cursor: 'pointer', backgroundColor: '#F2C83B', color: '#000000', fontWeight: 'bold' }} title="Haz clic para Cerrar Sesión">
           {session.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
         </div>
       </header>
 
-      {/* CUERPO DEL LAYOUT EN REJILLA */}
       <div className="app-layout">
-        
-        {/* MENÚ LATERAL IZQUIERDO INTERACTIVO REESCRITO Y REORDENADO */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
             <li className="menu-item" id="menu-metodologia"><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
             <li className="menu-item" id="menu-alfabeto"><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
             
-            <li 
-              className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} 
-              id="menu-practica-1"
-              onClick={() => setCurrentPractice('3')}
-            >
-              <span className="menu-number">3</span>
-              <span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
+            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => setCurrentPractice('3')}>
+              <span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
 
-            <li className="menu-item" id="menu-diptongos">
-              <span className="menu-number">4</span>
-              <span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
+            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => setCurrentPractice('4')}>
+              <span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
             </li>
 
-            <li 
-              className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} 
-              id="menu-practica-2"
-              onClick={() => setCurrentPractice('5')}
-            >
-              <span className="menu-number">5</span>
-              <span className="menu-text">Práctica 3 Listening de Consonantes.</span>
+            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => setCurrentPractice('5')}>
+              <span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span>
             </li>
 
             <li className="menu-item" id="menu-grafemas"><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
@@ -556,9 +454,7 @@ function PlataformaFonica() {
           </ul>
         </aside>
 
-        {/* CONTENEDOR CENTRAL DE TRABAJO */}
         <main className="main-container">
-          
           <div className="instruction-card">
             <p id="instruction-text" className="instruction-text">{questionsTexts[currentQuestionIndex]}</p>
           </div>
@@ -594,7 +490,6 @@ function PlataformaFonica() {
               )}
             </div>
 
-
             <div className="media-buttons-row">
               <div className="media-column-left">
                 <button id="play-word-btn" onClick={handlePlayWordAudio} className="audio-btn"><IconoBocina /><span>Palabra</span></button>
@@ -603,8 +498,8 @@ function PlataformaFonica() {
                 <button 
                   id="play-vocal-btn" 
                   onClick={handlePlayVocalAudio} 
-                  className={`audio-btn vocal-btn ${currentPractice !== '3' ? 'btn-disabled opacity-40 cursor-not-allowed' : ''}`}
-                  disabled={currentPractice !== '3'}
+                  className={`audio-btn vocal-btn ${(currentPractice !== '3' && currentPractice !== '4') ? 'btn-disabled opacity-40 cursor-not-allowed' : ''}`}
+                  disabled={currentPractice !== '3' && currentPractice !== '4'}
                 >
                   <IconoNota /><span>Vocal</span>
                 </button>
@@ -620,7 +515,6 @@ function PlataformaFonica() {
             </div>
           </div>
 
-          {/* CONTROL DE VISTAS DE RESPUESTA: SÓLO LA PRÁCTICA 3 (currentPractice === '5') USA BOTONERAS ESPECIALES */}
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
@@ -664,7 +558,6 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : (
-            /* AQUÍ ENTRARÁN LA PRÁCTICA 1 (currentPractice === '3') Y LA PRÁCTICA 2 (currentPractice === '4') COMPARTIENDO LA CAJA DE TEXTO IDÉNTICA */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
@@ -682,52 +575,24 @@ function PlataformaFonica() {
             </div>
           )}
 
-          {/* TARJETA DE RETROALIMENTACIÓN ORIGINAL (DINÁMICA) */}
           {showFeedback && (
             <div id="feedback-card" className="feedback-card">
               <span className="feedback-title">Resultado de la evaluación:</span>
               <div id="feedback-phrase" className="feedback-phrase">
-                {feedbackIsCorrect ? (
-                  <span className="word-correct">{feedbackSuccessNote}</span>
-                ) : (
-                  <>Tu respuesta no es correcta. ¡Inténtalo de nuevo!</>
-                )}
+                {feedbackIsCorrect ? <span className="word-correct">{feedbackSuccessNote}</span> : <>Tu respuesta no es correcta. ¡Inténtalo de nuevo!</>}
               </div>
               <div id="tip-text" className="tip-box">
-                {feedbackIsCorrect ? (
-                  "Recuerda que esta práctica se trata de poner atención a los sonidos no a los grafemas."
-                ) : (
-                  currentQuestionIndex === 5 ? (
-                    "Revisa con calma cada una de las sílabas de la palabra al escucharla de manera lenta con el deslizador."
-                  ) : (
-                    "Recuerda que los diptongos o las vocales compuestas cuentan como 1 sonido. Tampoco te olvides de utilizar la técnica de eliminación de sonidos."
-                  )
-                )}
+                {feedbackIsCorrect ? "Recuerda que esta práctica se trata de poner atención a los sonidos no a los grafemas." : (currentQuestionIndex === 5 ? "Revisa con calma cada una de las sílabas de la palabra al escucharla de manera lenta con el deslizador." : "Recuerda que los diptongos o las vocales compuestas cuentan como 1 sonido. Tampoco te olvides de utilizar la técnica de eliminación de sonidos.")}
               </div>
             </div>
           )}
 
-          {/* NAVEGACIÓN INFERIOR DE RETOS */}
           <div className="navigation-buttons" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '16px' }}>
-            <button 
-              id="prev-btn" 
-              onClick={handlePreviousQuestion} 
-              className={`back-question-btn ${currentQuestionIndex === 0 ? 'hidden' : ''}`} 
-              style={{ flex: 1 }}
-            >
-              ← Anterior
-            </button>
-            <button 
-              id="action-btn" 
-              onClick={handleNextQuestion} 
-              className={`next-btn ${!hasAnsweredCorrectly ? 'btn-disabled' : ''}`} 
-              disabled={!hasAnsweredCorrectly} 
-              style={{ flex: 2 }}
-            >
-              {currentQuestionIndex === (currentPractice === '3' ? 5 : 6) - 1 ? "SIGUIENTE PALABRA ➔" : "SIGUIENTE PREGUNTA ➔"}
+            <button id="prev-btn" onClick={handlePreviousQuestion} className={`back-question-btn ${currentQuestionIndex === 0 ? 'hidden' : ''}`} style={{ flex: 1 }}>← Anterior</button>
+            <button id="action-btn" onClick={handleNextQuestion} className={`next-btn ${!hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={!hasAnsweredCorrectly} style={{ flex: 2 }}>
+              {currentQuestionIndex === ((currentPractice === '3' || currentPractice === '4') ? 5 : 6) - 1 ? "SIGUIENTE PALABRA ➔" : "SIGUIENTE PREGUNTA ➔"}
             </button>
           </div>
-
         </main>
       </div>
     </div>
