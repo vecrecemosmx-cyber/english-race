@@ -620,38 +620,31 @@ function PlataformaFonica() {
             </div>
           </div>
 
+          {/* CONTROL DE VISTAS DE RESPUESTA: SÓLO LA PRÁCTICA 3 (currentPractice === '5') USA BOTONERAS ESPECIALES */}
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
               <div className="flex gap-4 justify-center">
                 {currentFonema === '1' && (
-                  <>
-                    <button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button>
-                  </>
+                  <><button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button></>
                 )}
                 {currentFonema === '2' && (
-                  <>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʧ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʧ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
-                  </>
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʧ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʧ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button></>
                 )}
                 {currentFonema === '3' && (
-                  <>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/j/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/j/</button>
-                  </>
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/j/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/j/</button></>
                 )}
                 {currentFonema === '4' && (
-                  <>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʃ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʃ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʒ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʒ/</button>
-                  </>
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʃ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʃ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʒ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʒ/</button></>
                 )}
               </div>
               {errorMessage && <p className="error-text text-center mt-2">{errorMessage}</p>}
             </div>
-          ) : currentPractice === '5' && currentQuestionIndex === 5 ? (
+          ) : (currentPractice === '5' && currentQuestionIndex === 5) ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm flex flex-col gap-4">
               <span className="response-title">Selecciona las vocales presentes</span>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[180px] overflow-y-auto p-2 border border-zinc-100 rounded-xl bg-zinc-50">
@@ -671,6 +664,7 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : (
+            /* AQUÍ ENTRARÁN LA PRÁCTICA 1 (currentPractice === '3') Y LA PRÁCTICA 2 (currentPractice === '4') COMPARTIENDO LA CAJA DE TEXTO IDÉNTICA */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
