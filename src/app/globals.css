@@ -588,6 +588,75 @@
     padding-top: 0.5rem;
 }
 
+/* OPTIMIZACIÓN RESPONSIVA MÓVIL */
+@media (max-width: 768px) {
+    .plataforma-body .menu-toggle-btn { 
+        display: flex; 
+    }
+    
+    .plataforma-body .app-layout { 
+        grid-template-columns: 1fr; 
+        position: relative; 
+    }
+    
+    .plataforma-body .sidebar {
+        position: absolute; 
+        top: 0; 
+        left: -280px; 
+        width: 280px; 
+        height: 100%;
+        z-index: 50; 
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .plataforma-body .sidebar.open { 
+        left: 0; 
+    }
+    
+    .plataforma-body .main-container { 
+        padding: 1rem 0.75rem; 
+        gap: 1rem; 
+    }
+
+    .plataforma-body .split-response-card { 
+        gap: 0.75rem !important; 
+        padding: 1rem !important; 
+    }
+    
+    .plataforma-body .response-divider-line { 
+        margin: 0 0.25rem !important; 
+    }
+    
+    .plataforma-body .check-green-btn { 
+        padding: 1rem 1.25rem !important; 
+        font-size: 0.95rem !important; 
+    }
+}
+
+/* ==========================================================================
+   CLASES DE COLOR EXCLUSIVAS PARA EL SLIDER DE LOGIN
+   ========================================================================== */
+.bg-slider-amarillo {
+    background-color: #F2C83B !important;
+}
+
+.bg-slider-gris {
+    background-color: #000000 !important; /* Cambiado de gris oscuro a negro puro */
+}
+
+.bg-slider-naranja {
+    background-color: #F97316 !important; /* Tono naranja vibrante */
+}
+
+.bg-slider-azul {
+    background-color: #0284C7 !important; /* Color idéntico al botón Palabra */
+}
+
+.bg-slider-verde {
+    background-color: #10B981 !important; /* Color idéntico al botón Vocal */
+}
+
 /* ==========================================================================
    OPTIMIZACIÓN RESPONSIVA MÓVIL AVANZADA (ADICIÓN PARA GLOBALS.CSS)
    ========================================================================== */
