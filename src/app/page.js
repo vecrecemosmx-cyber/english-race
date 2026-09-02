@@ -1,10 +1,20 @@
 'use client';
 
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, SessionProvider } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// COMPONENTE CONTENEDOR (Envoltura Obligatoria para NextAuth)
 export default function LoginPage() {
+  return (
+    <SessionProvider>
+      <LoginForm />
+    </SessionProvider>
+  );
+}
+
+// COMPONENTE INTERNO CON LA LÓGICA DE CONTROL
+function LoginForm() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
@@ -16,7 +26,6 @@ export default function LoginPage() {
       
       // Si el correo es el del administrador/profesor
       if (userEmail === "vecrecemosmx@gmail.com") {
-        // Lo enviamos a la pantalla de selección de rol (que crearemos a continuación)
         router.push("/role-selection");
       } else {
         // Cualquier otro correo va directo a la interfaz de estudiante
@@ -56,8 +65,6 @@ export default function LoginPage() {
   }, [sliderItems.length]);
 
   const handleGoogleSignIn = () => {
-    // Al quitar el callbackUrl fijo, NextAuth procesa la autenticación 
-    // y deja que nuestro useEffect de arriba maneje la redirección inteligente
     signIn("google");
   };
 
