@@ -1,10 +1,20 @@
 'use client';
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, SessionProvider } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// COMPONENTE CONTENEDOR PRINCIPAL (Envoltura Obligatoria para NextAuth)
 export default function StudentPage() {
+  return (
+    <SessionProvider>
+      <StudentLayout />
+    </SessionProvider>
+  );
+}
+
+// COMPONENTE INTERNO CON LA LÓGICA DE LAS PRÁCTICAS
+function StudentLayout() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -46,8 +56,8 @@ export default function StudentPage() {
     ]
   };
 
-  const currentQuestions = mockDataset[activeMenu] || mockDataset[1];
-  const currentQuestion = currentQuestions[currentWordIndex] || currentQuestions[0];
+  const currentQuestions = mockDataset[activeMenu] || mockDataset;
+  const currentQuestion = currentQuestions[currentWordIndex] || currentQuestions;
 
   // =========================================================
   // FUNCIONES MULTIMEDIA Y MANEJADORES DE AUDIO
@@ -60,7 +70,6 @@ export default function StudentPage() {
       utterance.rate = playbackSpeed;
       window.speechSynthesis.speak(utterance);
       
-      // Activamos el inicio de la práctica si no se había hecho antes
       if (!isPracticeStarted) {
         setIsPracticeStarted(true);
       }

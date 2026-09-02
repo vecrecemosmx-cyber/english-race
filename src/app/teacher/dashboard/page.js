@@ -1,10 +1,20 @@
 'use client';
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, SessionProvider } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// COMPONENTE CONTENEDOR PRINCIPAL (Envoltura Obligatoria para NextAuth)
 export default function TeacherDashboard() {
+  return (
+    <SessionProvider>
+      <TeacherDashboardLayout />
+    </SessionProvider>
+  );
+}
+
+// COMPONENTE INTERNO CON LA INTERFAZ Y MÉTODOS DEL DOCENTE
+function TeacherDashboardLayout() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -66,9 +76,7 @@ export default function TeacherDashboard() {
   return (
     <div className="plataforma-body min-h-screen flex flex-col bg-slate-50">
       
-      {/* =========================================================
-         HEADER DEL DASHBOARD (CABECERA DOCENTE)
-         ========================================================= */}
+      {/* HEADER DEL DASHBOARD */}
       <header className="app-header">
         <div className="header-left">
           <span className="logo font-bold text-xl tracking-tight text-sky-600">
@@ -127,9 +135,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* =========================================================
-           CONTENEDOR DE TARJETAS DE MÉTRICAS GLOBALES
-           ========================================================= */}
+        {/* CONTENEDOR DE TARJETAS DE MÉTRICAS GLOBALES */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-1">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Palabras Terminadas</span>
@@ -156,9 +162,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* =========================================================
-           DETALLE COMPLETO Y REPORTE INDIVIDUAL
-           ========================================================= */}
+        {/* DETALLE COMPLETO Y REPORTE INDIVIDUAL */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* COLUMNA IZQUIERDA Y CENTRAL: Bitácora de respuestas y Clics (2 columnas) */}
