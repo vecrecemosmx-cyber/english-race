@@ -1,12 +1,30 @@
 'use client';
 
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
 
-  // Configuración de los testimonios o mensajes del slider con sus clases de color de globals.css
+  // REDIRECCIÓN INTELIGENTE SEGÚN EL ROL Y EL CORREO
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.email) {
+      const userEmail = session.user.email.toLowerCase().trim();
+      
+      // Si el correo es el del administrador/profesor
+      if (userEmail === "vecrecemosmx@gmail.com") {
+        // Lo enviamos a la pantalla de selección de rol (que crearemos a continuación)
+        router.push("/role-selection");
+      } else {
+        // Cualquier otro correo va directo a la interfaz de estudiante
+        router.push("/student");
+      }
+    }
+  }, [status, session, router]);
+
   const sliderItems = [
     {
       text: "Aprende fonemas en inglés de forma interactiva y evalúa tu pronunciación en tiempo real.",
@@ -30,7 +48,6 @@ export default function LoginPage() {
     }
   ];
 
-  // Cambiar de slide automáticamente cada 5 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSliderIndex((prevIndex) => (prevIndex + 1) % sliderItems.length);
@@ -38,11 +55,19 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [sliderItems.length]);
 
-  // Manejador para el botón de inicio de sesión con Google
   const handleGoogleSignIn = () => {
-    // Redirige automáticamente al alumno o profesor tras autenticarse con éxito
-    signIn("google", { callbackUrl: "/student" });
+    // Al quitar el callbackUrl fijo, NextAuth procesa la autenticación 
+    // y deja que nuestro useEffect de arriba maneje la redirección inteligente
+    signIn("google");
   };
+
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <p className="text-lg font-semibold text-slate-600 animate-pulse">Comprobando sesión...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="plataforma-body flex min-h-screen items-center justify-center p-4">
@@ -63,7 +88,7 @@ export default function LoginPage() {
               ¡Te damos la bienvenida!
             </h1>
             <p className="text-sm font-medium text-slate-500 mb-8">
-              Inicia sesión para comenzar a practicar o revisar tus métricas.
+              Inicia sesión de forma segura para comenzar a practicar.
             </p>
 
             {/* Botón de Autenticación con Google */}
@@ -102,18 +127,12 @@ export default function LoginPage() {
 
         {/* COLUMNA DERECHA: Slider de Contenido Dinámico (7 columnas) */}
         <div className={`relative hidden flex-col justify-end p-8 transition-colors duration-700 ease-in-out md:col-span-7 md:flex lg:p-12 ${sliderItems[currentSliderIndex].bgClass}`}>
-          
-          {/* Capa sutil de patrón visual sobre el fondo */}
           <div className="absolute inset-0 bg-black/5 pointer-events-none" />
-
-          {/* Contenedor del Texto del Slider */}
           <div className="relative z-10 max-w-md text-white animate-fade-in">
             <p className="text-2xl font-medium leading-relaxed tracking-wide drop-shadow-sm transition-all duration-500">
               "{sliderItems[currentSliderIndex].text}"
             </p>
           </div>
-
-          {/* Indicadores de Posición Inferiores (Dots) */}
           <div className="relative z-10 mt-12 flex gap-2">
             {sliderItems.map((_, index) => (
               <button
