@@ -239,7 +239,10 @@ function PlataformaFonica() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: correctValue = currentData.f; successNote = `¡Excelente! Esta palabra está compuesta por ${currentData.f} sonidos.`; break;
+        case 0: 
+          // Extraemos el valor de forma ultra segura asegurando que lea el dataset actual
+          correctValue = currentData ? String(currentData.f) : ""; 
+          successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; break;
         case 1: correctValue = currentData.fc; successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; break;
         case 2: correctValue = currentData.fv; successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; break;
         case 3: correctValue = currentData.stress; successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; break;
@@ -508,13 +511,15 @@ function PlataformaFonica() {
               <span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
+            {/* Busca tus líneas de Práctica 2 y 3 en el Sidebar y asegúrate de que limpien el índice al dar clic */}
+            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); }}>
               <span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
+            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); }}>
               <span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span>
             </li>
+
 
             <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
             <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
