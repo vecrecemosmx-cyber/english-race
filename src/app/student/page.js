@@ -406,14 +406,17 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR COMPACTO DE BURBUJAS ACÚSTICAS (Sustituye la entrada de texto)
+  // RENDERIZADOR MEJORADO: PREGUNTA 1 (9 BLOQUES FIJOS DESDE EL PRINCIPIO)
   // ==========================================================================
   const renderBotoneraFichasPregunta1 = () => {
+    // Definimos el límite actual seleccionado o en hover de forma numérica
+    const limiteIluminado = hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0);
+
     return (
       <div className="w-full flex flex-col items-center gap-6 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos que escuchas</span>
         
-        {/* Fila de Burbujas Numéricas Interactivas */}
+        {/* Fila de Burbujas Numéricas del 3 al 9 */}
         <div className="flex flex-wrap justify-center gap-3">
           {totalFonicButtons.map((numero) => (
             <button
@@ -423,9 +426,8 @@ function PlataformaFonica() {
               onMouseEnter={() => !hasAnsweredCorrectly && setHoveredSoundsCount(numero)}
               onMouseLeave={() => !hasAnsweredCorrectly && setHoveredSoundsCount(null)}
               onClick={(e) => {
-                // Setea la respuesta del alumno de forma automática sin tocar el teclado
                 setStudentAnswer(String(numero));
-                // Si aún no ha comprobado, ejecuta la validación de forma directa y fluida
+                // 🚀 UN SOLO TOQUE: Comprueba la respuesta de inmediato
                 if (!hasAnsweredCorrectly) {
                   handleCheckAnswer(e);
                 }
@@ -441,25 +443,97 @@ function PlataformaFonica() {
           ))}
         </div>
 
-        {/* RECREACIÓN VISUAL: Cajas Acústicas Vacías (Elkonin Boxes Digitales) */}
-        <div className="flex justify-center gap-2 mt-2 min-h-[36px] items-center">
-          {Array.from({ length: hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0) }).map((_, idx) => (
-            <div
-              key={idx}
-              className={`w-8 h-8 rounded-lg border-2 border-dashed transition-all duration-300 animate-pulse ${
-                hoveredSoundsCount ? 'border-sky-400 bg-sky-50/30' : 'border-zinc-300 bg-zinc-100/50'
-              }`}
-            />
-          ))}
-          {!(hoveredSoundsCount || studentAnswer) && (
-            <span className="text-xs text-zinc-400 font-medium italic animate-pulse">
-              Presiona una vez para visualizar los bloques de sonido.
-              <br />
-              <span className="mt-1 block text-zinc-500 font-semibold">
-                Presiona otra vez para enviar tu respuesta.
-              </span>
+        {/* 🔲 ELKONIN BOXES FIJAS DESDE UN PRINCIPIO (Muestra siempre 9 bloques) */}
+        <div className="flex flex-wrap justify-center gap-2 mt-2 min-h-[36px] items-center max-w-full">
+          {Array.from({ length: 9 }).map((_, idx) => {
+            const numeroBloque = idx + 1;
+            const estaIluminado = numeroBloque <= limiteIluminado;
+            return (
+              <div
+                key={idx}
+                className={`w-8 h-8 rounded-lg border-2 transition-all duration-300 ${
+                  estaIluminado
+                    ? 'border-sky-500 bg-sky-500/20 shadow-sm scale-105'
+                    : 'border-zinc-200 border-dashed bg-zinc-100/30'
+                }`}
+              />
+            );
+          })}
+        </div>
+        
+        {/* Tu frase con salto de párrafo agregada con éxito */}
+        {!(hoveredSoundsCount || studentAnswer) && (
+          <span className="text-xs text-zinc-400 font-medium italic animate-pulse block text-center">
+            Elige una opción para previsualizar los bloques acústicos.
+            <br />
+            <span className="mt-1 block text-zinc-500 font-semibold">
+              Presta atención al sonido, no a la escritura de la palabra.
             </span>
-          )}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // ==========================================================================
+  // RENDERIZADOR PARA LA PREGUNTA 2: CONTEO DE CONSONANTES (Rango 1 al 7)
+  // ==========================================================================
+  const renderBotoneraConsonantesPregunta2 = () => {
+    const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7];
+    return (
+      <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
+        <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas consonantes tiene?</span>
+        <div className="flex flex-wrap justify-center gap-2">
+          {botonesConsonantes.map((numero) => (
+            <button
+              key={numero}
+              type="button"
+              disabled={hasAnsweredCorrectly}
+              onClick={(e) => {
+                setStudentAnswer(String(numero));
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
+              }}
+              className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
+                studentAnswer === String(numero)
+                  ? 'bg-emerald-600 border-emerald-600 text-white shadow-md'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50/30'
+              } ${hasAnsweredCorrectly ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              {numero}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================================================
+  // RENDERIZADOR PARA LA PREGUNTA 3: CONTEO DE VOCALES (Rango 1 al 5)
+  // ==========================================================================
+  const renderBotoneraVocalesPregunta3 = () => {
+    const botonesVocales = [1, 2, 3, 4, 5];
+    return (
+      <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
+        <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas vocales tiene?</span>
+        <div className="flex flex-wrap justify-center gap-2">
+          {botonesVocales.map((numero) => (
+            <button
+              key={numero}
+              type="button"
+              disabled={hasAnsweredCorrectly}
+              onClick={(e) => {
+                setStudentAnswer(String(numero));
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
+              }}
+              className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
+                studentAnswer === String(numero)
+                  ? 'bg-sky-600 border-sky-600 text-white shadow-md'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50/30'
+              } ${hasAnsweredCorrectly ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              {numero}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -594,20 +668,28 @@ function PlataformaFonica() {
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
               <div className="flex gap-4 justify-center">
                 {currentFonema === '1' && (
-                  <><button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button></>
+                  <>
+                    <button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button>
+                  </>
                 )}
                 {currentFonema === '2' && (
-                  <><button onClick={(e) => handleCheckAnswer(e, "/ʧ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʧ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button></>
+                  <>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʧ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʧ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
+                  </>
                 )}
                 {currentFonema === '3' && (
-                  <><button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/j/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/j/</button></>
+                  <>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/j/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/j/</button>
+                  </>
                 )}
                 {currentFonema === '4' && (
-                  <><button onClick={(e) => handleCheckAnswer(e, "/ʃ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʃ/</button>
-                    <button onClick={(e) => handleCheckAnswer(e, "/ʒ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʒ/</button></>
+                  <>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʃ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʃ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʒ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʒ/</button>
+                  </>
                 )}
               </div>
               {errorMessage && <p className="error-text text-center mt-2">{errorMessage}</p>}
@@ -632,12 +714,22 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : currentQuestionIndex === 0 ? (
-            /* 🚀 INTERRUPTOR INTELIGENTE: Si el alumno está en la pregunta 1, se renderizan las burbujas acústicas vaciando la barra lateral */
+            /* 🚀 PREGUNTA 1: Fichas con las 9 Elkonin boxes fijas */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
               {renderBotoneraFichasPregunta1()}
             </div>
+          ) : currentQuestionIndex === 1 ? (
+            /* 🚀 PREGUNTA 2: Botonera táctil de consonantes del 1 al 7 */
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
+              {renderBotoneraConsonantesPregunta2()}
+            </div>
+          ) : currentQuestionIndex === 2 ? (
+            /* 🚀 PREGUNTA 3: Botonera táctil de vocales del 1 al 5 */
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
+              {renderBotoneraVocalesPregunta3()}
+            </div>
           ) : (
-            /* LÓGICA TRADICIONAL DE ENTRADA POR TECLADO PARA LAS PREGUNTAS 2, 3 Y 4 */
+            /* PREGUNTA 4 (STRESS) Y PREGUNTA 5 (POSICIÓN VOCAL): Entrada de teclado tradicional */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
