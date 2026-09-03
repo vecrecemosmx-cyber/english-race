@@ -58,7 +58,7 @@ function PlataformaFonica() {
   const [hoveredSoundsCount, setHoveredSoundsCount] = useState(null);
 
   // Rango dinámico exacto basado en tu palabra más larga: "Comfortable" (9 sonidos)
-  const totalFonicButtons = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const totalFonicButtons = [3, 4, 5, 6, 7, 8, 9];
   
   // Mapeos oficiales originales para traducir los IDs de tus menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
@@ -449,7 +449,13 @@ function PlataformaFonica() {
             />
           ))}
           {!(hoveredSoundsCount || studentAnswer) && (
-            <span className="text-xs text-zinc-400 font-medium italic animate-pulse">Pasa el cursor sobre los números para visualizar los bloques de sonido</span>
+            <span className="text-xs text-zinc-400 font-medium italic animate-pulse">
+              Presiona una vez para visualizar los bloques de sonido.
+              <br />
+              <span className="mt-1 block text-zinc-500 font-semibold">
+                Presiona otra vez para enviar tu respuesta.
+              </span>
+            </span>
           )}
         </div>
       </div>
