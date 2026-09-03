@@ -4,24 +4,31 @@ import { useSession, signOut, SessionProvider } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// IMPORTACIÓN OFICIAL CONFIRMADA: Con alias absoluto y mayúsculas exactas
+import { IconoBocina, IconoNota } from '@/Iconos';
+
+// BASES DE DATOS OFICIALES CARGADAS LOCALMENTE (HOMOLOGADAS)
+import datasetP1 from '../database_practice1.json';
+import datasetP2 from '../database_practice2.json';
+import datasetP3 from '../database_practice3.json';
+
 // COMPONENTE CONTENEDOR PRINCIPAL (Envoltura Obligatoria para NextAuth)
-export default function StudentPage() {
+export default function Home() {
   return (
     <SessionProvider>
-      <StudentLayout />
+      <PlataformaFonica />
     </SessionProvider>
   );
 }
 
-// COMPONENTE INTERNO CON EL MOTOR FÓNICO Y CAPTURA DE MÉTRICAS
-function StudentLayout() {
+// NUEVO COMPONENTE MAESTRO DE LA APLICACIÓN
+function PlataformaFonica() {
   const { data: session, status } = useSession();
   const router = useRouter();
-
-  // ---------------------------------------------------------
-  // ESTADOS Y REFERENCIAS ORIGINALES DEL COMPONENTE
-  // ---------------------------------------------------------
-  const [currentPractice, setCurrentPractice] = useState('3'); // '3' = P1, '4' = P2, '5' = P3
+  
+  // --- ESTADOS DE CONTROL GLOBALES (SINCRONIZADOS ORIGINALES) ---
+  // '3' = Práctica 1, '4' = Práctica 2, '5' = Práctica 3
+  const [currentPractice, setCurrentPractice] = useState('3'); 
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -35,26 +42,21 @@ function StudentLayout() {
   const [audioSpeed, setAudioSpeed] = useState(1.25);
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const fontSize = "text-xl"; // Tamaño base unificado
   const answerInputRef = useRef(null);
 
-  // ---------------------------------------------------------
-  // ⏱️ NUEVAS REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE
-  // ---------------------------------------------------------
-  const startTimeWordRef = useRef(null);     // Tiempo inicial al dar click en "Palabra"
-  const startTimeQuestionRef = useRef(null); // Tiempo inicial de la pregunta actual
+  // --- ⏱️ REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS ---
+  const startTimeWordRef = useRef(null);     // Inicia al presionar el botón "Palabra"
+  const startTimeQuestionRef = useRef(null); // Inicia al cargar cada pregunta individual
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
-
-  // Acumuladores de micro-pasos (Tiempos por pregunta en segundos)
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
-  // Acumuladores de las respuestas exactas que ingresa el alumno
   const [respuestasInputs, setRespuestasInputs] = useState({});
 
-  // Mapeos y preguntas de tus tres datasets oficiales
+  // Mapeos oficiales originales para traducir los IDs de tus menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
+  // El arreglo base de preguntas cambia dinámicamente según la práctica activa
   const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
         "1. ¿Cuántos sonidos componen la palabra?",
@@ -72,26 +74,89 @@ function StudentLayout() {
         "6. Selecciona todos los fonemas vocales que escuchas."
       ];
 
-  // Simulación homologada de tus bases de datos JSON internas
-  const mockDatasetP1 = [{ word: "Dust", fonema_id: 1, f: "4", fc: "3", fv: "1", stress: "1", posVocal: "1" }];
-  const mockDatasetP2 = [{ word: "Buy", fonema_id: 1, f: "2", fc: "1", fv: "1", stress: "1", posVocal: "1" }];
-  const mockDatasetP3 = [{ word: "Think", fonema_id: 1, f: "4", fc: "3", fv: "1", stress: "1", consonant: "/θ/", vocalesIPA: "/ɪ/" }];
+  // Ruta local para reproducir los audios fónicos desde public/audio/
+  const baseAudioUrl = "/audio/";
+  const vocalAudioFiles = { 
+    "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3",
+    "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "boy.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
+  };
 
+  // Lista de los 21 fonemas para la pregunta 6 (Botonera Práctica 3)
+  const vocalOptionsP2 = [
+    "ɪ", "ʌ", "ʊ", "ə", "ɒ", "æ", "e", "i:", "ɑ:", "u:", "ɜ:", "ɔ:", 
+    "aɪ", "eɪ", "ɔɪ", "aʊ", "oʊ", "ɑːr", "ɜːr", "ɔːr", "ər"
+  ];
+
+  // Redirección de seguridad si el usuario no está autenticado
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
+
+  // --- FILTRADO DINÁMICO REAL DE PALABRAS POR ID NUMÉRICO SEGÚN TU DATASET ORIGINAL ---
   const obtenerPalabrasFiltradas = () => {
-    if (currentPractice === '3') return mockDatasetP1;
-    if (currentPractice === '4') return mockDatasetP2;
-    return mockDatasetP3;
+    if (currentPractice === '3') {
+      const filtradasCrudas = datasetP1.filter(item => {
+        const symbol = mappingP1[String(item.fonema_id)] || item.fonema_simbolo;
+        return symbol === currentFonema;
+      });
+      return filtradasCrudas.map(item => ({
+        word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), posVocal: String(item.posVocal)
+      }));
+    } else if (currentPractice === '4') {
+      const filtradasCrudas = datasetP2.filter(item => {
+        const symbol = mappingP2[String(item.fonema_id)] || item.fonema_simbolo;
+        return symbol === currentFonema;
+      });
+      return filtradasCrudas.map(item => ({
+        word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), posVocal: String(item.posVocal)
+      }));
+    } else {
+      const filtradasCrudas = datasetP3.filter(item => String(item.fonema_id) === String(currentFonema));
+      return filtradasCrudas.map(item => ({
+        word: item.word, f: String(item.f), fc: String(item.fc), fv: String(item.fv), stress: String(item.stress), consonant: String(item.consonant), vocalesIPA: String(item.vocalesIPA)
+      }));
+    }
   };
 
   const palabrasFiltradas = obtenerPalabrasFiltradas();
   const currentData = palabrasFiltradas[currentWordIndex] || null;
 
-  // Redirección de seguridad
+  // Lógica original de enfoque automático al cambiar de pregunta o palabra
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
-  }, [status, router]);
+    if (status === "authenticated" && answerInputRef.current && currentQuestionIndex < 4) {
+      answerInputRef.current.focus();
+    }
+  }, [currentQuestionIndex, currentWordIndex, currentFonema, status]);
 
-  // Manejadores multimedia con disparador de cronómetro oculto
+  // Restablecimiento original del fonema base al conmutar de práctica fónica
+  useEffect(() => {
+    if (currentPractice === '3') {
+      setCurrentFonema('ə');
+    } else if (currentPractice === '4') {
+      setCurrentFonema('aɪ');
+    } else {
+      setCurrentFonema('1');
+    }
+    resetEntireExercise();
+  }, [currentPractice]);
+
+  const cerrarSidebarMovil = () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
+  };
+
+  const resetEntireExercise = () => {
+    setCurrentQuestionIndex(0);
+    setStudentAnswer('');
+    setStudentSelectedVocals([]);
+    setShowFeedback(false);
+    setErrorMessage('');
+    setHasAnsweredCorrectly(false);
+  };
+
+  // --- REPRODUCCIÓN AUDIO LOCAL ORIGINAL ---
   const handlePlayWordAudio = (e) => {
     if (e) e.preventDefault();
     if (answerInputRef.current) answerInputRef.current.focus();
@@ -99,12 +164,13 @@ function StudentLayout() {
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentData.word);
+      const cleanWord = currentData.word.replace(/\(.*\)/, "").trim();
+      const utterance = new SpeechSynthesisUtterance(cleanWord);
       utterance.lang = 'en-US';
       utterance.rate = audioSpeed;
       window.speechSynthesis.speak(utterance);
 
-      // CRONÓMETRO INVISIBLE: Arranca al presionar el botón "Palabra" por primera vez
+      // CRONÓMETRO INVISIBLE: Arranca al presionar "Palabra" por primera vez en el reto
       if (!isPracticeStarted) {
         const ahora = Date.now();
         startTimeWordRef.current = ahora;
@@ -116,31 +182,28 @@ function StudentLayout() {
 
   const handlePlayVocalAudio = (e) => {
     if (e) e.preventDefault();
-    alert("Reproduciendo sonido de la vocal aislada...");
+    if (currentPractice !== '3' && currentPractice !== '4') return;
+    const fileName = vocalAudioFiles[currentFonema];
+    if (fileName) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const vocalAudio = new Audio(baseAudioUrl + fileName);
+      vocalAudio.play().catch(err => console.log("Error al cargar .mp3 en public/audio/ :", err));
+    }
   };
 
-  // ---------------------------------------------------------
-  // ⏱️ FUNCIÓN INTERNA DE REGISTRO INVISIBLE DE MICRO-PASOS
-  // ---------------------------------------------------------
+  // --- REGISTRO SILENCIOSO DE MICRO-PASOS PARA EL PROFESOR ---
   const registrarMétricaPreguntaOculta = (textoRespuesta) => {
     if (!startTimeQuestionRef.current) return;
-    
     const ahora = Date.now();
-    const tiempoInvertidoMs = ahora - startTimeQuestionRef.current;
-    const segundosInvertidos = Math.round(tiempoInvertidoMs / 1000);
+    const segundosInvertidos = Math.round((ahora - startTimeQuestionRef.current) / 1000);
     const qKey = `q${currentQuestionIndex + 1}`;
 
-    // Almacenamos el tiempo y el input de forma silenciosa
     setTiemposPreguntas(prev => ({ ...prev, [`${qKey}_tiempo`]: segundosInvertidos }));
     setRespuestasInputs(prev => ({ ...prev, [`${qKey}_input`]: String(textoRespuesta) }));
-
-    // Reiniciamos el cronómetro interno para la siguiente pregunta (Q + 1)
-    startTimeQuestionRef.current = ahora;
+    startTimeQuestionRef.current = ahora; // Reinicia reloj para Q + 1
   };
 
-  // ---------------------------------------------------------
-  // MOTOR DE EVALUACIÓN MULTI-CASO CON RECOLECCIÓN DE DATOS
-  // ---------------------------------------------------------
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO ORIGINAL INTEGRADO ---
   const handleCheckAnswer = (e, valorBotonP5 = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
@@ -168,46 +231,69 @@ function StudentLayout() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: correctValue = currentData.f; successNote = `¡Excelente! Sonido correcto.`; break;
-        case 1: correctValue = currentData.fc; successNote = `¡Correcto! Consonantes identificadas.`; break;
-        case 2: correctValue = currentData.fv; successNote = `¡Muy bien! Vocales identificadas.`; break;
-        case 3: correctValue = currentData.stress; successNote = `¡Exacto! Énfasis o acento correcto.`; break;
+        case 0: correctValue = currentData.f; successNote = `¡Excelente! Esta palabra está compuesta por ${currentData.f} sonidos.`; break;
+        case 1: correctValue = currentData.fc; successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; break;
+        case 2: correctValue = currentData.fv; successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; break;
+        case 3: correctValue = currentData.stress; successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; break;
       }
       isCorrect = (value === correctValue);
-      
-      // REGISTRO INVISIBLE: Si es correcta, capturamos la métrica del paso antes de avanzar
       if (isCorrect) registrarMétricaPreguntaOculta(value);
     } 
     // CASO B: EVALUACIÓN DE LA PREGUNTA 5
     else if (currentQuestionIndex === 4) {
       if (currentPractice === '3' || currentPractice === '4') {
         if (value === "") { setErrorMessage("⚠️ Escribe tu respuesta antes de comprobar."); setShowFeedback(false); return; }
-        isCorrect = (value === currentData.posVocal);
-        if (isCorrect) {
-          successNote = `¡Felicidades! Posición de la vocal correcta.`;
-          registrarMétricaPreguntaOculta(value);
+        const dbValue = currentData.posVocal;
+        if (dbValue.length === 2) {
+          const digitoA = dbValue.charAt(0);
+          const digitoB = dbValue.charAt(1);
+          if (value === digitoA || value === digitoB) {
+            isCorrect = true;
+            successNote = `¡Felicidades! La vocal /${currentFonema}/ se ubica en la sílaba ${value}. Recuerda responder todos los lugares donde aparece pues en este caso también aparece en la sílaba ${value === digitoA ? digitoB : digitoA}.`;
+          }
+        } else {
+          isCorrect = (value === dbValue);
+          if (isCorrect) successNote = `¡Felicidades! La vocal /${currentFonema}/ se ubica en la posición: ${dbValue}.`;
         }
+        if (isCorrect) registrarMétricaPreguntaOculta(value);
       } else {
         if (!valorBotonP5) return;
-        isCorrect = (valorBotonP5 === currentData.consonant);
+        const consonantLimpia = currentData.consonant.replace(/\\/g, "");
+        isCorrect = (valorBotonP5 === consonantLimpia);
         if (isCorrect) {
-          successNote = `¡Excelente elección fonética!`;
+          successNote = `¡Excelente elección! El fonema consonántico correcto de la palabra es ${consonantLimpia}.`;
           registrarMétricaPreguntaOculta(valorBotonP5);
         }
       }
     } 
-    // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (PRÁCTICA 3)
+    // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (EXCLUSIVA PRÁCTICA 3)
     else if (currentQuestionIndex === 5 && currentPractice === '5') {
       if (studentSelectedVocals.length === 0) {
-        setErrorMessage("⚠️ Selecciona al menos un fonema vocal antes de comprobar.");
+        setErrorMessage("⚠️ Selecciona al menos un fonema vocal de la cuadrícula antes de comprobar.");
         setShowFeedback(false);
         return;
       }
       setErrorMessage("");
-      // Simulación de acierto para mantener flujo intacto
-      isCorrect = true; 
-      successNote = `¡Felicidades! Todos los fonemas vocales identificados.`;
-      if (isCorrect) registrarMétricaPreguntaOculta(studentSelectedVocals.join(", "));
+
+      const limpiarFormato = (txt) => txt.replace(/\\|\/|\s/g, "").replace(/:/g, "ː");
+      const normalizarFonema = (fonema) => {
+        const textoLimpio = limpiarFormato(fonema);
+        const equivalencias = { "a": "aː", "e": "eː", "i": "iː", "ɔ": "ɔː", "u": "uː" };
+        return equivalencias[textoLimpio] || textoLimpio;
+      };
+
+      const vocalesLimpiasJson = currentData.vocalesIPA.split(",").map(v => normalizarFonema(v));
+      const vocalesSeleccionadasEstudiante = studentSelectedVocals.map(v => normalizarFonema(v));
+
+      const todosEstan = vocalesLimpiasJson.every(v => vocalesSeleccionadasEstudiante.includes(v));
+      const longitudIgual = vocalesLimpiasJson.length === vocalesSeleccionadasEstudiante.length;
+      
+      isCorrect = (todosEstan && longitudIgual);
+      if (isCorrect) {
+        const vocalesOriginalesVisibles = currentData.vocalesIPA.replace(/\\/g, "");
+        successNote = `¡Felicidades! Has identificado correctamente todos los fonemas vocales presentes: ${vocalesOriginalesVisibles}.`;
+        registrarMétricaPreguntaOculta(studentSelectedVocals.join(", "));
+      }
     }
 
     setHasAnsweredCorrectly(isCorrect);
@@ -216,7 +302,7 @@ function StudentLayout() {
     setShowFeedback(true);
   };
 
-  // NAVEGACIÓN Y CIERRE DEL RETO TOTAL DE LA PALABRA
+  // --- NAVEGACIÓN Y DISPARADORES DE EMISIÓN DE MÉTRICAS ---
   const handleNextQuestion = (e) => {
     if (e) e.preventDefault();
     if (!hasAnsweredCorrectly) return;
@@ -230,14 +316,10 @@ function StudentLayout() {
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
     } else {
-      // -----------------------------------------------------------------
-      // 📦 PAQUETE FINAL: Se empaquetan las métricas recolectadas de forma invisible
-      // -----------------------------------------------------------------
-      const tiempoTotalPalabraMs = Date.now() - startTimeWordRef.current;
-      const segundosTotalesPalabra = Math.round(tiempoTotalPalabraMs / 1000);
-
-      const objetoMetricasFinalInvisible = {
-        studentEmail: session?.user?.email || "anonimo@student.com",
+      // EMPAQUETADO SILENCIOSO FINAL DE LA PALABRA PARA EL MAESTRO
+      const segundosTotalesPalabra = Math.round((Date.now() - startTimeWordRef.current) / 1000);
+      const dataMétricasOcultas = {
+        studentEmail: session?.user?.email || "alumno@student.com",
         practica_activa: currentPractice,
         palabra: currentData?.word,
         tiempo_total_palabra_segundos: segundosTotalesPalabra,
@@ -247,10 +329,9 @@ function StudentLayout() {
         timestamp: new Date().toISOString()
       };
 
-      // Simulación de envío silencioso al backend
-      console.log("✈️ Enviando métricas invisibles al panel docente de forma segura:", objetoMetricasFinalInvisible);
+      console.log("✈️ Paquete de métricas invisibles emitido con éxito:", dataMétricasOcultas);
 
-      // Limpieza e inicialización de estados para la siguiente palabra
+      // Limpieza de estados invisibles
       setIsPracticeStarted(false);
       setTiemposPreguntas({});
       setRespuestasInputs({});
@@ -260,14 +341,8 @@ function StudentLayout() {
       if (totalWordsInBlock > 0) {
         setCurrentWordIndex((currentWordIndex < totalWordsInBlock - 1) ? currentWordIndex + 1 : 0);
       }
-      
-      setCurrentQuestionIndex(0);
-      setStudentAnswer('');
-      setStudentSelectedVocals([]);
-      setShowFeedback(false);
-      setErrorMessage('');
-      setHasAnsweredCorrectly(false);
-      alert(`📝 Siguiente palabra cargada de forma limpia.`);
+      resetEntireExercise();
+      alert(`📝 Siguiente reto cargado. Presiona 'Palabra' para practicar.`);
     }
   };
 
@@ -280,19 +355,15 @@ function StudentLayout() {
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
       setErrorMessage("");
-      // Al retroceder, reiniciamos la marca de tiempo de la pregunta para no alterar el cronómetro
-      startTimeQuestionRef.current = Date.now();
+      startTimeQuestionRef.current = Date.now(); // Restablece reloj para evitar sesgo
     }
   };
 
   const changeFonemaDropdown = (e) => {
     setCurrentFonema(e.target.value);
     setCurrentWordIndex(0);
+    resetEntireExercise();
     setIsPracticeStarted(false);
-    setCurrentQuestionIndex(0);
-    setStudentAnswer('');
-    setShowFeedback(false);
-    setHasAnsweredCorrectly(false);
   };
 
   const toggleVocalSelection = (vocal) => {
@@ -303,108 +374,178 @@ function StudentLayout() {
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && currentQuestionIndex < 4) {
+      if (!hasAnsweredCorrectly) {
+        handleCheckAnswer(e);
+      } else {
+        handleNextQuestion(e);
+      }
+    }
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
+        <div className="text-xl font-bold text-black uppercase tracking-widest animate-pulse">
+          Cargando plataforma...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* APP HEADER */}
+      {/* HEADER DE LA APLICACIÓN */}
       <header className="app-header">
         <div className="header-left">
-          <button className="menu-toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+          <button id="menu-toggle" className="menu-toggle-btn" onClick={(e) => { e.stopPropagation(); document.getElementById('sidebar')?.classList.toggle('open'); }}>
             <span className="hamburger-line"></span><span className="hamburger-line"></span><span className="hamburger-line"></span>
           </button>
           <div className="logo">English For All</div>
         </div>
 
-        {/* Barra de Progreso Dinámica */}
         <div className="progress-container">
           <div className="progress-bar-bg">
-            <div className="progress-bar-fill" style={{ width: `${((currentQuestionIndex + 1) / ((currentPractice === '3' || currentPractice === '4') ? 5 : 6)) * 100}%` }}></div>
+            <div id="progress-bar" className="progress-bar-fill" style={{ width: `${((currentQuestionIndex + 1) / ((currentPractice === '3' || currentPractice === '4') ? 5 : 6)) * 100}%` }}></div>
           </div>
-          <span className="progress-text">Pregunta {currentQuestionIndex + 1} de {(currentPractice === '3' || currentPractice === '4') ? 5 : 6}</span>
+          <span id="progress-text" className="progress-text">Pregunta {currentQuestionIndex + 1} de {(currentPractice === '3' || currentPractice === '4') ? 5 : 6}</span>
         </div>
 
-        <div className="avatar cursor-pointer" onClick={() => signOut({ callbackUrl: "/" })} title="Haz clic para Cerrar Sesión">
+        <div className="avatar" onClick={() => signOut({ callbackUrl: "/" })} style={{ cursor: 'pointer', backgroundColor: '#F2C83B', color: '#000000', fontWeight: 'bold' }} title="Haz clic para Cerrar Sesión">
           {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
         </div>
       </header>
 
       <div className="app-layout">
-        {/* MENÚ LATERAL IZQUIERDO CON REGISTRO INVISIBLE DE CLICS */}
-        <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        {/* MENÚ LATERAL IZQUIERDO ORIGINAL RESTAURADO CON CONTADOR DE CLICS */}
+        <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
-            <li className="menu-item" onClick={() => setClicsMenuContador(prev => prev + 1)}><span className="menu-number">1</span><span className="menu-text">Metodología</span></li>
-            <li className="menu-item" onClick={() => setClicsMenuContador(prev => prev + 1)}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas</span></li>
+            <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
+            <li className="menu-item" id="menu-alfabeto" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
             
-            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); }}>
-              <span className="menu-number">3</span><span className="menu-text">Práctica 1 (Vocales Cortas)</span>
+            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
+              <span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); }}>
-              <span className="menu-number">4</span><span className="menu-text">Práctica 2 (Diptongos)</span>
+            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
+              <span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
             </li>
 
-            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); }}>
-              <span className="menu-number">5</span><span className="menu-text">Práctica 3 (Consonantes)</span>
+            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
+              <span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span>
             </li>
+
+            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
+            <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
+            <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
           </ul>
         </aside>
 
-        {/* ÁREA CENTRAL DE TRABAJO */}
+        {/* CONTENEDOR CENTRAL DE TRABAJO */}
         <main className="main-container">
           <div className="instruction-card">
-            <p className="instruction-text text-center w-full">{questionsTexts[currentQuestionIndex]}</p>
+            <p id="instruction-text" className="instruction-text">{questionsTexts[currentQuestionIndex]}</p>
           </div>
 
           <div className="practice-card unified-media-card">
             <div className="w-full flex justify-center pb-2">
-              <select className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
-                {currentPractice === '3' ? (
-                  <><option value="ə">Fonema /ə/</option><option value="ɪ">Fonema /ɪ/</option><option value="ɛ">Fonema /ɛ/</option></>
-                ) : currentPractice === '4' ? (
-                  <><option value="aɪ">Fonema /aɪ/</option><option value="eɪ">Fonema /eɪ/</option></>
-                ) : (
-                  <><option value="1">Grafemas de /θ/ vs /ð/</option></>
-                )}
-              </select>
+              {currentPractice === '3' ? (
+                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                  <option value="ə">Fonema /ə/</option>
+                  <option value="ɪ">Fonema /ɪ/</option>
+                  <option value="ɛ">Fonema /ɛ/</option>
+                  <option value="æ">Fonema /æ/</option>
+                  <option value="ʌ">Fonema /ʌ/</option>
+                </select>
+              ) : currentPractice === '4' ? (
+                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                  <option value="aɪ">Fonema /aɪ/</option>
+                  <option value="eɪ">Fonema /eɪ/</option>
+                  <option value="ɔɪ">Fonema /ɔɪ/</option>
+                  <option value="aʊ">Fonema /aʊ/</option>
+                  <option value="oʊ">Fonema /oʊ/</option>
+                </select>
+              ) : (
+                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                  <option value="1">Grafemas de /θ/ vs /ð/</option>
+                  <option value="2">Grafemas de /ʧ/ vs /ʤ/</option>
+                  <option value="3">Grafemas de /ʤ/ vs /j/</option>
+                  <option value="4">Grafemas de /ʃ/ vs /ʒ/</option>
+                </select>
+              )}
             </div>
 
             <div className="media-buttons-row">
               <div className="media-column-left">
-                <button onClick={handlePlayWordAudio} className="audio-btn"><span>🔊 Palabra</span></button>
+                {/* Restaurados tus Iconos Oficiales */}
+                <button id="play-word-btn" onClick={handlePlayWordAudio} className="audio-btn"><IconoBocina /><span>Palabra</span></button>
               </div>
               <div className="media-column-right">
-                <button onClick={handlePlayVocalAudio} className="audio-btn vocal-btn"><span>🎵 Vocal</span></button>
+                <button 
+                  id="play-vocal-btn" 
+                  onClick={handlePlayVocalAudio} 
+                  className={`audio-btn vocal-btn ${(currentPractice !== '3' && currentPractice !== '4') ? 'btn-disabled opacity-40 cursor-not-allowed' : ''}`}
+                  disabled={currentPractice !== '3' && currentPractice !== '4'}
+                >
+                  <IconoNota /><span>Vocal</span>
+                </button>
               </div>
             </div>
 
             <div className="media-slider-row">
               <div className="interactive-wave-box">
-                <div className="wave-container"><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div></div>
-                <input type="range" min="0.5" max="2.0" step="0.25" value={audioSpeed} onChange={(e) => setAudioSpeed(parseFloat(e.target.value))} className="over-wave-slider" />
-                <span className="speed-bubble-indicator">{audioSpeed.toFixed(2)}x</span>
+                <div className="wave-container"><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div></div>
+                <input type="range" min="0.5" max="2.0" step="0.25" id="speed-slider" value={audioSpeed} onChange={(e) => setAudioSpeed(parseFloat(e.target.value))} className="over-wave-slider" />
+                <span id="speed-bubble" className="speed-bubble-indicator">{audioSpeed.toFixed(2)}x</span>
               </div>
             </div>
           </div>
 
-          {/* CONTROL DINÁMICO DE ENTRADA / RESPUESTAS INTERACTIVAS */}
+          {/* CONTROL INTERACTIVO DE ENTRADAS Y BOTONERAS */}
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
               <div className="flex gap-4 justify-center">
-                <button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
-                <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button>
+                {currentFonema === '1' && (
+                  <><button onClick={(e) => handleCheckAnswer(e, "/θ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/θ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ð/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ð/</button></>
+                )}
+                {currentFonema === '2' && (
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʧ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʧ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button></>
+                )}
+                {currentFonema === '3' && (
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʤ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʤ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/j/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/j/</button></>
+                )}
+                {currentFonema === '4' && (
+                  <><button onClick={(e) => handleCheckAnswer(e, "/ʃ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʃ/</button>
+                    <button onClick={(e) => handleCheckAnswer(e, "/ʒ/")} className="check-green-btn !bg-sky-600 hover:!bg-sky-700 !px-8" disabled={hasAnsweredCorrectly}>/ʒ/</button></>
+                )}
               </div>
               {errorMessage && <p className="error-text text-center mt-2">{errorMessage}</p>}
             </div>
           ) : (currentPractice === '5' && currentQuestionIndex === 5) ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm flex flex-col gap-4">
               <span className="response-title">Selecciona las vocales presentes</span>
-              <div className="flex gap-2 justify-center">
-                <button onClick={() => !hasAnsweredCorrectly && toggleVocalSelection("/ɪ/")} className={`p-3 rounded-xl border text-sm font-bold ${studentSelectedVocals.includes("/ɪ/") ? 'bg-sky-600 text-white' : 'bg-white'}`}>/ɪ/</button>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[180px] overflow-y-auto p-2 border border-zinc-100 rounded-xl bg-zinc-50">
+                {vocalOptionsP2.map(vocal => (
+                  <button 
+                    key={vocal} type="button" onClick={() => !hasAnsweredCorrectly && toggleVocalSelection(`/${vocal}/`)}
+                    className={`p-2 rounded-lg text-sm font-bold border transition-all ${studentSelectedVocals.includes(`/${vocal}/`) ? 'bg-sky-600 border-sky-600 text-white shadow-sm' : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100'} ${hasAnsweredCorrectly ? 'cursor-not-allowed opacity-70' : ''}`}
+                    disabled={hasAnsweredCorrectly}
+                  >
+                    /{vocal}/
+                  </button>
+                ))}
               </div>
-              <div className="flex justify-end mt-2">
-                <button onClick={handleCheckAnswer} className="check-green-btn" disabled={hasAnsweredCorrectly}>Comprobar Selección</button>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-zinc-100">
+                <div className="flex-1">{errorMessage && <p className="error-text">{errorMessage}</p>}</div>
+                <button onClick={handleCheckAnswer} className={`check-green-btn ${hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={hasAnsweredCorrectly}>Comprobar Selección</button>
               </div>
             </div>
           ) : (
@@ -412,31 +553,36 @@ function StudentLayout() {
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
                 <input 
-                  type="text" ref={answerInputRef} value={studentAnswer} disabled={hasAnsweredCorrectly}
-                  onChange={(e) => setStudentAnswer(e.target.value)} placeholder="Escribe aquí..." className={`response-input ${errorMessage ? 'input-invalid' : ''}`}
+                  type="text" id="student-answer" ref={answerInputRef} value={studentAnswer} disabled={hasAnsweredCorrectly}
+                  onChange={(e) => { setStudentAnswer(e.target.value); if (errorMessage !== "") setErrorMessage(""); }}
+                  onKeyPress={handleKeyPress} placeholder="Escribe aquí..." className={`response-input ${errorMessage ? 'input-invalid' : ''}`}
                 />
-                <p className="error-text">{errorMessage}</p>
+                <p id="error-message" className="error-text">{errorMessage}</p>
               </div>
               <div className="response-divider-line"></div>
               <div className="response-right-pane">
-                <button onClick={handleCheckAnswer} className="check-green-btn" disabled={hasAnsweredCorrectly}>Comprobar</button>
+                <button id="check-answer-btn" onClick={handleCheckAnswer} className={`check-green-btn ${hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={hasAnsweredCorrectly}>Comprobar</button>
               </div>
             </div>
           )}
 
-          {/* SECCIÓN DE FEEDBACK ACTIVO */}
+          {/* CONSEJOS PEDAGÓGICOS (TIP BOX) ORIGINALES RESTAURADOS */}
           {showFeedback && (
-            <div className="feedback-card">
-              <div className="feedback-phrase">
+            <div id="feedback-card" className="feedback-card">
+              <span className="feedback-title">Resultado de la evaluación:</span>
+              <div id="feedback-phrase" className="feedback-phrase">
                 {feedbackIsCorrect ? <span className="word-correct">{feedbackSuccessNote}</span> : <>Tu respuesta no es correcta. ¡Inténtalo de nuevo!</>}
               </div>
+              <div id="tip-text" className="tip-box">
+                {feedbackIsCorrect ? "Recuerda que esta práctica se trata de poner atención a los sonidos no a los grafemas." : (currentQuestionIndex === 5 ? "Revisa con calma cada una de las sílabas de la palabra al escucharla de manera lenta con el deslizador." : "Recuerda que los diptongos o las vocales compuestas cuentan como 1 sonido. Tampoco te olvides de utilizar la técnica de eliminación de sonidos.")}
+              </div>
             </div>
           )}
 
-          {/* BOTONES DE NAVEGACIÓN */}
+          {/* BOTONES DE RETORNO Y AVANCE */}
           <div className="navigation-buttons" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '16px' }}>
-            <button onClick={handlePreviousQuestion} className={`back-question-btn ${currentQuestionIndex === 0 ? 'hidden' : ''}`} style={{ flex: 1 }}>← Anterior</button>
-            <button onClick={handleNextQuestion} className={`next-btn ${!hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={!hasAnsweredCorrectly} style={{ flex: 2 }}>
+            <button id="prev-btn" onClick={handlePreviousQuestion} className={`back-question-btn ${currentQuestionIndex === 0 ? 'hidden' : ''}`} style={{ flex: 1 }}>← Anterior</button>
+            <button id="action-btn" onClick={handleNextQuestion} className={`next-btn ${!hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={!hasAnsweredCorrectly} style={{ flex: 2 }}>
               {currentQuestionIndex === ((currentPractice === '3' || currentPractice === '4') ? 5 : 6) - 1 ? "SIGUIENTE PALABRA ➔" : "SIGUIENTE PREGUNTA ➔"}
             </button>
           </div>
