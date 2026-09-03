@@ -51,7 +51,15 @@ function PlataformaFonica() {
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
   const [respuestasInputs, setRespuestasInputs] = useState({});
+  // ==========================================================================
+  // NUEVOS ESTADOS COMPLEMENTARIOS PARA LA PREGUNTA 1 (FICHAS FÓNICAS)
+  // ==========================================================================
+  // Estado para simular visualmente la caja intermitente cuando el alumno pasa el mouse (Hover)
+  const [hoveredSoundsCount, setHoveredSoundsCount] = useState(null);
 
+  // Rango dinámico exacto basado en tu palabra más larga: "Comfortable" (9 sonidos)
+  const totalFonicButtons = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  
   // Mapeos oficiales originales para traducir los IDs de tus menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
@@ -384,6 +392,60 @@ function PlataformaFonica() {
     }
   };
 
+  // ==========================================================================
+  // RENDERIZADOR COMPACTO DE BURBUJAS ACÚSTICAS (Sustituye la entrada de texto)
+  // ==========================================================================
+  const renderBotoneraFichasPregunta1 = () => {
+    return (
+      <div className="w-full flex flex-col items-center gap-6 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
+        <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos que escuchas</span>
+        
+        {/* Fila de Burbujas Numéricas Interactivas */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {totalFonicButtons.map((numero) => (
+            <button
+              key={numero}
+              type="button"
+              disabled={hasAnsweredCorrectly}
+              onMouseEnter={() => !hasAnsweredCorrectly && setHoveredSoundsCount(numero)}
+              onMouseLeave={() => !hasAnsweredCorrectly && setHoveredSoundsCount(null)}
+              onClick={(e) => {
+                // Setea la respuesta del alumno de forma automática sin tocar el teclado
+                setStudentAnswer(String(numero));
+                // Si aún no ha comprobado, ejecuta la validación de forma directa y fluida
+                if (!hasAnsweredCorrectly) {
+                  handleCheckAnswer(e);
+                }
+              }}
+              className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
+                studentAnswer === String(numero)
+                  ? 'bg-sky-600 border-sky-600 text-white shadow-md'
+                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50/50'
+              } ${hasAnsweredCorrectly ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              {numero}
+            </button>
+          ))}
+        </div>
+
+        {/* RECREACIÓN VISUAL: Cajas Acústicas Vacías (Elkonin Boxes Digitales) */}
+        <div className="flex justify-center gap-2 mt-2 min-h-[36px] items-center">
+          {Array.from({ length: hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0) }).map((_, idx) => (
+            <div
+              key={idx}
+              className={`w-8 h-8 rounded-lg border-2 border-dashed transition-all duration-300 animate-pulse ${
+                hoveredSoundsCount ? 'border-sky-400 bg-sky-50/30' : 'border-zinc-300 bg-zinc-100/50'
+              }`}
+            />
+          ))}
+          {!(hoveredSoundsCount || studentAnswer) && (
+            <span className="text-xs text-zinc-400 font-medium italic animate-pulse">Pasa el cursor sobre los números para visualizar los bloques de sonido</span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (status === "loading") {
     return (
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
@@ -505,7 +567,7 @@ function PlataformaFonica() {
             </div>
           </div>
 
-          {/* CONTROL INTERACTIVO DE ENTRADAS Y BOTONERAS */}
+          {/* CONTROL DINÁMICO DE ENTRADA / RESPUESTAS INTERACTIVAS */}
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
@@ -548,7 +610,13 @@ function PlataformaFonica() {
                 <button onClick={handleCheckAnswer} className={`check-green-btn ${hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={hasAnsweredCorrectly}>Comprobar Selección</button>
               </div>
             </div>
+          ) : currentQuestionIndex === 0 ? (
+            /* 🚀 INTERRUPTOR INTELIGENTE: Si el alumno está en la pregunta 1, se renderizan las burbujas acústicas vaciando la barra lateral */
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
+              {renderBotoneraFichasPregunta1()}
+            </div>
           ) : (
+            /* LÓGICA TRADICIONAL DE ENTRADA POR TECLADO PARA LAS PREGUNTAS 2, 3 Y 4 */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
