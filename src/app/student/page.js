@@ -368,10 +368,20 @@ function PlataformaFonica() {
   };
 
   const changeFonemaDropdown = (e) => {
-    setCurrentFonema(e.target.value);
-    setCurrentWordIndex(0);
-    resetEntireExercise();
+    const nuevoFonema = e.target.value;
+    
+    // 1. Limpiamos por completo el input y estados anteriores primero
+    setStudentAnswer('');
+    setErrorMessage('');
+    setShowFeedback(false);
+    setHasAnsweredCorrectly(false);
     setIsPracticeStarted(false);
+    
+    // 2. Seteamos los nuevos índices de forma atómica
+    setCurrentFonema(nuevoFonema);
+    setCurrentWordIndex(0);
+    setCurrentQuestionIndex(0);
+    setStudentSelectedVocals([]);
   };
 
   const toggleVocalSelection = (vocal) => {
