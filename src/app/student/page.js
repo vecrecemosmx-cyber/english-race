@@ -739,10 +739,9 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR ACTUALIZADO: PREGUNTAS 4 Y 5 (BOTONERA AZUL CON SUFIJO EN LA BASE)
+  // RENDERIZADOR ACTUALIZADO: PREGUNTAS 4 Y 5 (ALINEACIÓN EN LÍNEA BASE TIPOGRÁFICA)
   // ==========================================================================
   const renderBotoneraSilabicaPreguntas4y5 = () => {
-    // Estructura de las opciones con sus respectivos números y sufijos
     const opcionesSilabas = [
       { numero: "1", sufijo: "era", valor: "1" },
       { numero: "2", sufijo: "da",  valor: "2" },
@@ -750,6 +749,16 @@ function PlataformaFonica() {
       { numero: "4", sufijo: "ta",  valor: "4" },
       { numero: "5", sufijo: "ta",  valor: "5" }
     ];
+
+    const esPregunta4 = (currentQuestionIndex === 3);
+    
+    const claseSeleccionado = esPregunta4
+      ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' // Verde para Q4
+      : 'bg-sky-600 border-sky-600 text-white shadow-md';       // Azul para Q5
+
+    const claseBase = esPregunta4
+      ? 'bg-white border-zinc-200 text-zinc-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50/20'
+      : 'bg-white border-zinc-200 text-zinc-700 hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50/20';
 
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
@@ -764,18 +773,16 @@ function PlataformaFonica() {
                 setStudentAnswer(item.valor);
                 if (!hasAnsweredCorrectly) handleCheckAnswer(e, null, item.valor);
               }}
-              // 🚀 CAMBIO DE COLOR SOLICITADA: Ahora se colorea de Azul Rey (bg-sky-600) al ser seleccionado
-              className={`py-3 px-6 rounded-full font-black text-base border-2 transition-all transform active:scale-95 flex flex-row items-center justify-center leading-none ${
-                studentAnswer === item.valor
-                  ? 'bg-sky-600 border-sky-600 text-white shadow-md'
-                  : 'bg-white border-zinc-200 text-zinc-700 hover:border-sky-500 hover:text-sky-600 hover:bg-sky-50/20'
+              // 💡 CLAVE DE ALINEACIÓN: flex items-baseline alinea todo estrictamente sobre el piso del número
+              className={`py-3 px-6 rounded-full font-black text-base border-2 transition-all transform active:scale-95 flex flex-row items-baseline justify-center leading-none ${
+                studentAnswer === item.valor ? claseSeleccionado : claseBase
               } ${hasAnsweredCorrectly ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {/* Número Base Grande */}
-              <span className="text-base">{item.numero}</span>
+              <span className="text-base font-black leading-none">{item.numero}</span>
               
-              {/* 🚀 SUFIJO ORDINAL EN LA BASE: Texto plano, pequeño y alineado a la parte inferior derecha */}
-              <span className="lowercase text-[10px] font-bold ml-0.5 self-end pb-[1px] tracking-normal select-none opacity-85">
+              {/* 🚀 SUFIJO EN EL PISO PERFECTO: Texto plano, pequeño y amarrado a la línea base tipográfica */}
+              <span className="lowercase text-[10px] font-bold ml-0.5 leading-none select-none opacity-85">
                 {item.sufijo}
               </span>
             </button>
