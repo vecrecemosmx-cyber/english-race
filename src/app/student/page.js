@@ -27,6 +27,7 @@ function PlataformaFonica() {
   const router = useRouter();
   
   // --- ESTADOS DE CONTROL GLOBALES (SINCRONIZADOS ORIGINALES) ---
+  // '3' = Práctica 1, '4' = Práctica 2, '5' = Práctica 3
   const [currentPractice, setCurrentPractice] = useState('3'); 
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -44,8 +45,8 @@ function PlataformaFonica() {
   const answerInputRef = useRef(null);
 
   // --- ⏱️ REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS ---
-  const startTimeWordRef = useRef(null);     
-  const startTimeQuestionRef = useRef(null); 
+  const startTimeWordRef = useRef(null);     // Inicia al presionar el botón "Palabra"
+  const startTimeQuestionRef = useRef(null); // Inicia al cargar cada pregunta individual
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
@@ -55,25 +56,25 @@ function PlataformaFonica() {
   const [hoveredSoundsCount, setHoveredSoundsCount] = useState(null);
 
   // Rango dinámico exacto basado en tu palabra más larga: "Comfortable" (9 sonidos)
-  const totalFonicButtons = [3, 4, 5, 6, 7, 8, 9];
+  const totalFonicButtons = [3, 4, 5, 6, 7, 8, 9]; // Para la pregunta 1 (Sonidos Totales)
   
   // Mapeos oficiales originales para traducir los IDs de tus menús desplegables
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
-  // NUEVO REORDENAMIENTO DE PREGUNTAS SOLICITADO
+  // TEXTOS DE PREGUNTAS EN SU ORDEN ORIGINAL RESTAURADO
   const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
-        "1. ¿Cuántos fonemas consonantes tiene?",
-        "2. ¿Cuántos fonemas vocales tiene?",
-        "3. ¿Cuántos sonidos componen la palabra?",
+        "1. ¿Cuántos sonidos componen la palabra?",
+        "2. ¿Cuántos fonemas consonantes tiene?",
+        "3. ¿Cuántos fonemas vocales tiene?",
         "4. ¿En qué sílaba está el énfasis o acento?",
         "5. ¿En qué sílaba está la vocal que estamos practicando?"
       ]
     : [
-        "1. ¿Cuántos fonemas consonantes tiene?",
-        "2. ¿Cuántos fonemas vocales tiene?",
-        "3. ¿Cuántos sonidos componen la palabra?",
+        "1. ¿Cuántos sonidos componen la palabra?",
+        "2. ¿Cuántos fonemas consonantes tiene?",
+        "3. ¿Cuántos fonemas vocales tiene?",
         "4. ¿En qué sílaba está el énfasis o acento?",
         "5. Elige el fonema correcto.",
         "6. Selecciona todos los fonemas vocales que escuchas."
@@ -130,7 +131,7 @@ function PlataformaFonica() {
 
   // Lógica original de enfoque automático al cambiar de pregunta o palabra
   useEffect(() => {
-    if (status === "authenticated" && answerInputRef.current && currentQuestionIndex > 2 && currentQuestionIndex < 5) {
+    if (status === "authenticated" && answerInputRef.current && currentQuestionIndex < 4) {
       answerInputRef.current.focus();
     }
   }, [currentQuestionIndex, currentWordIndex, currentFonema, status]);
@@ -147,7 +148,7 @@ function PlataformaFonica() {
     resetEntireExercise();
   }, [currentPractice]);
 
-  // NUEVA REGLA UNIFICADA: Ahora cierra el menú lateral de inmediato al pulsar una opción
+  // REGLA SOLICITADA: Cierra el menú lateral de inmediato al pulsar una opción
   const forzarOcultarSidebar = () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.remove('open');
@@ -165,7 +166,7 @@ function PlataformaFonica() {
   // --- REPRODUCCIÓN AUDIO LOCAL ORIGINAL ---
   const handlePlayWordAudio = (e) => {
     if (e) e.preventDefault();
-    if (answerInputRef.current && currentQuestionIndex > 2 && currentQuestionIndex < 5) answerInputRef.current.focus();
+    if (answerInputRef.current && currentQuestionIndex < 4) answerInputRef.current.focus();
     if (!currentData) return;
 
     if ('speechSynthesis' in window) {
@@ -209,7 +210,7 @@ function PlataformaFonica() {
     startTimeQuestionRef.current = ahora; 
   };
 
-  // --- MOTOR DE EVALUACIÓN MULTI-CASO AJUSTADO AL NUEVO ORDEN DE PREGUNTAS ---
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO RESTAURADO AL ORDEN ORIGINAL ---
   const handleCheckAnswer = (e, valorBotonP5 = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
@@ -219,7 +220,7 @@ function PlataformaFonica() {
     let successNote = "";
 
     if (currentQuestionIndex < 4) {
-      let isTwoDigitQuestion = (currentQuestionIndex === 2); 
+      let isTwoDigitQuestion = (currentQuestionIndex === 0); 
       let isValidFormat = isTwoDigitQuestion ? /^[0-9]{1,2}$/.test(value) : /^[0-9]$/.test(value);
 
       if (value === "") { 
@@ -236,19 +237,19 @@ function PlataformaFonica() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: // Nueva Q1: Consonantes
-          correctValue = currentData.fc; 
-          successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; 
-          break;
-        case 1: // Nueva Q2: Vocales
-          correctValue = currentData.fv; 
-          successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
-          break;
-        case 2: // Nueva Q3: Sonidos Totales
+        case 0: // Q1 Original: Sonidos Totales
           correctValue = currentData ? String(currentData.f) : ""; 
           successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; 
           break;
-        case 3: // Q4 original: Stress
+        case 1: // Q2 Original: Consonantes
+          correctValue = currentData.fc; 
+          successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; 
+          break;
+        case 2: // Q3 Original: Vocales
+          correctValue = currentData.fv; 
+          successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
+          break;
+        case 3: // Q4 Original: Stress
           correctValue = currentData.stress; 
           successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; 
           break;
@@ -394,7 +395,7 @@ function PlataformaFonica() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && currentQuestionIndex > 2 && currentQuestionIndex < 5) {
+    if (e.key === 'Enter' && currentQuestionIndex < 4) {
       if (!hasAnsweredCorrectly) {
         handleCheckAnswer(e);
       } else {
@@ -404,9 +405,9 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR MEJORADO: NUEVA PREGUNTA 3 (SONIDOS TOTALES - ANTES Q1)
+  // RENDERIZADOR ORIGINAL RESTAURADO: PREGUNTA 1 (SONIDOS TOTALES RANGO 3-9)
   // ==========================================================================
-  const renderBotoneraFichasPregunta3 = () => {
+  const renderBotoneraFichasPregunta1 = () => {
     const limiteIluminado = hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0);
 
     return (
@@ -422,9 +423,7 @@ function PlataformaFonica() {
               onMouseLeave={() => !hasAnsweredCorrectly && setHoveredSoundsCount(null)}
               onClick={(e) => {
                 setStudentAnswer(String(numero));
-                if (!hasAnsweredCorrectly) {
-                  handleCheckAnswer(e);
-                }
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
               }}
               className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
                 studentAnswer === String(numero)
@@ -453,25 +452,15 @@ function PlataformaFonica() {
             );
           })}
         </div>
-        
-        {!(hoveredSoundsCount || studentAnswer) && (
-          <span className="text-xs text-zinc-400 font-medium italic animate-pulse block text-center">
-            Los cuadros sólo son una referencia visual de apoyo para ayudarle al cerebro a darle un espacio a cada sonido durante el ejercicio.
-            <br />
-            <span className="mt-1 block text-zinc-500 font-semibold">
-              Presta atención al sonido, no a la escritura de la palabra.
-            </span>
-          </span>
-        )}
       </div>
     );
   };
 
   // ==========================================================================
-  // RENDERIZADOR PARA LA NUEVA PREGUNTA 1: CONTEO DE CONSONANTES (RANGO 1-7)
+  // RENDERIZADOR CORREGIDO Y SEGURO: PREGUNTA 2 (CONTEO DE CONSONANTES RANGO 1-7)
   // ==========================================================================
-  const renderBotoneraConsonantesPregunta1 = () => {
-    const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7];
+  const renderBotoneraConsonantesPregunta2 = () => {
+    const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7]; // Para la pregunta 2 (Consonantes)
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas consonantes tiene?</span>
@@ -500,10 +489,10 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR PARA LA NUEVA PREGUNTA 2: CONTEO DE VOCALES (RANGO 1-5)
+  // RENDERIZADOR CORREGIDO Y SEGURO: PREGUNTA 3 (CONTEO DE VOCALES RANGO 1-5)
   // ==========================================================================
-  const renderBotoneraVocalesPregunta2 = () => {
-    const botonesVocales = [1, 2, 3, 4, 5];
+  const renderBotoneraVocalesPregunta3 = () => {
+    const botonesVocales = [1, 2, 3, 4, 5]; // Para la pregunta 3 (Vocales)
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas vocales tiene?</span>
@@ -676,18 +665,22 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : currentQuestionIndex === 0 ? (
+            /* 🚀 RESTAURADO Q1: Sonidos Totales con Elkonin Boxes fijas */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraConsonantesPregunta1()}
+              {renderBotoneraFichasPregunta1()}
             </div>
           ) : currentQuestionIndex === 1 ? (
+            /* 🚀 RESTAURADO Q2: Conteo de Consonantes Corregido (1-7) */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraVocalesPregunta2()}
+              {renderBotoneraConsonantesPregunta2()}
             </div>
           ) : currentQuestionIndex === 2 ? (
+            /* 🚀 RESTAURADO Q3: Conteo de Vocales Corregido (1-5) */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraFichasPregunta3()}
+              {renderBotoneraVocalesPregunta3()}
             </div>
           ) : (
+            /* PREGUNTAS ENTRADA DE TECLADO TRADICIONAL (STRESS Y POSICIÓN) */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
