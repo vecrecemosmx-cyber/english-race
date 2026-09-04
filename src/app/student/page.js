@@ -117,35 +117,19 @@ function PlataformaFonica() {
     }
   }, [status]);
 
-  // 🚀 REGLA SOLICITADA: AUDIO DE BIENVENIDA AUTOMÁTICO EN ESPAÑOL DE MÉXICO (es-MX)
+  // ==========================================================================
+  // EFECTOS DE CONTROL AUTOMÁTICOS
+  // ==========================================================================
+
+  // 🚀 REGLA ACTUALIZADA: DISPARADOR AUTOMÁTICO DE INSTRUCCIONES AL INICIAR SESIÓN
   useEffect(() => {
-    if (status === "authenticated" && 'speechSynthesis' in window && !hasPlayedWelcome) {
-      // Breve retraso estratégico para asegurar que la pantalla cargó visualmente
+    // Si el usuario está autenticado y aún no se han reproducido las instrucciones
+    if (status === "authenticated" && !hasPlayedWelcome) {
       const timer = setTimeout(() => {
-        try {
-          window.speechSynthesis.cancel(); // Limpia cualquier cola de voz previa
-
-          const guionBienvenida = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar los sonidos.";
-          
-          const bienvenidaUtterance = new SpeechSynthesisUtterance(guionBienvenida);
-          bienvenidaUtterance.lang = 'es-MX'; // Configuración estricta en español de México
-          bienvenidaUtterance.rate = 1.0;     // Velocidad natural de locución instructiva
-          bienvenidaUtterance.pitch = 1.0;    // Tono de voz equilibrado y amigable
-
-          // Buscamos explícitamente en el navegador una voz nativa mexicana disponible para mejorar la naturalidad
-          const vocesDisponibles = window.speechSynthesis.getVoices();
-          const vozMexicana = vocesDisponibles.find(voice => voice.lang === 'es-MX' || voice.lang.startsWith('es_MX'));
-          if (vozMexicana) {
-            bienvenidaUtterance.voice = vozMexicana;
-          }
-
-          window.speechSynthesis.speak(bienvenidaUtterance);
-          setHasPlayedWelcome(true); // Bloqueamos el estado para que no se repita en re-renders internos
-        } catch (error) {
-          console.log("No se pudo reproducir el audio de bienvenida de forma automática:", error);
-        }
-      }, 800);
-
+        handlePlayInstructions(); // Invoca la locución con el nuevo cierre integrado
+        setHasPlayedWelcome(true); // Bloquea el estado para que ocurra una única vez por sesión
+      }, 800); // Breve espera estratégica para garantizar el montado limpio de la interfaz
+      
       return () => clearTimeout(timer);
     }
   }, [status, hasPlayedWelcome]);
@@ -267,6 +251,32 @@ function PlataformaFonica() {
     setHasAnsweredCorrectly(false);
     setIsFonicExpanded(false);
     setSavedFonicBlocks(0); // Limpiamos el valor en el cambio de palabra completa
+  };
+
+  // 🚀 REGLA SOLICITADA: FUNCIÓN CENTRALIZADA PARA REPRODUCIR LAS INSTRUCCIONES (es-MX)
+  const handlePlayInstructions = (e) => {
+    if (e) e.preventDefault();
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel(); // Detiene cualquier audio o palabra en reproducción
+
+        const guionCompleto = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar los sonidos. Elige el fonema que quieres practicar hoy y comencemos.";
+
+        const utterance = new SpeechSynthesisUtterance(guionCompleto);
+        utterance.lang = 'es-MX'; // Español de México estricto
+        utterance.rate = 1.0;     // Velocidad natural de dictado instructivo
+        utterance.pitch = 1.0;
+
+        // Búsqueda proactiva de una voz mexicana en el navegador del alumno
+        const voces = window.speechSynthesis.getVoices();
+        const vozMx = voces.find(v => v.lang === 'es-MX' || v.lang.startsWith('es_MX'));
+        if (vozMx) utterance.voice = vozMx;
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.log("Error al reproducir guion fónico instructivo:", err);
+      }
+    }
   };
 
   // --- REPRODUCCIÓN AUDIO LOCAL ORIGINAL ---
