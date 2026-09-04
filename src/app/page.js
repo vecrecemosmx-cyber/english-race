@@ -50,7 +50,7 @@ function LoginForm() {
     }
   }, [status, session, router]);
 
-  // 🚀 REGLA SOLICITADA: Envío con éxito, cuenta regresiva de 5 segundos y cierre de sesión automático
+  // 🚀 REGLA CORREGIDA: Cierre de sesión agresivo y forzado borrando caché del navegador
   const handleRequestAccess = async () => {
     if (!session?.user?.email) return;
     setLoadingRequest(true);
@@ -69,10 +69,13 @@ function LoginForm() {
           setCountdown((prev) => prev - 1);
         }, 1000);
 
-        // Disparador del cierre de sesión automático al cumplirse los 5 segundos estrictos
-        setTimeout(() => {
+        // 💡 EXPULSIÓN DE SEGURIDAD FORZADA AL CUMPLIRSE LOS 5 SEGUNDOS
+        setTimeout(async () => {
           clearInterval(interval);
-          signOut({ callbackUrl: '/' }); // Cierra la cuenta de Google y limpia cookies
+          // Primero borramos las cookies de Google de forma silenciosa sin redirección automática
+          await signOut({ redirect: false });
+          // Forzamos al navegador a recargar la página desde cero destruyendo el estado atrapado en React
+          window.location.href = '/';
         }, 5000);
       }
     } catch (err) {
@@ -122,7 +125,7 @@ function LoginForm() {
                   Lo sentimos, tu cuenta <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono text-xs">{session?.user?.email}</code> no está autorizada para ingresar a esta Beta Privada.
                 </p>
                 
-                {/* 🚀 MENSAJE DE ÉXITO ACTUALIZADO: Informa al estudiante de la cuenta regresiva antes de sacarlo */}
+                {/* RECUADRO DE ÉXITO CON CUENTA REGRESIVA */}
                 {requestSent ? (
                   <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl p-4 text-xs font-semibold leading-relaxed shadow-sm animate-pulse">
                     ✓ ¡Solicitud enviada con éxito al administrador! Tu sesión se cerrará automáticamente de forma segura en <span className="font-black text-sm text-emerald-600 mx-0.5">{countdown}</span> segundos...
