@@ -676,3 +676,57 @@
   font-weight: 800 !important;
   display: inline-block;
 }
+
+/* ==========================================================================
+   OPTIMIZACIÓN RESPONSIVA PASIVA (EVITA DESBORDES SIN ALTERAR ELEMENTOS)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. Reducción de espacios internos en las tarjetas para ganar área útil en celular */
+    .plataforma-body .practice-card {
+        padding: 1.5rem 1rem !important; /* Mantiene el orden pero reduce márgenes ahogados */
+        gap: 1.25rem !important;
+    }
+
+    .plataforma-body .unified-media-card {
+        padding: 1.5rem 1rem !important;
+    }
+
+    /* 2. Flexibilización del contenedor de Bloques Elkonin */
+    /* Evita que los 6 o 12 bloques empujen la pantalla hacia los lados; saltarán de línea manteniendo su forma */
+    .plataforma-body .practice-card .flex.flex-wrap.justify-center.gap-2 {
+        gap: 6px !important;
+        max-width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Asegura que cada bloque conserve estrictamente su tamaño y geometría redondeada original */
+    .plataforma-body .practice-card .w-8.h-8 {
+        width: 32px !important;
+        height: 32px !important;
+        flex-shrink: 0 !important; /* Impide que el navegador los aplaste o deforme */
+    }
+
+    /* 3. Protección para la botonera numérica de las preguntas 1, 2 y 3 */
+    /* Mantiene los botones redondos e idénticos, distribuyéndolos armónicamente */
+    .plataforma-body .practice-card .w-12.h-12 {
+        width: 44px !important;
+        height: 44px !important;
+        flex-shrink: 0 !important; /* Mantiene la redondez perfecta */
+    }
+
+    /* 4. Optimización de la Rejilla de Selección de Vocales (Pregunta 5 - Práctica 3) */
+    /* En celulares muy delgados, reduce columnas para que las casillas no se encimen */
+    .plataforma-body .grid.grid-cols-4 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important; /* Ajuste adaptativo */
+        gap: 6px !important;
+    }
+
+    /* 5. Ajuste pasivo para los botones inferiores de Navegación */
+    .plataforma-body .navigation-buttons {
+        gap: 8px !important;
+    }
+
+    .plataforma-body .next-btn {
+        padding: 0.85rem 1rem !important; /* Evita textos cortados por falta de espacio lateral */
+    }
+}
