@@ -162,10 +162,11 @@ function PlataformaFonica() {
     if (sidebar) sidebar.classList.remove('open');
   };
 
-  // 🚀 REGLA SOLICITADA: RESET TOTAL Y ABSOLUTO EN EL CAMBIO DE FONEMA DESPLEGABLE
+  // 🚀 REGLA MEJORADA: RESET TOTAL, ABSOLUTO Y ATÓMICO AL CAMBIAR EL FONEMA
   const changeFonemaDropdown = (e) => {
     const nuevoFonema = e.target.value;
     
+    // Limpieza absoluta de respuestas, errores y estados de evaluación
     setStudentAnswer('');
     setErrorMessage('');
     setShowFeedback(false);
@@ -173,11 +174,13 @@ function PlataformaFonica() {
     setIsPracticeStarted(false);
     setStudentSelectedVocals([]);
     
-    // Regresamos la botonera al tamaño inicial (3-6) y limpiamos los bloques guardados
+    // Limpieza de estados visuales y animaciones (Evita bloques coloreados fijos)
+    setHoveredSoundsCount(null);
+    setTriggerShake(false); // Apaga el temblor peculiar para el nuevo ejercicio
     setIsFonicExpanded(false);
-    setSavedFonicBlocks(0);
+    setSavedFonicBlocks(0); // Resetea por completo el candado de bloques Elkonin de la Q1
     
-    // Regresamos de forma atómica a la Palabra 1 y Pregunta 1
+    // Regreso atómico al punto de partida inicial
     setCurrentFonema(nuevoFonema);
     setCurrentWordIndex(0);
     setCurrentQuestionIndex(0);
