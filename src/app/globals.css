@@ -657,3 +657,22 @@
     background-color: #10B981 !important; /* Color idéntico al botón Vocal */
 }
 
+/* ANIMACIÓN PECULIAR DE TEMBLOR PARA RESPUESTAS INCORRECTAS */
+@keyframes sacudidaPeculiar {
+  0% { transform: translateX(0); }
+  15% { transform: translateX(-8px) rotate(-1.5deg); }
+  30% { transform: translateX(6px) rotate(1deg); }
+  45% { transform: translateX(-6px) rotate(-1deg); }
+  60% { transform: translateX(4px) rotate(0.5deg); }
+  75% { transform: translateX(-3px) rotate(-0.5deg); }
+  90% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+
+/* Clase dinámica que inyecta la animación al activarse el error */
+.animacion-error-shake {
+  animation: sacudidaPeculiar 0.5s ease-in-out;
+  color: #DC2626 !important; /* Asegura un tono rojo de alerta fónica */
+  font-weight: 800 !important;
+  display: inline-block;
+}

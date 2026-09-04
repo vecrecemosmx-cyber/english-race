@@ -42,6 +42,9 @@ function PlataformaFonica() {
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const answerInputRef = useRef(null);
+  // Estado para disparar y reiniciar la animación del temblor
+  const [triggerShake, setTriggerShake] = useState(false);
+
 
   // --- ⏱️ REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS ---
   const startTimeWordRef = useRef(null);     
@@ -328,11 +331,22 @@ function PlataformaFonica() {
       if (isCorrect) { successNote = `¡Felicidades! Identificaste los fonemas vocales: ${currentData.vocalesIPA.replace(/\\/g, "")}.`; registrarMétricaPreguntaOculta(studentSelectedVocals.join(", ")); }
     }
 
-    setHasAnsweredCorrectly(isCorrect);
+   setHasAnsweredCorrectly(isCorrect);
     setFeedbackIsCorrect(isCorrect);
     setFeedbackSuccessNote(successNote);
     setShowFeedback(true);
 
+    // 🚀 REGLA SOLICITADA: Si la respuesta es incorrecta, disparamos el temblor peculiar
+    if (!isCorrect) {
+      setTriggerShake(false); // Apagamos momentáneamente para resetear la animación en clicks seguidos
+      setTimeout(() => {
+        setTriggerShake(true); // Encendemos la animación
+      }, 10);
+    } else {
+      setTriggerShake(false); // Si es correcta, se mantiene en calma
+    }
+
+    // Inyección del deslizamiento suave hacia el feedback card
     setTimeout(() => {
       const feedbackElement = document.getElementById('feedback-card');
       if (feedbackElement) {
@@ -766,12 +780,15 @@ function PlataformaFonica() {
             </div>
           )}
 
-          {showFeedback && (
+         {showFeedback && (
             <div id="feedback-card" className="feedback-card">
               <span className="feedback-title">Resultado de la evaluación:</span>
-              <div id="feedback-phrase" className="feedback-phrase">
+              
+              {/* 🚀 COMPONENTE MEJORADO: Inyecta la clase de temblor dinámicamente si triggerShake es true */}
+              <div id="feedback-phrase" className={`feedback-phrase ${triggerShake ? 'animacion-error-shake' : ''}`}>
                 {feedbackIsCorrect ? <span className="word-correct">{feedbackSuccessNote}</span> : <>Tu respuesta no es correcta. ¡Inténtalo de nuevo!</>}
               </div>
+              
               <div id="tip-text" className="tip-box">
                 {feedbackIsCorrect ? "Recuerda que esta práctica se trata de poner atención a los sonidos no a los grafemas." : (currentQuestionIndex === 5 ? "Revisa con calma cada una de las sílabas de la palabra al escucharla de manera lenta con el deslizador." : "Recuerda que los diptongos o las vocales compuestas cuentan como 1 sonido. Tampoco te olvides de utilizar la técnica de eliminación de sonidos.")}
               </div>
