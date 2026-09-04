@@ -17,13 +17,13 @@ function LoginForm() {
   const router = useRouter();
   const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
   
-  // ESTADOS DE CONTROL: Acceso restringido y Lista de espera
+  // ESTADOS DE CONTROL
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
-  const [countdown, setCountdown] = useState(5); // Contador visual de 5 segundos
+  const [countdown, setCountdown] = useState(5);
 
-  // LISTA BLANCA OFICIAL INCORPORADA PARA EL CONTROL DE ACCESO
+  // LISTA BLANCA OFICIAL
   const whitelist = [
     "vecrecemosmx@gmail.com",
     "gael.lpzes.9@gmail.com",
@@ -34,14 +34,10 @@ function LoginForm() {
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       const userEmail = session.user.email.toLowerCase().trim();
-      
-      // Si el correo NO está en la lista blanca, activamos la vista de bloqueo
       if (!whitelist.includes(userEmail)) {
         setIsAccessDenied(true);
         return;
       }
-
-      // Si está permitido, redirigimos según su rol de acceso
       if (userEmail === "vecrecemosmx@gmail.com") {
         router.push("/role-selection");
       } else {
@@ -50,38 +46,45 @@ function LoginForm() {
     }
   }, [status, session, router]);
 
-  // 🚀 REGLA CORREGIDA: Cierre de sesión agresivo y forzado borrando caché del navegador
+  // 🚀 REGLA BLINDADA: Expulsión garantizada incluso si el servidor o la API fallan
   const handleRequestAccess = async () => {
     if (!session?.user?.email) return;
     setLoadingRequest(true);
+    
+    // Función interna para arrancar el reloj de expulsión pase lo que pase
+    const activarExpulsionForzada = () => {
+      setRequestSent(true);
+      const interval = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+
+      setTimeout(async () => {
+        clearInterval(interval);
+        try {
+          await signOut({ redirect: false });
+        } catch (e) {
+          console.error("Error al borrar cookies:", e);
+        }
+        window.location.href = '/'; // Recarga dura del navegador
+      }, 5000);
+    };
+
     try {
+      console.log("✈️ Intentando registrar correo en la lista de espera...");
       const res = await fetch('/api/request-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: session.user.email })
       });
       
-      if (res.ok) {
-        setRequestSent(true);
-        
-        // Manejador visual del contador segundo por segundo
-        const interval = setInterval(() => {
-          setCountdown((prev) => prev - 1);
-        }, 1000);
-
-        // 💡 EXPULSIÓN DE SEGURIDAD FORZADA AL CUMPLIRSE LOS 5 SEGUNDOS
-        setTimeout(async () => {
-          clearInterval(interval);
-          // Primero borramos las cookies de Google de forma silenciosa sin redirección automática
-          await signOut({ redirect: false });
-          // Forzamos al navegador a recargar la página desde cero destruyendo el estado atrapado en React
-          window.location.href = '/';
-        }, 5000);
+      if (!res.ok) {
+        console.warn(`Aviso: El servidor respondió con estado ${res.status}. Se procederá con la expulsión de respaldo.`);
       }
     } catch (err) {
-      console.error("Error al registrar solicitud:", err);
+      console.error("🚨 Error de conexión con la API de Vercel/Supabase:", err);
     } finally {
       setLoadingRequest(false);
+      activarExpulsionForzada(); // 💡 CLAVE: Se ejecuta SIEMPRE, garantizando que el bucle se rompa
     }
   };
 
@@ -125,10 +128,9 @@ function LoginForm() {
                   Lo sentimos, tu cuenta <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono text-xs">{session?.user?.email}</code> no está autorizada para ingresar a esta Beta Privada.
                 </p>
                 
-                {/* RECUADRO DE ÉXITO CON CUENTA REGRESIVA */}
                 {requestSent ? (
-                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl p-4 text-xs font-semibold leading-relaxed shadow-sm animate-pulse">
-                    ✓ ¡Solicitud enviada con éxito al administrador! Tu sesión se cerrará automáticamente de forma segura en <span className="font-black text-sm text-emerald-600 mx-0.5">{countdown}</span> segundos...
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl p-4 text-xs font-semibold leading-relaxed shadow-sm">
+                    ✓ Procesando solicitud. Tu sesión se cerrará de forma segura en <span className="font-black text-sm text-emerald-600 mx-0.5">{countdown}</span> segundos...
                   </div>
                 ) : (
                   <button
@@ -155,7 +157,7 @@ function LoginForm() {
                   type="button"
                   className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                   <span>Continuar con Google</span>
                 </button>
               </>
