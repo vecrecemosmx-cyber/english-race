@@ -466,7 +466,7 @@ function PlataformaFonica() {
         
         {!(hoveredSoundsCount || studentAnswer) && (
           <span className="text-xs text-zinc-500 font-semibold italic animate-pulse block text-center max-w-md leading-relaxed">
-            "Usa los cuadros como un apoyo visual y mental para darle un espacio a cada sonido durante el ejercicio."
+            "Usa los cuadros como apoyo visual y mental para darle espacio a cada sonido durante el ejercicio."
           </span>
         )}
       </div>
