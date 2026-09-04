@@ -776,20 +776,25 @@ function PlataformaFonica() {
           </div>
 
           <div className="practice-card unified-media-card">
-            {/* 🚀 DISTRIBUCIÓN SIMÉTRICA AL 50% OPTIMIZADA CON NUEVOS ESTILOS PASIVOS */}
+            {/* 🚀 DISTRIBUCIÓN SIMÉTRICA AL 50% FORZADA MEDIANTE ESTILOS EN LÍNEA DIRECTOS */}
             <div className="w-full grid grid-cols-2 gap-3 pb-2 items-center">
               
-              {/* COLUMNA IZQUIERDA: Botón de Instrucciones (Gris claro con letras blancas y compactas) */}
+              {/* COLUMNA IZQUIERDA: Botón de Instrucciones (Forzado a color #F4F7FA y texto blanco) */}
               <div className="w-full">
                 <button
                   id="play-instructions-btn"
                   onClick={handlePlayInstructions}
                   type="button"
-                  // Usamos !bg-zinc-400 para el gris claro con letras blancas legibles, !text-white y text-[11px] para achicar la letra
-                  className="audio-btn !bg-#F4F7FA hover:!bg-zinc-500 !text-white text-[8px] tracking-tight font-black uppercase sm:text-xs flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
+                  // 💡 Usamos style para obligar al navegador a usar el fondo gris #F4F7FA, letras blancas y un tamaño de fuente pequeño ajustable
+                  style={{
+                    backgroundColor: '#F4F7FA',
+                    color: '#FFFFFF',
+                    fontSize: '10px', // Redúcelo aquí a '9px' o auméntalo a '11px' según necesites
+                  }}
+                  className="audio-btn hover:opacity-85 !font-black uppercase tracking-tight flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
                   title="Volver a escuchar las instrucciones de bienvenida"
                 >
-                  {/* Icono de la bocina adaptado en color blanco e igualado proporcionalmente */}
+                  {/* Icono de la bocina forzado a heredar el color blanco */}
                   <div className="scale-75 flex items-center justify-center flex-shrink-0 text-white fill-white stroke-white">
                     <IconoBocina />
                   </div>
