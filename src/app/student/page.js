@@ -78,6 +78,22 @@ function PlataformaFonica() {
     }
   }, [status]);
 
+  // 🚀 REGLA SOLICITADA: DESPLAZAMIENTO SUAVE AL CAMBIAR DE PRÁCTICA EN EL SIDEBAR
+  useEffect(() => {
+    // Si la plataforma ya cargó y detecta un cambio en la práctica seleccionada
+    if (status === "authenticated" && currentPractice) {
+      setTimeout(() => {
+        const contenedorPregunta = document.getElementById('instruction-card-root');
+        if (contenedorPregunta) {
+          contenedorPregunta.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 250); // Margen de tiempo prudente para asegurar el renderizado del nuevo set de datos
+    }
+  }, [currentPractice, status]);
+
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
@@ -334,28 +350,38 @@ function PlataformaFonica() {
       if (isCorrect) { successNote = `¡Felicidades! Identificaste los fonemas vocales: ${currentData.vocalesIPA.replace(/\\/g, "")}.`; registrarMétricaPreguntaOculta(studentSelectedVocals.join(", ")); }
     }
 
-   setHasAnsweredCorrectly(isCorrect);
+    // Configuración de estados de evaluación globales
+    setHasAnsweredCorrectly(isCorrect);
     setFeedbackIsCorrect(isCorrect);
     setFeedbackSuccessNote(successNote);
     setShowFeedback(true);
 
-    // 🚀 REGLA SOLICITADA: Si la respuesta es incorrecta, disparamos el temblor peculiar
+    // Activación controlada del efecto de temblor peculiar ante respuestas incorrectas
     if (!isCorrect) {
-      setTriggerShake(false); // Apagamos momentáneamente para resetear la animación en clicks seguidos
+      setTriggerShake(false); // Reseteo momentáneo para clicks consecutivos
       setTimeout(() => {
-        setTriggerShake(true); // Encendemos la animación
+        setTriggerShake(true); // Enciende animación de error
       }, 10);
     } else {
-      setTriggerShake(false); // Si es correcta, se mantiene en calma
+      setTriggerShake(false);
     }
 
-    // Inyección del deslizamiento suave hacia el feedback card
+    // 🚀 REGLA SOLICITADA: ENRUTAMIENTO INTELIGENTE DEL SCROLL AUTOMÁTICO
     setTimeout(() => {
-      const feedbackElement = document.getElementById('feedback-card');
-      if (feedbackElement) {
-        feedbackElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (isCorrect) {
+        // SI ES CORRECTA: Desplazamos directo al botón de "Siguiente" para agilizar navegación
+        const botonSiguiente = document.getElementById('action-btn');
+        if (botonSiguiente) {
+          botonSiguiente.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else {
+        // SI ES INCORRECTA: Desplazamos únicamente hasta la tarjeta de feedback/error
+        const tarjetaFeedback = document.getElementById('feedback-card');
+        if (tarjetaFeedback) {
+          tarjetaFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       }
-    }, 80);
+    }, 120); // Margen de tiempo optimizado para esperar el pintado dinámico del DOM
   };
 
   const handleNextQuestion = (e) => {
