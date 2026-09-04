@@ -210,12 +210,13 @@ function PlataformaFonica() {
     startTimeQuestionRef.current = ahora; 
   };
 
-  // --- MOTOR DE EVALUACIÓN MULTI-CASO RESTAURADO AL ORDEN ORIGINAL ---
-  const handleCheckAnswer = (e, valorBotonP5 = null) => {
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO CORREGIDO PARA ASINCRONÍA ---
+  const handleCheckAnswer = (e, valorBotonP5 = null, valorDirectoBoton = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
 
-    let value = studentAnswer.trim();
+    // REGLA DE ORO: Si viene un valor directo del botón táctil, usamos ese; si no, usamos el input tradicional
+    let value = valorDirectoBoton ? String(valorDirectoBoton).trim() : studentAnswer.trim();
     let isCorrect = false;
     let successNote = "";
 
@@ -237,30 +238,31 @@ function PlataformaFonica() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: // Q1 Original: Sonidos Totales
-          correctValue = currentData ? String(currentData.f) : ""; 
+        case 0: // Q1: Sonidos Totales
+          correctValue = currentData ? String(currentData.f).trim() : ""; 
           successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; 
           break;
-        case 1: // Q2 Original: Consonantes
-          correctValue = currentData.fc; 
-          successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; 
+        case 1: // Q2: Consonantes
+          correctValue = currentData ? String(currentData.fc).trim() : ""; 
+          successNote = `¡Correcto! Tiene ${correctValue} sonidos consonantes.`; 
           break;
-        case 2: // Q3 Original: Vocales
-          correctValue = currentData.fv; 
-          successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
+        case 2: // Q3: Vocales
+          correctValue = currentData ? String(currentData.fv).trim() : ""; 
+          successNote = `¡Muy bien! Tiene ${correctValue} sonidos vocálicos.`; 
           break;
-        case 3: // Q4 Original: Stress
-          correctValue = currentData.stress; 
-          successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; 
+        case 3: // Q4: Stress
+          correctValue = currentData ? String(currentData.stress).trim() : ""; 
+          successNote = `¡Exacto! El acento o énfasis está en la sílaba ${correctValue}.`; 
           break;
       }
+      
       isCorrect = (value === correctValue);
       if (isCorrect) registrarMétricaPreguntaOculta(value);
     } 
     else if (currentQuestionIndex === 4) {
       if (currentPractice === '3' || currentPractice === '4') {
         if (value === "") { setErrorMessage("⚠️ Escribe tu respuesta antes de comprobar."); setShowFeedback(false); return; }
-        const dbValue = currentData.posVocal;
+        const dbValue = String(currentData.posVocal).trim();
         if (dbValue.length === 2) {
           const digitoA = dbValue.charAt(0);
           const digitoB = dbValue.charAt(1);
@@ -405,7 +407,7 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR ORIGINAL RESTAURADO: PREGUNTA 1 (SONIDOS TOTALES RANGO 3-9)
+  // RENDERIZADOR ACTUALIZADO SINCRO: PREGUNTA 1 (SONIDOS TOTALES RANGO 3-9)
   // ==========================================================================
   const renderBotoneraFichasPregunta1 = () => {
     const limiteIluminado = hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0);
@@ -423,7 +425,8 @@ function PlataformaFonica() {
               onMouseLeave={() => !hasAnsweredCorrectly && setHoveredSoundsCount(null)}
               onClick={(e) => {
                 setStudentAnswer(String(numero));
-                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
+                // 🚀 ENVIAMOS EL VALOR DIRECTO PARA CONTRARRESTAR EL RETRASO DEL ESTADO
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e, null, String(numero));
               }}
               className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
                 studentAnswer === String(numero)
@@ -457,10 +460,10 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR CORREGIDO Y SEGURO: PREGUNTA 2 (CONTEO DE CONSONANTES RANGO 1-7)
+  // RENDERIZADOR ACTUALIZADO SINCRO: PREGUNTA 2 (CONTEO DE CONSONANTES RANGO 1-7)
   // ==========================================================================
   const renderBotoneraConsonantesPregunta2 = () => {
-    const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7]; // Para la pregunta 2 (Consonantes)
+    const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7];
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas consonantes tiene?</span>
@@ -472,7 +475,8 @@ function PlataformaFonica() {
               disabled={hasAnsweredCorrectly}
               onClick={(e) => {
                 setStudentAnswer(String(numero));
-                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
+                // 🚀 ENVIAMOS EL VALOR DIRECTO PARA CONTRARRESTAR EL RETRASO DEL ESTADO
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e, null, String(numero));
               }}
               className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
                 studentAnswer === String(numero)
@@ -489,10 +493,10 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR CORREGIDO Y SEGURO: PREGUNTA 3 (CONTEO DE VOCALES RANGO 1-5)
+  // RENDERIZADOR ACTUALIZADO SINCRO: PREGUNTA 3 (CONTEO DE VOCALES RANGO 1-5)
   // ==========================================================================
   const renderBotoneraVocalesPregunta3 = () => {
-    const botonesVocales = [1, 2, 3, 4, 5]; // Para la pregunta 3 (Vocales)
+    const botonesVocales = [1, 2, 3, 4, 5];
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">¿Cuántos fonemas vocales tiene?</span>
@@ -504,7 +508,8 @@ function PlataformaFonica() {
               disabled={hasAnsweredCorrectly}
               onClick={(e) => {
                 setStudentAnswer(String(numero));
-                if (!hasAnsweredCorrectly) handleCheckAnswer(e);
+                // 🚀 ENVIAMOS EL VALOR DIRECTO PARA CONTRARRESTAR EL RETRASO DEL ESTADO
+                if (!hasAnsweredCorrectly) handleCheckAnswer(e, null, String(numero));
               }}
               className={`w-12 h-12 rounded-full font-black text-base border-2 transition-all flex items-center justify-center transform active:scale-95 ${
                 studentAnswer === String(numero)
