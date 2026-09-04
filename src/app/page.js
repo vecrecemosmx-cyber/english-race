@@ -17,12 +17,13 @@ function LoginForm() {
   const router = useRouter();
   const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
   
-  // ESTADOS NUEVOS: Control de acceso cerrado de la Beta Privada
+  // ESTADOS DE CONTROL: Acceso restringido y Lista de espera
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
+  const [countdown, setCountdown] = useState(5); // Contador visual de 5 segundos
 
-  // 🚀 LISTA BLANCA OFICIAL INCORPORADA PARA EL CONTROL DE ACCESO
+  // LISTA BLANCA OFICIAL INCORPORADA PARA EL CONTROL DE ACCESO
   const whitelist = [
     "vecrecemosmx@gmail.com",
     "gael.lpzes.9@gmail.com",
@@ -34,13 +35,13 @@ function LoginForm() {
     if (status === "authenticated" && session?.user?.email) {
       const userEmail = session.user.email.toLowerCase().trim();
       
-      // REGLA SOLICITADA: Si el correo NO está en la lista blanca, bloqueamos y mostramos formulario de espera
+      // Si el correo NO está en la lista blanca, activamos la vista de bloqueo
       if (!whitelist.includes(userEmail)) {
         setIsAccessDenied(true);
         return;
       }
 
-      // Si está permitido, redirigimos según su rol
+      // Si está permitido, redirigimos según su rol de acceso
       if (userEmail === "vecrecemosmx@gmail.com") {
         router.push("/role-selection");
       } else {
@@ -49,7 +50,7 @@ function LoginForm() {
     }
   }, [status, session, router]);
 
-  // 🚀 LOGICA SOLICITADA: Envío de correo rechazado a la lista de espera
+  // 🚀 REGLA SOLICITADA: Envío con éxito, cuenta regresiva de 5 segundos y cierre de sesión automático
   const handleRequestAccess = async () => {
     if (!session?.user?.email) return;
     setLoadingRequest(true);
@@ -59,8 +60,20 @@ function LoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: session.user.email })
       });
+      
       if (res.ok) {
         setRequestSent(true);
+        
+        // Manejador visual del contador segundo por segundo
+        const interval = setInterval(() => {
+          setCountdown((prev) => prev - 1);
+        }, 1000);
+
+        // Disparador del cierre de sesión automático al cumplirse los 5 segundos estrictos
+        setTimeout(() => {
+          clearInterval(interval);
+          signOut({ callbackUrl: '/' }); // Cierra la cuenta de Google y limpia cookies
+        }, 5000);
       }
     } catch (err) {
       console.error("Error al registrar solicitud:", err);
@@ -102,16 +115,17 @@ function LoginForm() {
           </div>
 
           <div className="my-auto py-8">
-            {/* INTERFAZ ALTERNATIVA A: CORREO NO AUTORIZADO (BLOQUEO DE SEGURIDAD) */}
             {isAccessDenied ? (
               <div className="animate-fade-in flex flex-col gap-4">
                 <h1 className="text-2xl font-black text-red-600 uppercase tracking-tight">Acceso Restringido</h1>
                 <p className="text-sm font-medium text-slate-600 leading-relaxed">
                   Lo sentimos, tu cuenta <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono text-xs">{session?.user?.email}</code> no está autorizada para ingresar a esta Beta Privada.
                 </p>
+                
+                {/* 🚀 MENSAJE DE ÉXITO ACTUALIZADO: Informa al estudiante de la cuenta regresiva antes de sacarlo */}
                 {requestSent ? (
-                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl p-4 text-xs font-semibold">
-                    ✓ ¡Solicitud registrada con éxito! El administrador revisará tu cuenta pronto.
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl p-4 text-xs font-semibold leading-relaxed shadow-sm animate-pulse">
+                    ✓ ¡Solicitud enviada con éxito al administrador! Tu sesión se cerrará automáticamente de forma segura en <span className="font-black text-sm text-emerald-600 mx-0.5">{countdown}</span> segundos...
                   </div>
                 ) : (
                   <button
@@ -122,12 +136,14 @@ function LoginForm() {
                     {loadingRequest ? "Enviando..." : "Solicitar acceso al administrador"}
                   </button>
                 )}
-                <button onClick={() => signOut({ callbackUrl: '/' })} className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase mt-2 text-left">
-                  ← Intentar con otra cuenta
-                </button>
+                
+                {!requestSent && (
+                  <button onClick={() => signOut({ callbackUrl: '/' })} className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase mt-2 text-left transition-colors">
+                    ← Cancelar e intentar con otra cuenta
+                  </button>
+                )}
               </div>
             ) : (
-              /* INTERFAZ NORMAL B: ENTRADA DE USUARIOS */
               <>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-800 mb-2">¡Te damos la bienvenida!</h1>
                 <p className="text-sm font-medium text-slate-500 mb-8">Inicia sesión de forma segura para comenzar a practicar.</p>
