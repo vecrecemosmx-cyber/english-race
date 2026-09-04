@@ -806,7 +806,8 @@ function PlataformaFonica() {
               <div className="w-full">
                 {currentPractice === '3' ? (
                   <select 
-                    id="fonema-select" 
+                    id="fonema-select"
+                    style={{ fontSize: '13px' }}
                     className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl" 
                     value={currentFonema} 
                     onChange={changeFonemaDropdown}
