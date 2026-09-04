@@ -786,7 +786,7 @@ function PlataformaFonica() {
                   onClick={handlePlayInstructions}
                   type="button"
                   // Usamos !bg-zinc-400 para el gris claro con letras blancas legibles, !text-white y text-[11px] para achicar la letra
-                  className="audio-btn !bg-zinc-400 hover:!bg-zinc-500 !text-white text-[8px] tracking-tight font-black uppercase sm:text-xs flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
+                  className="audio-btn !bg-#F4F7FA hover:!bg-zinc-500 !text-white text-[8px] tracking-tight font-black uppercase sm:text-xs flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
                   title="Volver a escuchar las instrucciones de bienvenida"
                 >
                   {/* Icono de la bocina adaptado en color blanco e igualado proporcionalmente */}
