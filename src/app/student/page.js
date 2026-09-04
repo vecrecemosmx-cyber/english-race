@@ -456,7 +456,7 @@ function PlataformaFonica() {
         
         {!(hoveredSoundsCount || studentAnswer) && (
           <span className="text-xs text-zinc-400 font-medium italic animate-pulse block text-center">
-            Elige una opción para previsualizar los bloques acústicos.
+            Los cuadros sólo son una referencia visual de apoyo para ayudarle al cerebro a darle un espacio a cada sonido durante el ejercicio.
             <br />
             <span className="mt-1 block text-zinc-500 font-semibold">
               Presta atención al sonido, no a la escritura de la palabra.
