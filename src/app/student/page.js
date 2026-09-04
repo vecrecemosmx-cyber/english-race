@@ -27,7 +27,6 @@ function PlataformaFonica() {
   const router = useRouter();
   
   // --- ESTADOS DE CONTROL GLOBALES (SINCRONIZADOS ORIGINALES) ---
-  // '3' = Práctica 1, '4' = Práctica 2, '5' = Práctica 3
   const [currentPractice, setCurrentPractice] = useState('3'); 
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -45,25 +44,40 @@ function PlataformaFonica() {
   const answerInputRef = useRef(null);
 
   // --- ⏱️ REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS ---
-  const startTimeWordRef = useRef(null);     // Inicia al presionar el botón "Palabra"
-  const startTimeQuestionRef = useRef(null); // Inicia al cargar cada pregunta individual
+  const startTimeWordRef = useRef(null);     
+  const startTimeQuestionRef = useRef(null); 
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
   const [respuestasInputs, setRespuestasInputs] = useState({});
 
-  // Estado para simular visualmente la caja intermitente cuando el alumno pasa el mouse (Hover)
   const [hoveredSoundsCount, setHoveredSoundsCount] = useState(null);
 
-  // --- 🚀 NUEVO ESTADO PARA LA BOTONERA DINÁMICA CON EXPANSOR (PREGUNTA 1) ---
-  // false = muestra del 3 al 6 + botón "+", true = expande hasta el 12 y oculta el "+"
+  // --- ESTADOS REORDENADOS Y NUEVAS PROPIEDADES DE BLOQUES ---
   const [isFonicExpanded, setIsFonicExpanded] = useState(false);
+  
+  // 🚀 NUEVO ESTADO: Guarda de manera fija los bloques que el estudiante respondió correctamente en la Q1
+  const [savedFonicBlocks, setSavedFonicBlocks] = useState(0);
 
-  // Mapeos oficiales originales para traducir los IDs de tus menús desplegables
+  // 🚀 NUEVO REQUERIMIENTO: DISPARADOR DE SCROLL AUTOMÁTICO INICIAL EN CELULARES
+  useEffect(() => {
+    if (status === "authenticated") {
+      // Validamos si el ancho de la pantalla corresponde a un dispositivo móvil (menor a 768px)
+      const esCelular = window.matchMedia("(max-width: 768px)").matches;
+      if (esCelular) {
+        setTimeout(() => {
+          const contenedorPregunta = document.getElementById('instruction-card-root');
+          if (contenedorPregunta) {
+            contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 600); // Pequeño margen de tiempo para asegurar que el DOM de la plataforma cargó tras el login
+      }
+    }
+  }, [status]);
+
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
-  // TEXTOS DE PREGUNTAS EN SU ORDEN ORIGINAL RESTAURADO
   const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
         "1. ¿Cuántos sonidos componen la palabra?",
@@ -81,25 +95,16 @@ function PlataformaFonica() {
         "6. Selecciona todos los fonemas vocales que escuchas."
       ];
 
-  // Ruta local para reproducir los audios fónicos desde public/audio/
   const baseAudioUrl = "/audio/";
   const vocalAudioFiles = { 
     "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3",
     "aɪ": "buy.mp3", "eɪ": "bay.mp3", "ɔɪ": "boy.mp3", "aʊ": "cow.mp3", "oʊ": "saw.mp3"
   };
 
-  // Lista de los 21 fonemas para la pregunta 6 (Botonera Práctica 3)
   const vocalOptionsP2 = [
     "ɪ", "ʌ", "ʊ", "ə", "ɒ", "æ", "e", "i:", "ɑ:", "u:", "ɜ:", "ɔ:", 
     "aɪ", "eɪ", "ɔɪ", "aʊ", "oʊ", "ɑːr", "ɜːr", "ɔːr", "ər"
   ];
-  // Redirección de seguridad si el usuario no está autenticado
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
-
   // --- FILTRADO DINÁMICO REAL DE PALABRAS POR ID NUMÉRICO SEGÚN TU DATASET ORIGINAL ---
   const obtenerPalabrasFiltradas = () => {
     if (currentPractice === '3') {
@@ -158,7 +163,6 @@ function PlataformaFonica() {
   const changeFonemaDropdown = (e) => {
     const nuevoFonema = e.target.value;
     
-    // 1. Limpieza de todas las respuestas, estados de feedback y cronómetros
     setStudentAnswer('');
     setErrorMessage('');
     setShowFeedback(false);
@@ -166,10 +170,11 @@ function PlataformaFonica() {
     setIsPracticeStarted(false);
     setStudentSelectedVocals([]);
     
-    // 2. Colapsamos obligatoriamente la nueva botonera de la Pregunta 1 al rango inicial (3 al 6)
+    // Regresamos la botonera al tamaño inicial (3-6) y limpiamos los bloques guardados
     setIsFonicExpanded(false);
+    setSavedFonicBlocks(0);
     
-    // 3. Seteamos de forma atómica para regresar a la Palabra 1 (0) y Pregunta 1 (0)
+    // Regresamos de forma atómica a la Palabra 1 y Pregunta 1
     setCurrentFonema(nuevoFonema);
     setCurrentWordIndex(0);
     setCurrentQuestionIndex(0);
@@ -182,8 +187,8 @@ function PlataformaFonica() {
     setShowFeedback(false);
     setErrorMessage('');
     setHasAnsweredCorrectly(false);
-    // Colapsamos la botonera para el siguiente reto independiente
     setIsFonicExpanded(false);
+    setSavedFonicBlocks(0); // Limpiamos el valor en el cambio de palabra completa
   };
 
   // --- REPRODUCCIÓN AUDIO LOCAL ORIGINAL ---
@@ -229,14 +234,13 @@ function PlataformaFonica() {
 
     setTiemposPreguntas(prev => ({ ...prev, [`${qKey}_tiempo`]: segundosInvertidos }));
     setRespuestasInputs(prev => ({ ...prev, [`${qKey}_input`]: String(textoRespuesta) }));
-    startTimeQuestionRef.current = ahora; 
+    startTimeQuestionRef.current = chrome || ahora; 
   };
-  // --- MOTOR DE EVALUACIÓN MULTI-CASO ACTUALIZADO CON DESPLAZAMIENTO SUAVE ---
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO ACTUALIZADO CON COPIADO DE RESPUESTA OK ---
   const handleCheckAnswer = (e, valorBotonP5 = null, valorDirectoBoton = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
 
-    // REGLA DE ORO: Si viene un valor directo del botón táctil, usamos ese; si no, el input tradicional
     let value = valorDirectoBoton ? String(valorDirectoBoton).trim() : studentAnswer.trim();
     let isCorrect = false;
     let successNote = "";
@@ -259,26 +263,33 @@ function PlataformaFonica() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: // Q1 Original: Sonidos Totales
+        case 0: // Q1: Sonidos Totales
           correctValue = currentData ? String(currentData.f).trim() : ""; 
           successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; 
           break;
-        case 1: // Q2 Original: Consonantes
+        case 1: // Q2: Consonantes
           correctValue = currentData ? String(currentData.fc).trim() : ""; 
           successNote = `¡Correcto! Tiene ${correctValue} sonidos consonantes.`; 
           break;
-        case 2: // Q3 Original: Vocales
+        case 2: // Q3: Vocales
           correctValue = currentData ? String(currentData.fv).trim() : ""; 
           successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
           break;
-        case 3: // Q4 Original: Stress
+        case 3: // Q4: Stress
           correctValue = currentData ? String(currentData.stress).trim() : ""; 
           successNote = `¡Exacto! El acento o énfasis está en la sílaba ${correctValue}.`; 
           break;
       }
       
       isCorrect = (value === correctValue);
-      if (isCorrect) registrarMétricaPreguntaOculta(value);
+      if (isCorrect) {
+        registrarMétricaPreguntaOculta(value);
+        
+        // 🚀 REGLA SOLICITADA: Si la respuesta de la pregunta 1 (índice 0) es correcta, guardamos el número de bloques
+        if (currentQuestionIndex === 0) {
+          setSavedFonicBlocks(parseInt(value));
+        }
+      }
     } 
     else if (currentQuestionIndex === 4) {
       if (currentPractice === '3' || currentPractice === '4') {
@@ -322,7 +333,6 @@ function PlataformaFonica() {
     setFeedbackSuccessNote(successNote);
     setShowFeedback(true);
 
-    // 🚀 INYECCIÓN DEL DESLIZAMIENTO SUAVE HACIA EL FEEDBACK CARD
     setTimeout(() => {
       const feedbackElement = document.getElementById('feedback-card');
       if (feedbackElement) {
@@ -331,7 +341,6 @@ function PlataformaFonica() {
     }, 80);
   };
 
-  // --- NAVEGACIÓN ENTRE PREGUNTAS ---
   const handleNextQuestion = (e) => {
     if (e) e.preventDefault();
     if (!hasAnsweredCorrectly) return;
@@ -391,14 +400,17 @@ function PlataformaFonica() {
   const renderBotoneraFichasPregunta1 = () => {
     const limiteIluminado = hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0);
     
-    // Si no está expandido muestra del 3 al 6, si el alumno pulsa "+" se abre del 3 al 12
+    // Regla de negocio: Si no está expandido muestra del 3 al 6, si pulsa "+" se abre del 3 al 12
     const botonesIniciales = [3, 4, 5, 6];
     const botonesExpandidos = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const rangoActivo = isFonicExpanded ? botonesExpandidos : botonesIniciales;
 
+    // 🚀 REGLA SOLICITADA: Muestra 6 bloques iniciales fijados, si se expande con "+" muestra 12 totales
+    const totalBloquesVisuales = isFonicExpanded ? 12 : 6;
+
     return (
       <div className="w-full flex flex-col items-center gap-6 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
-        <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos que escuchas</span>
+        <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos.</span>
         <div className="flex flex-wrap justify-center gap-3">
           {rangoActivo.map((numero) => (
             <button
@@ -421,7 +433,6 @@ function PlataformaFonica() {
             </button>
           ))}
           
-          {/* Botón expansor dinámico que se oculta al activarse */}
           {!isFonicExpanded && (
             <button
               type="button"
@@ -435,8 +446,9 @@ function PlataformaFonica() {
           )}
         </div>
 
+        {/* 🔲 BLOQUES ELKONIN DINÁMICOS (Muestra 6 o 12 según el estado del botón +) */}
         <div className="flex flex-wrap justify-center gap-2 mt-2 min-h-[36px] items-center max-w-full">
-          {Array.from({ length: 9 }).map((_, idx) => {
+          {Array.from({ length: totalBloquesVisuales }).map((_, idx) => {
             const numeroBloque = idx + 1;
             const estaIluminado = numeroBloque <= limiteIluminado;
             return (
@@ -455,10 +467,6 @@ function PlataformaFonica() {
         {!(hoveredSoundsCount || studentAnswer) && (
           <span className="text-xs text-zinc-500 font-semibold italic animate-pulse block text-center max-w-md leading-relaxed">
             "Usa los cuadros como un apoyo visual y mental para darle un espacio a cada sonido durante el ejercicio."
-            <br />
-            <span className="mt-2 block text-zinc-400 font-medium">
-              Presta atención al sonido, no a la escritura de la palabra.
-            </span>
           </span>
         )}
       </div>
@@ -493,10 +501,18 @@ function PlataformaFonica() {
             </button>
           ))}
         </div>
+        
+        {/* 🚀 REGLA SOLICITADA: Bloques Elkonin persistentes basados en la respuesta guardada de la Q1 */}
+        {savedFonicBlocks > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mt-4 min-h-[36px] items-center border-t border-zinc-100 pt-4 w-full">
+            {Array.from({ length: savedFonicBlocks }).map((_, idx) => (
+              <div key={idx} className="w-8 h-8 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-100/50" />
+            ))}
+          </div>
+        )}
       </div>
     );
   };
-
   // ==========================================================================
   // RENDERIZADOR ACTUALIZADO CORREGIDO: PREGUNTA 3 (CONTEO DE VOCALES RANGO 1-5)
   // ==========================================================================
@@ -525,6 +541,15 @@ function PlataformaFonica() {
             </button>
           ))}
         </div>
+
+        {/* 🚀 REGLA SOLICITADA: Bloques Elkonin persistentes basados en la respuesta guardada de la Q1 */}
+        {savedFonicBlocks > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mt-4 min-h-[36px] items-center border-t border-zinc-100 pt-4 w-full">
+            {Array.from({ length: savedFonicBlocks }).map((_, idx) => (
+              <div key={idx} className="w-8 h-8 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-100/50" />
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -567,6 +592,7 @@ function PlataformaFonica() {
       </div>
     );
   };
+
   if (status === "loading") {
     return (
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-[#F2C83B]">
@@ -599,7 +625,6 @@ function PlataformaFonica() {
           {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
         </div>
       </header>
-
       <div className="app-layout">
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
@@ -615,8 +640,10 @@ function PlataformaFonica() {
             <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
           </ul>
         </aside>
+
         <main className="main-container">
-          <div className="instruction-card">
+          {/* 🚀 ANCLAJE MÓVIL OPTIMIZADO: ID inyectado para el scroll automático en celulares */}
+          <div className="instruction-card" id="instruction-card-root">
             <p id="instruction-text" className="instruction-text">{questionsTexts[currentQuestionIndex]}</p>
           </div>
 
@@ -665,7 +692,6 @@ function PlataformaFonica() {
               </div>
             </div>
           </div>
-
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
@@ -722,14 +748,11 @@ function PlataformaFonica() {
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
               {renderBotoneraVocalesPregunta3()}
             </div>
-          ) :
-          (currentQuestionIndex === 3 || (currentQuestionIndex === 4 && (currentPractice === '3' || currentPractice === '4'))) ? (
-            /* 🚀 NUEVA INTERACCIÓN TÁCTIL: Preguntas 4 y 5 con botones de texto ("primera" a "quinta") */
+          ) : (currentQuestionIndex === 3 || (currentQuestionIndex === 4 && (currentPractice === '3' || currentPractice === '4'))) ? (
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
               {renderBotoneraSilabicaPreguntas4y5()}
             </div>
           ) : (
-            /* PREGUNTAS ENTRADA TRADICIONAL (SÓLO QUEDA ACTIVA PARA CASOS EXCEPCIONALES DE P5) */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
