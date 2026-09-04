@@ -776,64 +776,69 @@ function PlataformaFonica() {
           </div>
 
           <div className="practice-card unified-media-card">
-            {/* 🚀 ESTRUCTURA ACTUALIZADA: Fila alineada con Botón Instrucciones y Menú Desplegable */}
-            <div className="w-full flex flex-row items-center justify-center gap-3 pb-2 flex-wrap sm:flex-nowrap">
+            {/* 🚀 REGLA SOLICITADA: Distribución exacta al 50% en una cuadrícula simétrica */}
+            <div className="w-full grid grid-cols-2 gap-3 pb-2 items-center">
               
-              {/* Nuevo Botón Pequeño de Instrucciones (Estilo idéntico a botón Palabra adaptado) */}
-              <button
-                id="play-instructions-btn"
-                onClick={handlePlayInstructions}
-                type="button"
-                className="audio-btn !bg-sky-600 hover:!bg-sky-700 !py-2.5 !px-4 !w-auto text-xs sm:text-sm flex items-center justify-center gap-1.5 h-10 shadow-sm flex-shrink-0"
-                title="Volver a escuchar las instrucciones de bienvenida"
-              >
-                {/* Icono de la bocina adaptado de forma proporcional al tamaño reducido */}
-                <div className="scale-75 flex items-center justify-center -ml-0.5">
-                  <IconoBocina />
-                </div>
-                <span>Instrucciones</span>
-              </button>
+              {/* COLUMNA IZQUIERDA: Botón de Instrucciones (Ocupa la mitad exacta de la fila) */}
+              <div className="w-full">
+                <button
+                  id="play-instructions-btn"
+                  onClick={handlePlayInstructions}
+                  type="button"
+                  className="audio-btn !bg-sky-600 hover:!bg-sky-700 !py-2.5 !px-3 !w-full text-xs sm:text-sm flex items-center justify-center gap-1.5 h-10 shadow-sm rounded-xl"
+                  title="Volver a escuchar las instrucciones de bienvenida"
+                >
+                  {/* Icono de la bocina adaptado de forma proporcional al tamaño reducido */}
+                  <div className="scale-75 flex items-center justify-center flex-shrink-0">
+                    <IconoBocina />
+                  </div>
+                  <span className="truncate">Instrucciones</span>
+                </button>
+              </div>
 
-              {/* Selector de Fonemas adaptado para medir solo el ancho de su texto interno */}
-              {currentPractice === '3' ? (
-                <select 
-                  id="fonema-select" 
-                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
-                  value={currentFonema} 
-                  onChange={changeFonemaDropdown}
-                >
-                  <option value="ə">Fonema /ə/</option>
-                  <option value="ɪ">Fonema /ɪ/</option>
-                  <option value="ɛ">Fonema /ɛ/</option>
-                  <option value="æ">Fonema /æ/</option>
-                  <option value="ʌ">Fonema /ʌ/</option>
-                </select>
-              ) : currentPractice === '4' ? (
-                <select 
-                  id="fonema-select" 
-                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
-                  value={currentFonema} 
-                  onChange={changeFonemaDropdown}
-                >
-                  <option value="aɪ">Fonema /aɪ/</option>
-                  <option value="eɪ">Fonema /eɪ/</option>
-                  <option value="ɔɪ">Fonema /ɔɪ/</option>
-                  <option value="aʊ">Fonema /aʊ/</option>
-                  <option value="oʊ">Fonema /oʊ/</option>
-                </select>
-              ) : (
-                <select 
-                  id="fonema-select" 
-                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
-                  value={currentFonema} 
-                  onChange={changeFonemaDropdown}
-                >
-                  <option value="1">Grafemas de /θ/ vs /ð/</option>
-                  <option value="2">Grafemas de /ʧ/ vs /ʤ/</option>
-                  <option value="3">Grafemas de /ʤ/ vs /j/</option>
-                  <option value="4">Grafemas de /ʃ/ vs /ʒ/</option>
-                </select>
-              )}
+              {/* COLUMNA DERECHA: Menú Desplegable (Ocupa la mitad exacta restante) */}
+              <div className="w-full">
+                {currentPractice === '3' ? (
+                  <select 
+                    id="fonema-select" 
+                    className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl" 
+                    value={currentFonema} 
+                    onChange={changeFonemaDropdown}
+                  >
+                    <option value="ə">Fonema /ə/</option>
+                    <option value="ɪ">Fonema /ɪ/</option>
+                    <option value="ɛ">Fonema /ɛ/</option>
+                    <option value="æ">Fonema /æ/</option>
+                    <option value="ʌ">Fonema /ʌ/</option>
+                  </select>
+                ) : currentPractice === '4' ? (
+                  <select 
+                    id="fonema-select" 
+                    className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl" 
+                    value={currentFonema} 
+                    onChange={changeFonemaDropdown}
+                  >
+                    <option value="aɪ">Fonema /aɪ/</option>
+                    <option value="eɪ">Fonema /eɪ/</option>
+                    <option value="ɔɪ">Fonema /ɔɪ/</option>
+                    <option value="aʊ">Fonema /aʊ/</option>
+                    <option value="oʊ">Fonema /oʊ/</option>
+                  </select>
+                ) : (
+                  <select 
+                    id="fonema-select" 
+                    className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl" 
+                    value={currentFonema} 
+                    onChange={changeFonemaDropdown}
+                  >
+                    <option value="1">Grafemas de /θ/ vs /ð/</option>
+                    <option value="2">Grafemas de /ʧ/ vs /ʤ/</option>
+                    <option value="3">Grafemas de /ʤ/ vs /j/</option>
+                    <option value="4">Grafemas de /ʃ/ vs /ʒ/</option>
+                  </select>
+                )}
+              </div>
+
             </div>
 
             <div className="media-buttons-row">
