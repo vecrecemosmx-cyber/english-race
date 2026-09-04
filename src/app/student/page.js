@@ -119,17 +119,17 @@ function PlataformaFonica() {
 
   const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
-        "1. ¿Cuántos sonidos componen la palabra?",
+        "1. ¿Cuántos sonidos forman la palabra?",
         "2. ¿Cuántos fonemas consonantes tiene?",
         "3. ¿Cuántos fonemas vocales tiene?",
-        "4. ¿En qué sílaba está el énfasis o acento?",
+        "4. ¿En qué sílaba está el énfasis?",
         "5. ¿En qué sílaba está la vocal que estamos practicando?"
       ]
     : [
-        "1. ¿Cuántos sonidos componen la palabra?",
+        "1. ¿Cuántos sonidos forman la palabra?",
         "2. ¿Cuántos fonemas consonantes tiene?",
         "3. ¿Cuántos fonemas vocales tiene?",
-        "4. ¿En qué sílaba está el énfasis o acento?",
+        "4. ¿En qué sílaba está el énfasis?",
         "5. Elige el fonema correcto.",
         "6. Selecciona todos los fonemas vocales que escuchas."
       ];
