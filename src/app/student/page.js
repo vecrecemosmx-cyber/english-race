@@ -776,20 +776,21 @@ function PlataformaFonica() {
           </div>
 
           <div className="practice-card unified-media-card">
-            {/* 🚀 REGLA SOLICITADA: Distribución exacta al 50% en una cuadrícula simétrica */}
+            {/* 🚀 DISTRIBUCIÓN SIMÉTRICA AL 50% OPTIMIZADA CON NUEVOS ESTILOS PASIVOS */}
             <div className="w-full grid grid-cols-2 gap-3 pb-2 items-center">
               
-              {/* COLUMNA IZQUIERDA: Botón de Instrucciones (Ocupa la mitad exacta de la fila) */}
+              {/* COLUMNA IZQUIERDA: Botón de Instrucciones (Gris claro con letras blancas y compactas) */}
               <div className="w-full">
                 <button
                   id="play-instructions-btn"
                   onClick={handlePlayInstructions}
                   type="button"
-                  className="audio-btn !bg-sky-600 hover:!bg-sky-700 !py-2.5 !px-3 !w-full text-xs sm:text-sm flex items-center justify-center gap-1.5 h-10 shadow-sm rounded-xl"
+                  // Usamos !bg-zinc-400 para el gris claro con letras blancas legibles, !text-white y text-[11px] para achicar la letra
+                  className="audio-btn !bg-zinc-400 hover:!bg-zinc-500 !text-white text-[11px] tracking-tight font-black uppercase sm:text-xs flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
                   title="Volver a escuchar las instrucciones de bienvenida"
                 >
-                  {/* Icono de la bocina adaptado de forma proporcional al tamaño reducido */}
-                  <div className="scale-75 flex items-center justify-center flex-shrink-0">
+                  {/* Icono de la bocina adaptado en color blanco e igualado proporcionalmente */}
+                  <div className="scale-75 flex items-center justify-center flex-shrink-0 text-white fill-white stroke-white">
                     <IconoBocina />
                   </div>
                   <span className="truncate">Instrucciones</span>
