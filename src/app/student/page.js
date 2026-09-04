@@ -450,19 +450,24 @@ function PlataformaFonica() {
     }, 120); // Margen de tiempo optimizado para esperar el pintado dinámico del DOM
   };
 
+  // 🚀 REGLA MEJORADA: AVANCE SECUENCIAL CON RESET ABSOLUTO DE BLOQUES ELKONIN ENTRE PALABRAS
   const handleNextQuestion = (e) => {
     if (e) e.preventDefault();
     if (!hasAnsweredCorrectly) return;
 
     const maxPreguntas = (currentPractice === '3' || currentPractice === '4') ? 5 : 6;
 
+    // CASO A: SI EN LA PALABRA ACTUAL AÚN QUEDAN PREGUNTAS POR RESPONDER
     if (currentQuestionIndex < maxPreguntas - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setStudentAnswer("");
       setStudentSelectedVocals([]);
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
-    } else {
+      setTriggerShake(false); // Apagamos el temblor para la nueva pregunta
+    } 
+    // CASO B: EL ALUMNO TERMINÓ LA ÚLTIMA PREGUNTA Y AVANZA A UNA NUEVA PALABRA (SIGUIENTE RETO)
+    else {
       const segundosTotalesPalabra = Math.round((Date.now() - startTimeWordRef.current) / 1000);
       const dataMétricasOcultas = {
         studentEmail: session?.user?.email || "alumno@student.com",
@@ -477,16 +482,31 @@ function PlataformaFonica() {
 
       console.log("✈️ Paquete de métricas invisibles emitido con éxito:", dataMétricasOcultas);
 
+      // 1. Limpieza absoluta de las métricas de tiempo de la palabra que termina
       setIsPracticeStarted(false);
       setTiemposPreguntas({});
       setRespuestasInputs({});
       setClicsMenuContador(0);
 
+      // 2. 🚀 RESET ATÓMICO VISUAL SOLICITADO: Limpia por completo los bloques fónicos para el nuevo inicio
+      setStudentAnswer("");              // Vacía la respuesta escrita/seleccionada (Apaga iluminaciones)
+      setHoveredSoundsCount(null);        // Limpia cualquier rastro del mouse encima del botón
+      setTriggerShake(false);             // Apaga la animación de error
+      setStudentSelectedVocals([]);
+      setShowFeedback(false);
+      setHasAnsweredCorrectly(false);
+      setIsFonicExpanded(false);          // Regresa la botonera de la Q1 a su tamaño inicial (Botones del 3 al 6)
+      setSavedFonicBlocks(0);             // 💡 CLAVE: Resetea el candado para que vuelvan a pintarse sólo 6 bloques vacíos iniciales
+
+      // 3. Modificación del índice de lectura de palabras
       const totalWordsInBlock = palabrasFiltradas.length;
       if (totalWordsInBlock > 0) {
         setCurrentWordIndex((currentWordIndex < totalWordsInBlock - 1) ? currentWordIndex + 1 : 0);
       }
-      resetEntireExercise();
+      
+      // 4. Regreso estricto a la Pregunta 1
+      setCurrentQuestionIndex(0);
+      
       alert(`📝 Siguiente reto cargado. Presiona 'Palabra' para practicar.`);
     }
   };
