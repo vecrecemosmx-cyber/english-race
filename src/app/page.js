@@ -3,7 +3,9 @@
 import { signIn, useSession, signOut, SessionProvider } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { IconoGoogle } from "../Iconos"; // 💡 Importación del nuevo componente de icono modular
+import { IconoGoogle } from "../Iconos";
+// 🚀 INYECCIÓN REAL: Importamos el cliente oficial de Supabase directamente en el cliente
+import { createClient } from '@supabase/supabase-js';
 
 export default function LoginPage() {
   return (
@@ -47,12 +49,12 @@ function LoginForm() {
     }
   }, [status, session, router]);
 
-  // 🚀 REGLA BLINDADA: Expulsión garantizada incluso si el servidor o la API fallan
+  // 🚀 REGLA SOLICITADA: Envío directo a Supabase saltándonos el Error 500 de la API
   const handleRequestAccess = async () => {
     if (!session?.user?.email) return;
     setLoadingRequest(true);
-    
-    // Función interna para arrancar el reloj de expulsión pase lo que pase
+
+    // Función interna encargada de correr el reloj de expulsión pase lo que pase
     const activarExpulsionForzada = () => {
       setRequestSent(true);
       const interval = setInterval(() => {
@@ -64,28 +66,36 @@ function LoginForm() {
         try {
           await signOut({ redirect: false });
         } catch (e) {
-          console.error("Error al borrar cookies:", e);
+          console.error("Error al limpiar sesión:", e);
         }
-        window.location.href = '/'; // Recarga dura del navegador
+        window.location.href = '/'; // Forzar recarga dura
       }, 5000);
     };
 
     try {
-      console.log("✈️ Intentando registrar correo en la lista de espera...");
-      const res = await fetch('/api/request-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: session.user.email })
-      });
-      
-      if (!res.ok) {
-        console.warn(`Aviso: El servidor respondió con estado ${res.status}. Se procederá con la expulsión de respaldo.`);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseId = process.env.NEXT_PUBLIC_SUPABASE_ID;
+
+      // Intentamos inicializar e inyectar el registro directo en la base de datos en la nube
+      if (supabaseUrl && supabaseId) {
+        const supabaseDirecto = createClient(supabaseUrl, supabaseId);
+        const emailLimpio = session.user.email.toLowerCase().trim();
+
+        const { error } = await supabaseDirecto
+          .from('lista_espera_solicitudes')
+          .insert([{ email: emailLimpio }]);
+
+        if (error && error.code !== '23505') {
+          console.error("Error al registrar en Supabase:", error.message);
+        }
+      } else {
+        console.error("🚨 Las credenciales no están cargadas en el frontend.");
       }
     } catch (err) {
-      console.error("🚨 Error de conexión con la API de Vercel/Supabase:", err);
+      console.error("🚨 Falló la conexión directa a la base de datos:", err);
     } finally {
       setLoadingRequest(false);
-      activarExpulsionForzada(); // 💡 CLAVE: Se ejecuta SIEMPRE, garantizando que el bucle se rompa
+      activarExpulsionForzada(); // Se ejecuta siempre para romper el bucle
     }
   };
 
@@ -153,12 +163,11 @@ function LoginForm() {
               <>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-800 mb-2">¡Te damos la bienvenida!</h1>
                 <p className="text-sm font-medium text-slate-500 mb-8">Inicia sesión de forma segura para comenzar a practicar.</p>
-                                <button
+                <button
                   onClick={() => signIn("google")}
                   type="button"
                   className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]"
                 >
-                  {/* 🚀 INVOCACIÓN MODULAR LIMPIA DEL ICONO DE GOOGLE */}
                   <IconoGoogle />
                   <span>Continuar con Google</span>
                 </button>
