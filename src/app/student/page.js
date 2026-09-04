@@ -776,9 +776,32 @@ function PlataformaFonica() {
           </div>
 
           <div className="practice-card unified-media-card">
-            <div className="w-full flex justify-center pb-2">
+            {/* 🚀 ESTRUCTURA ACTUALIZADA: Fila alineada con Botón Instrucciones y Menú Desplegable */}
+            <div className="w-full flex flex-row items-center justify-center gap-3 pb-2 flex-wrap sm:flex-nowrap">
+              
+              {/* Nuevo Botón Pequeño de Instrucciones (Estilo idéntico a botón Palabra adaptado) */}
+              <button
+                id="play-instructions-btn"
+                onClick={handlePlayInstructions}
+                type="button"
+                className="audio-btn !bg-sky-600 hover:!bg-sky-700 !py-2.5 !px-4 !w-auto text-xs sm:text-sm flex items-center justify-center gap-1.5 h-10 shadow-sm flex-shrink-0"
+                title="Volver a escuchar las instrucciones de bienvenida"
+              >
+                {/* Icono de la bocina adaptado de forma proporcional al tamaño reducido */}
+                <div className="scale-75 flex items-center justify-center -ml-0.5">
+                  <IconoBocina />
+                </div>
+                <span>Instrucciones</span>
+              </button>
+
+              {/* Selector de Fonemas adaptado para medir solo el ancho de su texto interno */}
               {currentPractice === '3' ? (
-                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                <select 
+                  id="fonema-select" 
+                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
+                  value={currentFonema} 
+                  onChange={changeFonemaDropdown}
+                >
                   <option value="ə">Fonema /ə/</option>
                   <option value="ɪ">Fonema /ɪ/</option>
                   <option value="ɛ">Fonema /ɛ/</option>
@@ -786,7 +809,12 @@ function PlataformaFonica() {
                   <option value="ʌ">Fonema /ʌ/</option>
                 </select>
               ) : currentPractice === '4' ? (
-                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                <select 
+                  id="fonema-select" 
+                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
+                  value={currentFonema} 
+                  onChange={changeFonemaDropdown}
+                >
                   <option value="aɪ">Fonema /aɪ/</option>
                   <option value="eɪ">Fonema /eɪ/</option>
                   <option value="ɔɪ">Fonema /ɔɪ/</option>
@@ -794,7 +822,12 @@ function PlataformaFonica() {
                   <option value="oʊ">Fonema /oʊ/</option>
                 </select>
               ) : (
-                <select id="fonema-select" className="font-dropdown-top w-full max-w-[320px] text-center" value={currentFonema} onChange={changeFonemaDropdown}>
+                <select 
+                  id="fonema-select" 
+                  className="font-dropdown-top !w-auto !max-w-full text-center h-10 !py-1 !px-3 font-semibold text-sm flex-1 sm:flex-none border border-zinc-200" 
+                  value={currentFonema} 
+                  onChange={changeFonemaDropdown}
+                >
                   <option value="1">Grafemas de /θ/ vs /ð/</option>
                   <option value="2">Grafemas de /ʧ/ vs /ʤ/</option>
                   <option value="3">Grafemas de /ʤ/ vs /j/</option>
