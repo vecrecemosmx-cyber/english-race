@@ -94,6 +94,26 @@ function PlataformaFonica() {
     }
   }, [currentPractice, status]);
 
+  // 🚀 REGLA DE OPTIMIZACIÓN: PRE-CALENTAMIENTO SILENCIOSO DE SPEECHSYNTHESIS
+  useEffect(() => {
+    // Despierta e inicializa el motor de voz en segundo plano al montar la plataforma
+    if (status === "authenticated" && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel(); // Limpia cualquier cola colgada
+        
+        // Enviamos una elisión o texto vacío para forzar al navegador a cargar el paquete 'en-US'
+        const dummyUtterance = new SpeechSynthesisUtterance("");
+        dummyUtterance.lang = 'en-US';
+        dummyUtterance.volume = 0; // Volumen en cero absoluto para que sea imperceptible
+        
+        window.speechSynthesis.speak(dummyUtterance);
+        console.log("⚡ Motor fónico SpeechSynthesis pre-calentado con éxito.");
+      } catch (error) {
+        console.log("Aviso de inicialización pasiva de audio:", error);
+      }
+    }
+  }, [status]);
+
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
