@@ -527,6 +527,37 @@ function PlataformaFonica() {
     }
   };
 
+  // 🚀 REGLA SOLICITADA: RESTABLECIMIENTO Y DESPLAZAMIENTO SUAVE AL VOLVER A LA PREGUNTA ANTERIOR
+  const handlePreviousQuestion = (e) => {
+    if (e) e.preventDefault();
+    if (currentQuestionIndex > 0) {
+      // Retroceso en la secuencia de evaluación
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      
+      // Limpieza atómica de respuestas anteriores y mensajes para el nuevo enfoque
+      setStudentAnswer("");
+      setStudentSelectedVocals([]);
+      setShowFeedback(false);
+      setHasAnsweredCorrectly(false);
+      setErrorMessage("");
+      setTriggerShake(false); // Apagamos cualquier rastro de animación de error
+      
+      // Captura invisible de tiempos reiniciada para la nueva métrica analítica
+      startTimeQuestionRef.current = Date.now(); 
+
+      // Desplazamiento automático de la pantalla hacia arriba (Anclaje de la pregunta)
+      setTimeout(() => {
+        const contenedorPregunta = document.getElementById('instruction-card-root');
+        if (contenedorPregunta) {
+          contenedorPregunta.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100); // Margen mínimo optimizado para esperar el cambio de estado en el renderizado
+    }
+  };
+
   // ==========================================================================
   // 🚀 ACTUALIZADO CON BOTÓN EXPANSOR (+): PREGUNTA 1 (SONIDOS TOTALES)
   // ==========================================================================
