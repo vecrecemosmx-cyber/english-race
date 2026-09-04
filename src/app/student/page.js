@@ -27,7 +27,6 @@ function PlataformaFonica() {
   const router = useRouter();
   
   // --- ESTADOS DE CONTROL GLOBALES (SINCRONIZADOS ORIGINALES) ---
-  // '3' = Práctica 1, '4' = Práctica 2, '5' = Práctica 3
   const [currentPractice, setCurrentPractice] = useState('3'); 
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -45,15 +44,13 @@ function PlataformaFonica() {
   const answerInputRef = useRef(null);
 
   // --- ⏱️ REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS ---
-  const startTimeWordRef = useRef(null);     // Inicia al presionar el botón "Palabra"
-  const startTimeQuestionRef = useRef(null); // Inicia al cargar cada pregunta individual
+  const startTimeWordRef = useRef(null);     
+  const startTimeQuestionRef = useRef(null); 
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
   const [respuestasInputs, setRespuestasInputs] = useState({});
-  // ==========================================================================
-  // NUEVOS ESTADOS COMPLEMENTARIOS PARA LA PREGUNTA 1 (FICHAS FÓNICAS)
-  // ==========================================================================
+
   // Estado para simular visualmente la caja intermitente cuando el alumno pasa el mouse (Hover)
   const [hoveredSoundsCount, setHoveredSoundsCount] = useState(null);
 
@@ -64,19 +61,19 @@ function PlataformaFonica() {
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
 
-  // El arreglo base de preguntas cambia dinámicamente según la práctica activa
+  // NUEVO REORDENAMIENTO DE PREGUNTAS SOLICITADO
   const questionsTexts = (currentPractice === '3' || currentPractice === '4')
     ? [
-        "1. ¿Cuántos sonidos componen la palabra?",
-        "2. ¿Cuántos fonemas consonantes tiene?",
-        "3. ¿Cuántos fonemas vocales tiene?",
+        "1. ¿Cuántos fonemas consonantes tiene?",
+        "2. ¿Cuántos fonemas vocales tiene?",
+        "3. ¿Cuántos sonidos componen la palabra?",
         "4. ¿En qué sílaba está el énfasis o acento?",
         "5. ¿En qué sílaba está la vocal que estamos practicando?"
       ]
     : [
-        "1. ¿Cuántos sonidos componen la palabra?",
-        "2. ¿Cuántos fonemas consonantes tiene?",
-        "3. ¿Cuántos fonemas vocales tiene?",
+        "1. ¿Cuántos fonemas consonantes tiene?",
+        "2. ¿Cuántos fonemas vocales tiene?",
+        "3. ¿Cuántos sonidos componen la palabra?",
         "4. ¿En qué sílaba está el énfasis o acento?",
         "5. Elige el fonema correcto.",
         "6. Selecciona todos los fonemas vocales que escuchas."
@@ -133,7 +130,7 @@ function PlataformaFonica() {
 
   // Lógica original de enfoque automático al cambiar de pregunta o palabra
   useEffect(() => {
-    if (status === "authenticated" && answerInputRef.current && currentQuestionIndex < 4) {
+    if (status === "authenticated" && answerInputRef.current && currentQuestionIndex > 2 && currentQuestionIndex < 5) {
       answerInputRef.current.focus();
     }
   }, [currentQuestionIndex, currentWordIndex, currentFonema, status]);
@@ -150,7 +147,8 @@ function PlataformaFonica() {
     resetEntireExercise();
   }, [currentPractice]);
 
-  const cerrarSidebarMovil = () => {
+  // NUEVA REGLA UNIFICADA: Ahora cierra el menú lateral de inmediato al pulsar una opción
+  const forzarOcultarSidebar = () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.remove('open');
   };
@@ -167,7 +165,7 @@ function PlataformaFonica() {
   // --- REPRODUCCIÓN AUDIO LOCAL ORIGINAL ---
   const handlePlayWordAudio = (e) => {
     if (e) e.preventDefault();
-    if (answerInputRef.current) answerInputRef.current.focus();
+    if (answerInputRef.current && currentQuestionIndex > 2 && currentQuestionIndex < 5) answerInputRef.current.focus();
     if (!currentData) return;
 
     if ('speechSynthesis' in window) {
@@ -208,10 +206,10 @@ function PlataformaFonica() {
 
     setTiemposPreguntas(prev => ({ ...prev, [`${qKey}_tiempo`]: segundosInvertidos }));
     setRespuestasInputs(prev => ({ ...prev, [`${qKey}_input`]: String(textoRespuesta) }));
-    startTimeQuestionRef.current = ahora; // Reinicia reloj para Q + 1
+    startTimeQuestionRef.current = ahora; 
   };
 
-  // --- MOTOR DE EVALUACIÓN MULTI-CASO ORIGINAL INTEGRADO ---
+  // --- MOTOR DE EVALUACIÓN MULTI-CASO AJUSTADO AL NUEVO ORDEN DE PREGUNTAS ---
   const handleCheckAnswer = (e, valorBotonP5 = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
@@ -220,13 +218,12 @@ function PlataformaFonica() {
     let isCorrect = false;
     let successNote = "";
 
-    // CASO A: EVALUACIÓN DE LAS PREGUNTAS GENERALES 1 A 4
     if (currentQuestionIndex < 4) {
-      let isTwoDigitQuestion = (currentQuestionIndex === 0);
+      let isTwoDigitQuestion = (currentQuestionIndex === 2); 
       let isValidFormat = isTwoDigitQuestion ? /^[0-9]{1,2}$/.test(value) : /^[0-9]$/.test(value);
 
       if (value === "") { 
-        setErrorMessage("⚠️ Escribe tu respuesta antes de comprobar."); 
+        setErrorMessage("⚠️ Elige o escribe tu respuesta antes de comprobar."); 
         setShowFeedback(false);
         return; 
       } 
@@ -239,18 +236,26 @@ function PlataformaFonica() {
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0: 
-          // Extraemos el valor de forma ultra segura asegurando que lea el dataset actual
+        case 0: // Nueva Q1: Consonantes
+          correctValue = currentData.fc; 
+          successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; 
+          break;
+        case 1: // Nueva Q2: Vocales
+          correctValue = currentData.fv; 
+          successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
+          break;
+        case 2: // Nueva Q3: Sonidos Totales
           correctValue = currentData ? String(currentData.f) : ""; 
-          successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; break;
-        case 1: correctValue = currentData.fc; successNote = `¡Correcto! Tiene ${currentData.fc} sonidos consonantes.`; break;
-        case 2: correctValue = currentData.fv; successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; break;
-        case 3: correctValue = currentData.stress; successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; break;
+          successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; 
+          break;
+        case 3: // Q4 original: Stress
+          correctValue = currentData.stress; 
+          successNote = `¡Exacto! El acento o énfasis está en la sílaba ${currentData.stress}.`; 
+          break;
       }
       isCorrect = (value === correctValue);
       if (isCorrect) registrarMétricaPreguntaOculta(value);
     } 
-    // CASO B: EVALUACIÓN DE LA PREGUNTA 5
     else if (currentQuestionIndex === 4) {
       if (currentPractice === '3' || currentPractice === '4') {
         if (value === "") { setErrorMessage("⚠️ Escribe tu respuesta antes de comprobar."); setShowFeedback(false); return; }
@@ -277,7 +282,6 @@ function PlataformaFonica() {
         }
       }
     } 
-    // CASO C: EVALUACIÓN DE LA PREGUNTA 6 (EXCLUSIVA PRÁCTICA 3)
     else if (currentQuestionIndex === 5 && currentPractice === '5') {
       if (studentSelectedVocals.length === 0) {
         setErrorMessage("⚠️ Selecciona al menos un fonema vocal de la cuadrícula antes de comprobar.");
@@ -327,7 +331,6 @@ function PlataformaFonica() {
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
     } else {
-      // EMPAQUETADO SILENCIOSO FINAL DE LA PALABRA PARA EL MAESTRO
       const segundosTotalesPalabra = Math.round((Date.now() - startTimeWordRef.current) / 1000);
       const dataMétricasOcultas = {
         studentEmail: session?.user?.email || "alumno@student.com",
@@ -342,7 +345,6 @@ function PlataformaFonica() {
 
       console.log("✈️ Paquete de métricas invisibles emitido con éxito:", dataMétricasOcultas);
 
-      // Limpieza de estados invisibles
       setIsPracticeStarted(false);
       setTiemposPreguntas({});
       setRespuestasInputs({});
@@ -366,21 +368,17 @@ function PlataformaFonica() {
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
       setErrorMessage("");
-      startTimeQuestionRef.current = Date.now(); // Restablece reloj para evitar sesgo
+      startTimeQuestionRef.current = Date.now(); 
     }
   };
 
   const changeFonemaDropdown = (e) => {
     const nuevoFonema = e.target.value;
-    
-    // 1. Limpiamos por completo el input y estados anteriores primero
     setStudentAnswer('');
     setErrorMessage('');
     setShowFeedback(false);
     setHasAnsweredCorrectly(false);
     setIsPracticeStarted(false);
-    
-    // 2. Seteamos los nuevos índices de forma atómica
     setCurrentFonema(nuevoFonema);
     setCurrentWordIndex(0);
     setCurrentQuestionIndex(0);
@@ -396,7 +394,7 @@ function PlataformaFonica() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && currentQuestionIndex < 4) {
+    if (e.key === 'Enter' && currentQuestionIndex > 2 && currentQuestionIndex < 5) {
       if (!hasAnsweredCorrectly) {
         handleCheckAnswer(e);
       } else {
@@ -406,17 +404,14 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR MEJORADO: PREGUNTA 1 (9 BLOQUES FIJOS DESDE EL PRINCIPIO)
+  // RENDERIZADOR MEJORADO: NUEVA PREGUNTA 3 (SONIDOS TOTALES - ANTES Q1)
   // ==========================================================================
-  const renderBotoneraFichasPregunta1 = () => {
-    // Definimos el límite actual seleccionado o en hover de forma numérica
+  const renderBotoneraFichasPregunta3 = () => {
     const limiteIluminado = hoveredSoundsCount || (studentAnswer ? parseInt(studentAnswer) : 0);
 
     return (
       <div className="w-full flex flex-col items-center gap-6 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
         <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos que escuchas</span>
-        
-        {/* Fila de Burbujas Numéricas del 3 al 9 */}
         <div className="flex flex-wrap justify-center gap-3">
           {totalFonicButtons.map((numero) => (
             <button
@@ -427,7 +422,6 @@ function PlataformaFonica() {
               onMouseLeave={() => !hasAnsweredCorrectly && setHoveredSoundsCount(null)}
               onClick={(e) => {
                 setStudentAnswer(String(numero));
-                // 🚀 UN SOLO TOQUE: Comprueba la respuesta de inmediato
                 if (!hasAnsweredCorrectly) {
                   handleCheckAnswer(e);
                 }
@@ -443,7 +437,6 @@ function PlataformaFonica() {
           ))}
         </div>
 
-        {/* 🔲 ELKONIN BOXES FIJAS DESDE UN PRINCIPIO (Muestra siempre 9 bloques) */}
         <div className="flex flex-wrap justify-center gap-2 mt-2 min-h-[36px] items-center max-w-full">
           {Array.from({ length: 9 }).map((_, idx) => {
             const numeroBloque = idx + 1;
@@ -461,7 +454,6 @@ function PlataformaFonica() {
           })}
         </div>
         
-        {/* Tu frase con salto de párrafo agregada con éxito */}
         {!(hoveredSoundsCount || studentAnswer) && (
           <span className="text-xs text-zinc-400 font-medium italic animate-pulse block text-center">
             Elige una opción para previsualizar los bloques acústicos.
@@ -476,9 +468,9 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR PARA LA PREGUNTA 2: CONTEO DE CONSONANTES (Rango 1 al 7)
+  // RENDERIZADOR PARA LA NUEVA PREGUNTA 1: CONTEO DE CONSONANTES (RANGO 1-7)
   // ==========================================================================
-  const renderBotoneraConsonantesPregunta2 = () => {
+  const renderBotoneraConsonantesPregunta1 = () => {
     const botonesConsonantes = [1, 2, 3, 4, 5, 6, 7];
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
@@ -508,9 +500,9 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR PARA LA PREGUNTA 3: CONTEO DE VOCALES (Rango 1 al 5)
+  // RENDERIZADOR PARA LA NUEVA PREGUNTA 2: CONTEO DE VOCALES (RANGO 1-5)
   // ==========================================================================
-  const renderBotoneraVocalesPregunta3 = () => {
+  const renderBotoneraVocalesPregunta2 = () => {
     const botonesVocales = [1, 2, 3, 4, 5];
     return (
       <div className="w-full flex flex-col items-center gap-4 p-4 bg-zinc-50/50 rounded-3xl border border-zinc-100 animate-fade-in">
@@ -552,7 +544,6 @@ function PlataformaFonica() {
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER DE LA APLICACIÓN */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={(e) => { e.stopPropagation(); document.getElementById('sidebar')?.classList.toggle('open'); }}>
@@ -574,35 +565,21 @@ function PlataformaFonica() {
       </header>
 
       <div className="app-layout">
-        {/* MENÚ LATERAL IZQUIERDO ORIGINAL RESTAURADO CON CONTADOR DE CLICS */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
-            <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
-            <li className="menu-item" id="menu-alfabeto" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
-            
-            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}>
-              <span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span>
-            </li>
-
-            {/* Busca tus líneas de Práctica 2 y 3 en el Sidebar y asegúrate de que limpien el índice al dar clic */}
-            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); }}>
-              <span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span>
-            </li>
-
-            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); }}>
-              <span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span>
-            </li>
-
-
-            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
-            <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
-            <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
-            <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); cerrarSidebarMovil(); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
+            <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
+            <li className="menu-item" id="menu-alfabeto" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
+            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span></li>
+            <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); forzarOcultarSidebar(); }}><span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span></li>
+            <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-practica-2" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); setCurrentWordIndex(0); setCurrentQuestionIndex(0); setShowFeedback(false); setHasAnsweredCorrectly(false); setStudentAnswer(''); forzarOcultarSidebar(); }}><span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span></li>
+            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
+            <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
+            <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); forzarOcultarSidebar(); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
           </ul>
         </aside>
 
-        {/* CONTENEDOR CENTRAL DE TRABAJO */}
         <main className="main-container">
           <div className="instruction-card">
             <p id="instruction-text" className="instruction-text">{questionsTexts[currentQuestionIndex]}</p>
@@ -638,18 +615,10 @@ function PlataformaFonica() {
 
             <div className="media-buttons-row">
               <div className="media-column-left">
-                {/* Restaurados tus Iconos Oficiales */}
                 <button id="play-word-btn" onClick={handlePlayWordAudio} className="audio-btn"><IconoBocina /><span>Palabra</span></button>
               </div>
               <div className="media-column-right">
-                <button 
-                  id="play-vocal-btn" 
-                  onClick={handlePlayVocalAudio} 
-                  className={`audio-btn vocal-btn ${(currentPractice !== '3' && currentPractice !== '4') ? 'btn-disabled opacity-40 cursor-not-allowed' : ''}`}
-                  disabled={currentPractice !== '3' && currentPractice !== '4'}
-                >
-                  <IconoNota /><span>Vocal</span>
-                </button>
+                <button id="play-vocal-btn" onClick={handlePlayVocalAudio} className={`audio-btn vocal-btn ${(currentPractice !== '3' && currentPractice !== '4') ? 'btn-disabled opacity-40 cursor-not-allowed' : ''}`} disabled={currentPractice !== '3' && currentPractice !== '4'}><IconoNota /><span>Vocal</span></button>
               </div>
             </div>
 
@@ -662,7 +631,6 @@ function PlataformaFonica() {
             </div>
           </div>
 
-          {/* CONTROL DINÁMICO DE ENTRADA / RESPUESTAS INTERACTIVAS */}
           {currentPractice === '5' && currentQuestionIndex === 4 ? (
             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm text-center flex flex-col gap-4">
               <span className="response-title block mb-2">Selecciona el fonema correcto</span>
@@ -699,13 +667,7 @@ function PlataformaFonica() {
               <span className="response-title">Selecciona las vocales presentes</span>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[180px] overflow-y-auto p-2 border border-zinc-100 rounded-xl bg-zinc-50">
                 {vocalOptionsP2.map(vocal => (
-                  <button 
-                    key={vocal} type="button" onClick={() => !hasAnsweredCorrectly && toggleVocalSelection(`/${vocal}/`)}
-                    className={`p-2 rounded-lg text-sm font-bold border transition-all ${studentSelectedVocals.includes(`/${vocal}/`) ? 'bg-sky-600 border-sky-600 text-white shadow-sm' : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100'} ${hasAnsweredCorrectly ? 'cursor-not-allowed opacity-70' : ''}`}
-                    disabled={hasAnsweredCorrectly}
-                  >
-                    /{vocal}/
-                  </button>
+                  <button key={vocal} type="button" onClick={() => !hasAnsweredCorrectly && toggleVocalSelection(`/${vocal}/`)} className={`p-2 rounded-lg text-sm font-bold border transition-all ${studentSelectedVocals.includes(`/${vocal}/`) ? 'bg-sky-600 border-sky-600 text-white shadow-sm' : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100'} ${hasAnsweredCorrectly ? 'cursor-not-allowed opacity-70' : ''}`} disabled={hasAnsweredCorrectly}>/{vocal}/</button>
                 ))}
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t border-zinc-100">
@@ -714,30 +676,22 @@ function PlataformaFonica() {
               </div>
             </div>
           ) : currentQuestionIndex === 0 ? (
-            /* 🚀 PREGUNTA 1: Fichas con las 9 Elkonin boxes fijas */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraFichasPregunta1()}
+              {renderBotoneraConsonantesPregunta1()}
             </div>
           ) : currentQuestionIndex === 1 ? (
-            /* 🚀 PREGUNTA 2: Botonera táctil de consonantes del 1 al 7 */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraConsonantesPregunta2()}
+              {renderBotoneraVocalesPregunta2()}
             </div>
           ) : currentQuestionIndex === 2 ? (
-            /* 🚀 PREGUNTA 3: Botonera táctil de vocales del 1 al 5 */
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
-              {renderBotoneraVocalesPregunta3()}
+              {renderBotoneraFichasPregunta3()}
             </div>
           ) : (
-            /* PREGUNTA 4 (STRESS) Y PREGUNTA 5 (POSICIÓN VOCAL): Entrada de teclado tradicional */
             <div className="response-card split-response-card">
               <div className="response-left-pane">
                 <span className="response-title">Tu Respuesta</span>
-                <input 
-                  type="text" id="student-answer" ref={answerInputRef} value={studentAnswer} disabled={hasAnsweredCorrectly}
-                  onChange={(e) => { setStudentAnswer(e.target.value); if (errorMessage !== "") setErrorMessage(""); }}
-                  onKeyPress={handleKeyPress} placeholder="Escribe aquí..." className={`response-input ${errorMessage ? 'input-invalid' : ''}`}
-                />
+                <input type="text" id="student-answer" ref={answerInputRef} value={studentAnswer} disabled={hasAnsweredCorrectly} onChange={(e) => { setStudentAnswer(e.target.value); if (errorMessage !== "") setErrorMessage(""); }} onKeyPress={handleKeyPress} placeholder="Escribe aquí..." className={`response-input ${errorMessage ? 'input-invalid' : ''}`} />
                 <p id="error-message" className="error-text">{errorMessage}</p>
               </div>
               <div className="response-divider-line"></div>
@@ -747,7 +701,6 @@ function PlataformaFonica() {
             </div>
           )}
 
-          {/* CONSEJOS PEDAGÓGICOS (TIP BOX) ORIGINALES RESTAURADOS */}
           {showFeedback && (
             <div id="feedback-card" className="feedback-card">
               <span className="feedback-title">Resultado de la evaluación:</span>
@@ -760,7 +713,6 @@ function PlataformaFonica() {
             </div>
           )}
 
-          {/* BOTONES DE RETORNO Y AVANCE */}
           <div className="navigation-buttons" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '16px' }}>
             <button id="prev-btn" onClick={handlePreviousQuestion} className={`back-question-btn ${currentQuestionIndex === 0 ? 'hidden' : ''}`} style={{ flex: 1 }}>← Anterior</button>
             <button id="action-btn" onClick={handleNextQuestion} className={`next-btn ${!hasAnsweredCorrectly ? 'btn-disabled' : ''}`} disabled={!hasAnsweredCorrectly} style={{ flex: 2 }}>
