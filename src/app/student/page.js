@@ -253,6 +253,26 @@ function PlataformaFonica() {
     setSavedFonicBlocks(0); // Limpiamos el valor en el cambio de palabra completa
   };
 
+  // 🚀 REGLA SOLICITADA: FUNCIÓN DE SELECCIÓN MÚLTIPLE PARA LOS FONEMAS DE LA PREGUNTA 6
+  const toggleVocalSelection = (vocalFormateada) => {
+    // Si el alumno ya respondió correctamente, bloqueamos cualquier intento de edición
+    if (hasAnsweredCorrectly) return;
+
+    // Limpiamos mensajes de error previos al interactuar con las casillas
+    if (errorMessage !== "") setErrorMessage("");
+
+    setStudentSelectedVocals((prevSelected) => {
+      // Si el fonema ya fue seleccionado previamente, lo removemos del listado (Desmarcar)
+      if (prevSelected.includes(vocalFormateada)) {
+        return prevSelected.filter((v) => v !== vocalFormateada);
+      } 
+      // Si es un elemento nuevo, lo añadimos al arreglo manteniendo el estado anterior
+      else {
+        return [...prevSelected, vocalFormateada];
+      }
+    });
+  };
+
   // 🚀 REGLA SOLICITADA: FUNCIÓN CENTRALIZADA PARA REPRODUCIR LAS INSTRUCCIONES (es-MX)
   const handlePlayInstructions = (e) => {
     if (e) e.preventDefault();
