@@ -62,6 +62,9 @@ function PlataformaFonica() {
   // 🚀 NUEVO ESTADO: Guarda de manera fija los bloques que el estudiante respondió correctamente en la Q1
   const [savedFonicBlocks, setSavedFonicBlocks] = useState(0);
 
+  // Estado para garantizar que el audio de bienvenida se reproduzca solo una vez al iniciar
+  const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
+
   // 🚀 NUEVO REQUERIMIENTO: DISPARADOR DE SCROLL AUTOMÁTICO INICIAL EN CELULARES
   useEffect(() => {
     if (status === "authenticated") {
@@ -113,6 +116,39 @@ function PlataformaFonica() {
       }
     }
   }, [status]);
+
+  // 🚀 REGLA SOLICITADA: AUDIO DE BIENVENIDA AUTOMÁTICO EN ESPAÑOL DE MÉXICO (es-MX)
+  useEffect(() => {
+    if (status === "authenticated" && 'speechSynthesis' in window && !hasPlayedWelcome) {
+      // Breve retraso estratégico para asegurar que la pantalla cargó visualmente
+      const timer = setTimeout(() => {
+        try {
+          window.speechSynthesis.cancel(); // Limpia cualquier cola de voz previa
+
+          const guionBienvenida = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar los sonidos.";
+          
+          const bienvenidaUtterance = new SpeechSynthesisUtterance(guionBienvenida);
+          bienvenidaUtterance.lang = 'es-MX'; // Configuración estricta en español de México
+          bienvenidaUtterance.rate = 1.0;     // Velocidad natural de locución instructiva
+          bienvenidaUtterance.pitch = 1.0;    // Tono de voz equilibrado y amigable
+
+          // Buscamos explícitamente en el navegador una voz nativa mexicana disponible para mejorar la naturalidad
+          const vocesDisponibles = window.speechSynthesis.getVoices();
+          const vozMexicana = vocesDisponibles.find(voice => voice.lang === 'es-MX' || voice.lang.startsWith('es_MX'));
+          if (vozMexicana) {
+            bienvenidaUtterance.voice = vozMexicana;
+          }
+
+          window.speechSynthesis.speak(bienvenidaUtterance);
+          setHasPlayedWelcome(true); // Bloqueamos el estado para que no se repita en re-renders internos
+        } catch (error) {
+          console.log("No se pudo reproducir el audio de bienvenida de forma automática:", error);
+        }
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [status, hasPlayedWelcome]);
 
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const mappingP2 = { "1": "aɪ", "2": "eɪ", "3": "ɔɪ", "4": "aʊ", "5": "oʊ" };
