@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 
 // CONFIGURACIÓN DE CONEXIÓN CON TU BASE DE DATOS REAL
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseId = process.env.NEXT_PUBLIC_SUPABASE_ID;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseId);
 
 export async function GET() {
   try {
