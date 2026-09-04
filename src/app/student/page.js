@@ -719,15 +719,16 @@ function PlataformaFonica() {
   };
 
   // ==========================================================================
-  // RENDERIZADOR ACTUALIZADO SEGURO: PREGUNTAS 4 Y 5 (BOTONERA TEXTUAL)
+  // RENDERIZADOR ACTUALIZADO: PREGUNTAS 4 Y 5 (BOTONERA ORDINAL EN SUPERÍNDICE)
   // ==========================================================================
   const renderBotoneraSilabicaPreguntas4y5 = () => {
+    // Definición de las nuevas etiquetas ordinales con su número y sufijo por separado
     const opcionesSilabas = [
-      { texto: "primera", valor: "1" },
-      { texto: "segunda", valor: "2" },
-      { texto: "tercera", valor: "3" },
-      { texto: "cuarta",  valor: "4" },
-      { texto: "quinta",   valor: "5" }
+      { numero: "1", sufijo: "era", valor: "1" },
+      { numero: "2", sufijo: "da",  valor: "2" },
+      { numero: "3", sufijo: "era", valor: "3" },
+      { numero: "4", sufijo: "ta",  valor: "4" },
+      { numero: "5", sufijo: "ta",  valor: "5" }
     ];
 
     return (
@@ -743,13 +744,20 @@ function PlataformaFonica() {
                 setStudentAnswer(item.valor);
                 if (!hasAnsweredCorrectly) handleCheckAnswer(e, null, item.valor);
               }}
-              className={`px-5 py-3 rounded-full font-bold text-sm border-2 transition-all transform active:scale-95 capitalize ${
+              // Mantenemos las proporciones y colores de tu diseño pero ajustamos el padding para albergar el superíndice
+              className={`pt-2.5 pb-3 px-6 rounded-full font-black text-base border-2 transition-all transform active:scale-95 flex items-start justify-center leading-none ${
                 studentAnswer === item.valor
                   ? 'bg-amber-500 border-amber-500 text-white shadow-md'
                   : 'bg-white border-zinc-200 text-zinc-700 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50/20'
               } ${hasAnsweredCorrectly ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              {item.texto}
+              {/* Número Base */}
+              <span>{item.numero}</span>
+              
+              {/* 🚀 SUFIJO ORDINAL SUPERÍNDICE: Eleva las letras en minúscula compacta sin usar el círculo ° */}
+              <sup className="lowercase text-[10px] font-bold ml-0.5 mt-[-2px] tracking-normal select-none">
+                {item.sufijo}
+              </sup>
             </button>
           ))}
         </div>
