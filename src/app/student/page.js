@@ -787,11 +787,11 @@ function PlataformaFonica() {
                   type="button"
                   // 💡 Usamos style para obligar al navegador a usar el fondo gris #F4F7FA, letras blancas y un tamaño de fuente pequeño ajustable
                   style={{
-                    backgroundColor: '#475569',
-                    color: '#FFFFFF',
+                    backgroundColor: '#F4F7FA',
+                    color: '#000000',
                     fontSize: '13px', // Redúcelo aquí a '9px' o auméntalo a '11px' según necesites
                   }}
-                  className="audio-btn hover:opacity-85 !font-black tracking-tight flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
+                  className="audio-btn hover:opacity-85 !font-black text-#1E293B tracking-tight flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
                   title="Volver a escuchar las instrucciones de bienvenida"
                 >
                   {/* Icono de la bocina forzado a heredar el color blanco */}
