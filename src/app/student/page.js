@@ -788,14 +788,14 @@ function PlataformaFonica() {
                   // 💡 Usamos style para obligar al navegador a usar el fondo gris #F4F7FA, letras blancas y un tamaño de fuente pequeño ajustable
                   style={{
                     backgroundColor: '#F4F7FA',
-                    color: '#000000',
+                    color: '#475569',
                     fontSize: '13px', // Redúcelo aquí a '9px' o auméntalo a '11px' según necesites
                   }}
                   className="audio-btn hover:opacity-85 !font-black text-#1E293B tracking-tight flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 shadow-sm rounded-xl transition-all duration-200"
                   title="Volver a escuchar las instrucciones de bienvenida"
                 >
                   {/* Icono de la bocina forzado a heredar el color blanco */}
-                  <div className="scale-75 flex items-center justify-center flex-shrink-0 text-white fill-white stroke-white">
+                  <div className="scale-75 flex items-center justify-center flex-shrink-0 text-#475569 fill-white stroke-white">
                     <IconoBocina />
                   </div>
                   <span className="truncate">Instrucciones</span>
