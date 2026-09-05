@@ -1,10 +1,8 @@
 'use client';
 
 import { useSession, signOut, SessionProvider } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-// 🚀 REGLA DE IMPORTACIÓN: Incorporamos 'useMemo' para solucionar el error de prerendering
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 
 // COMPONENTE CONTENEDOR PRINCIPAL (Envoltura Obligatoria para NextAuth)
