@@ -32,7 +32,7 @@ export async function POST(request) {
           student_email: studentEmail.toLowerCase().trim(),
           practica_activa: String(practica_activa),
           palabra: palabra,
-          tiempo_total_seconds: tiempo_total_palabra_segundos, // Cambiado al nombre exacto de tu script SQL
+          tiempo_total_segundos: tiempo_total_palabra_segundos, // Cambiado al nombre exacto de tu script SQL
           clics_menu: clics_menu,
           detalles_preguntas: respuestas_exactas
         }
