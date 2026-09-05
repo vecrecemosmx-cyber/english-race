@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Conexión segura usando tus credenciales camufladas (ID) homologadas para Vercel
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseId = process.env.NEXT_PUBLIC_SUPABASE_ID;
 
 export async function POST(request) {
   try {
-    // Validamos primero que las credenciales de Supabase existan en el servidor
     if (!supabaseUrl || !supabaseId) {
       console.error("🚨 ERROR DE ENTORNO: Faltan llaves de Supabase en save-metrics.");
       return NextResponse.json({ error: "Error de configuración en el servidor." }, { status: 500 });
@@ -16,7 +14,6 @@ export async function POST(request) {
     const supabase = createClient(supabaseUrl, supabaseId);
     const body = await request.json();
 
-    // 🚀 CACHÉ DE RESPALDO: Si las variables vienen vacías por el reset de React, asignamos valores seguros
     const studentEmail = body.studentEmail || "alumno.anonimo@student.com";
     const practica_activa = body.practica_activa || "1";
     const palabra = body.palabra || "Palabra Desconocida";
@@ -24,7 +21,7 @@ export async function POST(request) {
     const clics_menu = parseInt(body.clics_menu) || 0;
     const respuestas_exactas = body.respuestas_exactas || { info: "No se capturaron detalles" };
 
-    // 🚀 INYECCIÓN REAL EN SUPABASE
+    // Intentamos la inyección en la base de datos en la nube
     const { data, error } = await supabase
       .from('metricas_fonicas')
       .insert([
@@ -32,15 +29,22 @@ export async function POST(request) {
           student_email: studentEmail.toLowerCase().trim(),
           practica_activa: String(practica_activa),
           palabra: palabra,
-          tiempo_total_segundos: tiempo_total_palabra_segundos, // Cambiado al nombre exacto de tu script SQL
+          tiempo_total_segundos: tiempo_total_palabra_segundos,
           clics_menu: clics_menu,
           detalles_preguntas: respuestas_exactas
         }
       ]);
 
+    // 🚀 CLAVE DE AUDITORÍA: Si Supabase rechaza el paquete, extraemos TODA la información del motivo
     if (error) {
-      console.error("🚨 Supabase rechazó la inserción:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      console.error("🚨 Supabase rechazó la inserción. Detalles:", error);
+      return NextResponse.json({ 
+        error: "Rechazado por la base de datos.",
+        mensaje_supabase: error.message,
+        codigo_postgresql: error.code,
+        detalles_postgre: error.details,
+        pista_postgre: error.hint
+      }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, message: "Métricas guardadas con éxito." }, { status: 200 });
