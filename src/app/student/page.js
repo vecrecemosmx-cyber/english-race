@@ -470,23 +470,22 @@ function PlataformaFonica() {
     }, 120); // Margen de tiempo optimizado para esperar el pintado dinámico del DOM
   };
 
-  // 🚀 REGLA MEJORADA: AVANCE CON RESET ABSOLUTO Y DESPLAZAMIENTOS AL CONTENEDOR DE PREGUNTA
-  const handleNextQuestion = (e) => {
+  // 🚀 REGLA MEJORADA: AVANCE Y TRANSMISIÓN REAL DE MÉTRICAS HACIA SUPABASE
+  const handleNextQuestion = async (e) => {
     if (e) e.preventDefault();
     if (!hasAnsweredCorrectly) return;
 
     const maxPreguntas = (currentPractice === '3' || currentPractice === '4') ? 5 : 6;
 
-    // CASO A: SI EN LA PALABRA ACTUAL AÚN QUEDAN PREGUNTAS POR RESPONDER (AVANCE DE PREGUNTA)
+    // CASO A: SI EN LA PALABRA ACTUAL AÚN QUEDAN PREGUNTAS POR RESPONDER
     if (currentQuestionIndex < maxPreguntas - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setStudentAnswer("");
       setStudentSelectedVocals([]);
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
-      setTriggerShake(false); // Apagamos el temblor para la nueva pregunta
+      setTriggerShake(false);
 
-      // 🚀 REGLA SOLICITADA 1: Desplazamiento suave hacia la nueva pregunta
       setTimeout(() => {
         const contenedorPregunta = document.getElementById('instruction-card-root');
         if (contenedorPregunta) {
@@ -494,7 +493,7 @@ function PlataformaFonica() {
         }
       }, 80);
     } 
-    // CASO B: EL ALUMNO TERMINÓ LA ÚLTIMA PREGUNTA Y AVANZA A UNA NUEVA PALABRA (SIGUIENTE RETO)
+    // CASO B: EL ALUMNO TERMINÓ LA ÚLTIMA PREGUNTA Y AVANZA A UNA NUEVA PALABRA (ENVIAR A NUBE)
     else {
       const segundosTotalesPalabra = Math.round((Date.now() - startTimeWordRef.current) / 1000);
       const dataMétricasOcultas = {
@@ -503,45 +502,48 @@ function PlataformaFonica() {
         palabra: currentData?.word,
         tiempo_total_palabra_segundos: segundosTotalesPalabra,
         clics_menu: clicsMenuContador,
-        tiempos_por_pregunta: tiemposPreguntas,
-        respuestas_exactas: respuestasInputs,
-        timestamp: new Date().toISOString()
+        respuestas_exactas: respuestasInputs // Estructura Q1 a Q6
       };
 
-      console.log("✈️ Paquete de métricas invisibles emitido con éxito:", dataMétricasOcultas);
+      // 🚀 CONEXIÓN REAL FISICA: Transmitimos el paquete JSON a la base de datos en la nube
+      try {
+        await fetch('/api/save-metrics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataMétricasOcultas)
+        });
+        console.log("✈️ Datos fónicos guardados físicamente en Supabase.");
+      } catch (err) {
+        console.error("🚨 Falló la transmisión de métricas al servidor:", err);
+      }
 
-      // Limpieza absoluta de las métricas de tiempo de la palabra que termina
+      // RESET VISUAL POST-TRANSMISIÓN (No alterará el envío porque este ya se ejecutó)
       setIsPracticeStarted(false);
       setTiemposPreguntas({});
       setRespuestasInputs({});
       setClicsMenuContador(0);
-
-      // Reset atómico visual: Limpia por completo los bloques fónicos para el nuevo inicio
-      setStudentAnswer("");              // Vacía la respuesta escrita/seleccionada (Apaga iluminaciones)
-      setHoveredSoundsCount(null);        // Limpia cualquier rastro del mouse encima del botón
-      setTriggerShake(false);             // Apaga la animación de error
+      setStudentAnswer("");
+      setHoveredSoundsCount(null);
+      setTriggerShake(false);
       setStudentSelectedVocals([]);
       setShowFeedback(false);
       setHasAnsweredCorrectly(false);
-      setIsFonicExpanded(false);          // Regresa la botonera de la Q1 a su tamaño inicial
-      setSavedFonicBlocks(0);             // Resetea el candado para que vuelvan a pintarse sólo 6 bloques vacíos
+      setIsFonicExpanded(false);
+      setSavedFonicBlocks(0);
 
-      // Modificación del índice de lectura de palabras
       const totalWordsInBlock = palabrasFiltradas.length;
       if (totalWordsInBlock > 0) {
         setCurrentWordIndex((currentWordIndex < totalWordsInBlock - 1) ? currentWordIndex + 1 : 0);
       }
       
-      // Regreso estricto a la Pregunta 1
       setCurrentQuestionIndex(0);
       
-      // 🚀 REGLA SOLICITADA 2: Desplazamiento suave hacia la primera pregunta de la nueva palabra
       setTimeout(() => {
         const contenedorPregunta = document.getElementById('instruction-card-root');
         if (contenedorPregunta) {
           contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 120); // Margen de tiempo ligeramente mayor para asegurar que la alerta del sistema o DOM cargó
+      }, 120);
       
       alert(`📝 Siguiente reto cargado. Presiona 'Palabra' para practicar.`);
     }
