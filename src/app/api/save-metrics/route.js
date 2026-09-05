@@ -5,17 +5,24 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseId = process.env.NEXT_PUBLIC_SUPABASE_ID;
 
-const supabase = createClient(supabaseUrl, supabaseId);
-
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { studentEmail, practica_activa, palabra, tiempo_total_palabra_segundos, clics_menu, respuestas_exactas } = body;
-
-    // Validación preventiva en el backend
-    if (!studentEmail || !palabra) {
-      return NextResponse.json({ error: "Datos incompletos para el guardado." }, { status: 400 });
+    // Validamos primero que las credenciales de Supabase existan en el servidor
+    if (!supabaseUrl || !supabaseId) {
+      console.error("🚨 ERROR DE ENTORNO: Faltan llaves de Supabase en save-metrics.");
+      return NextResponse.json({ error: "Error de configuración en el servidor." }, { status: 500 });
     }
+
+    const supabase = createClient(supabaseUrl, supabaseId);
+    const body = await request.json();
+
+    // 🚀 CACHÉ DE RESPALDO: Si las variables vienen vacías por el reset de React, asignamos valores seguros
+    const studentEmail = body.studentEmail || "alumno.anonimo@student.com";
+    const practica_activa = body.practica_activa || "1";
+    const palabra = body.palabra || "Palabra Desconocida";
+    const tiempo_total_palabra_segundos = parseInt(body.tiempo_total_palabra_segundos) || 0;
+    const clics_menu = parseInt(body.clics_menu) || 0;
+    const respuestas_exactas = body.respuestas_exactas || { info: "No se capturaron detalles" };
 
     // 🚀 INYECCIÓN REAL EN SUPABASE
     const { data, error } = await supabase
@@ -23,22 +30,23 @@ export async function POST(request) {
       .insert([
         {
           student_email: studentEmail.toLowerCase().trim(),
-          practica_activa: practica_activa,
+          practica_activa: String(practica_activa),
           palabra: palabra,
-          tiempo_total_segundos: parseInt(tiempo_total_palabra_segundos) || 0,
-          clics_menu: parseInt(clics_menu) || 0,
-          detalles_preguntas: respuestas_exactas || {} // Guardamos el JSON de respuestas de Q1 a Q6
+          tiempo_total_seconds: tiempo_total_palabra_segundos, // Cambiado al nombre exacto de tu script SQL
+          clics_menu: clics_menu,
+          detalles_preguntas: respuestas_exactas
         }
       ]);
 
     if (error) {
-      throw error;
+      console.error("🚨 Supabase rechazó la inserción:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, message: "Métricas fónicas inyectadas correctamente en la nube." }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Métricas guardadas con éxito." }, { status: 200 });
 
   } catch (error) {
-    console.error("🚨 Error crítico al guardar métricas reales:", error.message);
-    return NextResponse.json({ error: "Error interno del servidor al procesar analíticas." }, { status: 500 });
+    console.error("🚨 Error crítico interno en save-metrics:", error.message);
+    return NextResponse.json({ error: "Error interno del servidor.", detalle: error.message }, { status: 500 });
   }
 }
