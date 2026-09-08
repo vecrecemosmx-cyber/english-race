@@ -63,7 +63,7 @@ function PlataformaFonica() {
   const [savedFonicBlocks, setSavedFonicBlocks] = useState(0);
 
   // Estado para garantizar que el audio de bienvenida se reproduzca solo una vez al iniciar
-  const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
+  const [hasPlayedWelcome, setHasPlayedWelcome] = useState(true);
 
   // 🚀 NUEVO REQUERIMIENTO: DISPARADOR DE SCROLL AUTOMÁTICO INICIAL EN CELULARES
   useEffect(() => {
@@ -81,21 +81,30 @@ function PlataformaFonica() {
     }
   }, [status]);
 
-  // 🚀 REGLA SOLICITADA: DESPLAZAMIENTO SUAVE AL CAMBIAR DE PRÁCTICA EN EL SIDEBAR
-  useEffect(() => {
-    // Si la plataforma ya cargó y detecta un cambio en la práctica seleccionada
-    if (status === "authenticated" && currentPractice) {
-      setTimeout(() => {
-        const contenedorPregunta = document.getElementById('instruction-card-root');
-        if (contenedorPregunta) {
-          contenedorPregunta.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-        }
-      }, 250); // Margen de tiempo prudente para asegurar el renderizado del nuevo set de datos
+  // 🚀 REGLA ACTUALIZADA: REPRODUCCIÓN EXCLUSIVA PARA NUEVOS USUARIOS VÍA LOCALSTORAGE
+useEffect(() => {
+  // Verificamos que el usuario esté autenticado y dispongamos de su correo
+  if (status === "authenticated" && session?.user?.email) {
+    const emailLimpio = session.user.email.toLowerCase().trim();
+    const llaveMemoria = `efa_welcome_played_${emailLimpio}`;
+    
+    // Consultamos si este correo específico ya escuchó las instrucciones en este navegador
+    const yaEscuchoBienvenida = localStorage.getItem(llaveMemoria);
+    
+    if (!yaEscuchoBienvenida) {
+      // SI NO HA SIDO REGISTRADO: Es un usuario nuevo. Activamos el audio automático.
+      const timer = setTimeout(() => {
+        handlePlayInstructions(); // Invoca la locución con el guion oficial en es-MX
+        setHasPlayedWelcome(true);
+        
+        // Dejamos un registro permanente para que nunca más se vuelva a activar solo
+        localStorage.setItem(llaveMemoria, "true");
+      }, 800); // Mantiene la espera estratégica para el montado limpio de la UI
+      
+      return () => clearTimeout(timer);
     }
-  }, [currentPractice, status]);
+  }
+}, [status, session]);
 
   // 🚀 REGLA DE OPTIMIZACIÓN: PRE-CALENTAMIENTO SILENCIOSO DE SPEECHSYNTHESIS
   useEffect(() => {
@@ -280,7 +289,7 @@ function PlataformaFonica() {
       try {
         window.speechSynthesis.cancel(); // Detiene cualquier audio o palabra en reproducción
 
-        const guionCompleto = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar los sonidos. Elige el fonema que quieres practicar hoy y comencemos.";
+        const guionCompleto = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar las palabras. Elige el fonema que quieres practicar hoy y comencemos.";
 
         const utterance = new SpeechSynthesisUtterance(guionCompleto);
         utterance.lang = 'es-MX'; // Español de México estricto
