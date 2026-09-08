@@ -30,6 +30,7 @@ function LoginForm() {
   const whitelist = [
     "vecrecemosmx@gmail.com",
     "gael.lpzes.9@gmail.com",
+    "virydlr14@gmail.com",
     "aguilardefuego@gmail.com",
     "max.ram.car@gmail.com"
   ];
