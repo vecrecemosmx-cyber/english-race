@@ -123,7 +123,7 @@ function TeacherDashboardLayout() {
       { id: "std-01", name: "Gael López", email: "gael.lpzes.9@gmail.com" },
       { id: "std-02", name: "Alejandra Briones", email: "aguilardefuego@gmail.com" },
       { id: "std-03", name: "Max Ram Car", email: "max.ram.car@gmail.com" },
-      { id: "std-04", name: "Administrador (Pruebas)", email: "vecrecemosmx@gmail.com" }
+      { id: "std-04", name: "Administrador (Pruebas)", email: "vecrecemosmx@gmail.com" },
       { id: "std-05", name: "Gael Examen", email: "luisa.gael.9@gmail.com" },
       { id: "std-06", name: "Viri de la Rosa", email: "virydlr14@gmail.com" },
       { id: "std-07", name: "Brisia Carpinteyro", email: "bixa.cp@gmail.com" },
