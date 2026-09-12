@@ -27,6 +27,8 @@ function TeacherDashboardLayout() {
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(false);
   const [metricasReales, setMetricasReales] = useState([]);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
+  // 🚀 ESTADO NUEVO: Controla el proceso de carga individual de cada botón de aprobación
+  const [procesandoAprovacionId, setProcesandoAprovacionId] = useState(null);
 
   // Redirección de seguridad: Si no está autenticado, vuelve al Login
   useEffect(() => {
@@ -57,6 +59,34 @@ function TeacherDashboardLayout() {
       cargarSolicitudesReales();
     }
   }, [viewMode]);
+
+  // 🚀 REGLA NUEVA: FUNCIÓN CENTRALIZADA PARA APROBAR USUARIOS EN TIEMPO REAL
+  const handleAprobarAccesoUsuario = async (idSolicitud, emailUsuario) => {
+    if (!idSolicitud || !emailUsuario) return;
+    
+    setProcesandoAprovacionId(idSolicitud);
+
+    try {
+      const respuesta = await fetch('/api/approve-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: idSolicitud, email: emailUsuario.toLowerCase().trim() })
+      });
+
+      if (respuesta.ok) {
+        setSolicitudesEspera((listaPrev) => listaPrev.filter((item) => item.id !== idSolicitud));
+        alert(`✓ El usuario ${emailUsuario} ha sido agregado con éxito a la lista blanca y ya puede ingresar.`);
+      } else {
+        const dataError = await respuesta.json();
+        alert(`🚨 Error al aprobar: ${dataError.error || "Ocurrió un problema en el servidor."}`);
+      }
+    } catch (err) {
+      console.error("🚨 Error crítico en la conexión física de aprobación:", err);
+      alert("🚨 Error de red: No se pudo completar la aprobación en Supabase.");
+    } finally {
+      setProcesandoAprovacionId(null);
+    }
+  };
 
   // LOGICA: EXPORTADOR NATIVO A ARCHIVO CSV (Lista de Espera)
   const exportarListaEsperaCSV = () => {
@@ -285,7 +315,7 @@ function TeacherDashboardLayout() {
 
         {/* RENDERS DINÁMICOS BASADOS EN EL MÓDULO SELECCIONADO */}
         
-        {/* VISTA: CONTROL DE LA LISTA DE ESPERA Y EXPORTACIÓN REAL */}
+        {/* 🚀 VISTA ACTUALIZADA: CONTROL DE LA LISTA DE ESPERA Y EXPORTACIÓN REAL */}
         {viewMode === "solicitudes" && (
           <div className="flex flex-col gap-4 animate-fade-in">
             <div className="flex justify-between items-center bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex-wrap gap-3">
@@ -313,6 +343,8 @@ function TeacherDashboardLayout() {
                       <tr>
                         <th scope="col" className="px-6 py-4">Correo Electrónico Externo</th>
                         <th scope="col" className="px-6 py-4">Fecha e Hora de Registro</th>
+                        {/* 🚀 NUEVA COLUMNA DE ACCIONES DOCENTES */}
+                        <th scope="col" className="px-6 py-4 text-center">Acción Administrativa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 border-t border-slate-100">
@@ -321,6 +353,20 @@ function TeacherDashboardLayout() {
                           <td className="px-6 py-4 font-semibold text-slate-800">{solicitud.email}</td>
                           <td className="px-6 py-4 font-medium text-slate-500">
                             {new Date(solicitud.fecha_solicitud).toLocaleString('es-MX')}
+                          </td>
+                          {/* 🚀 BOTÓN DE APROBACIÓN INTEGRADO AL LADO DEL CORREO */}
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              onClick={() => handleAprobarAccesoUsuario(solicitud.id, solicitud.email)}
+                              disabled={procesandoAprovacionId !== null}
+                              className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-xl transition-all shadow-sm transform active:scale-95 ${
+                                procesandoAprovacionId === solicitud.id
+                                  ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed animate-pulse'
+                                  : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                              }`}
+                            >
+                              {procesandoAprovacionId === solicitud.id ? "Aprobando..." : "✓ Aprobar Acceso"}
+                            </button>
                           </td>
                         </tr>
                       ))}
