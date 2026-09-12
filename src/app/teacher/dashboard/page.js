@@ -4,7 +4,6 @@ import { useSession, signOut, SessionProvider } from "next-auth/react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-
 // COMPONENTE CONTENEDOR PRINCIPAL (Envoltura Obligatoria para NextAuth)
 export default function TeacherDashboard() {
   return (
@@ -23,9 +22,11 @@ function TeacherDashboardLayout() {
   const [selectedStudent, setSelectedStudent] = useState("todos");
   const [viewMode, setViewMode] = useState("recomendador"); // Opciones: recomendador, tablero, matriz, lineaTiempo, solicitudes
 
-  // 🚀 ESTADO NUEVO: Almacena las solicitudes de acceso reales traídas de Supabase
+  // SOLICITUDES DE ACCESO REALES TRAÍDAS DE SUPABASE
   const [solicitudesEspera, setSolicitudesEspera] = useState([]);
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(false);
+  const [metricasReales, setMetricasReales] = useState([]);
+  const [loadingMetricas, setLoadingMetricas] = useState(true);
 
   // Redirección de seguridad: Si no está autenticado, vuelve al Login
   useEffect(() => {
@@ -34,11 +35,10 @@ function TeacherDashboardLayout() {
     }
   }, [status, router]);
 
-  // 🚀 LÓGICA NUEVA: Consulta en tiempo real los correos que solicitaron acceso
+  // LÓGICA: Consulta en tiempo real los correos que solicitaron acceso
   const cargarSolicitudesReales = async () => {
     setLoadingSolicitudes(true);
     try {
-      // Necesitaremos crear esta pequeña API en el siguiente paso para consultar Supabase
       const res = await fetch('/api/get-solicitudes');
       if (res.ok) {
         const data = await res.json();
@@ -58,7 +58,7 @@ function TeacherDashboardLayout() {
     }
   }, [viewMode]);
 
-  // 🚀 LOGICA SOLICITADA: EXPORTADOR NATIVO A ARCHIVO CSV (Lista de Espera)
+  // LOGICA: EXPORTADOR NATIVO A ARCHIVO CSV (Lista de Espera)
   const exportarListaEsperaCSV = () => {
     if (solicitudesEspera.length === 0) {
       alert("⚠️ No hay correos registrados en la lista de espera para exportar.");
@@ -86,13 +86,7 @@ function TeacherDashboardLayout() {
     document.body.removeChild(vinculoFantasma);
   };
 
-  // ==========================================================================
-  // 🚀 LÓGICA DE PRODUCCIÓN: PROCESAMIENTO DINÁMICO DE MÉTRICAS DE SUPABASE
-  // ==========================================================================
-  const [metricasReales, setMetricasReales] = useState([]);
-  const [loadingMetricas, setLoadingMetricas] = useState(true);
-
-  // Consulta en tiempo real a la API de Supabase que creamos previamente
+  // Consulta en tiempo real a la API de Supabase de analíticas reales
   const cargarMetricasDeProduccion = async () => {
     setLoadingMetricas(true);
     try {
@@ -118,7 +112,7 @@ function TeacherDashboardLayout() {
   const studentsMetrics = useMemo(() => {
     const mapaEstudiantes = {};
 
-    // Inicializamos estrictamente tus 4 cuentas autorizadas de la Beta Privada
+    // Inicializamos estrictamente tus 7 cuentas autorizadas de la Beta Privada
     const alumnosBeta = [
       { id: "std-01", name: "Gael López", email: "gael.lpzes.9@gmail.com" },
       { id: "std-02", name: "Alejandra Briones", email: "aguilardefuego@gmail.com" },
@@ -130,6 +124,7 @@ function TeacherDashboardLayout() {
     ];
 
     alumnosBeta.forEach(alumno => {
+      // Estructura segura por defecto para prevenir errores si el alumno tiene 0 registros
       mapaEstudiantes[alumno.id] = {
         id: alumno.id,
         name: alumno.name,
@@ -146,7 +141,14 @@ function TeacherDashboardLayout() {
         criticalPhonemes: [],
         riskOfFrustration: false,
         lastWordPracticed: "Ninguna aún",
-        questionsTimeline: [],
+        // Generamos una línea de tiempo vacía pero estructurada por defecto para evitar errores de mapeo
+        questionsTimeline: Array.from({ length: 5 }).map((_, idx) => ({
+          qNum: idx + 1,
+          label: idx === 0 ? "Sonidos totales" : idx === 1 ? "Consonantes" : idx === 2 ? "Vocales" : idx === 3 ? "Acento (Stress)" : "Posición Fonema",
+          timeTaken: "0s",
+          isCorrect: false,
+          input: "(Sin responder)"
+        })),
         _segundosTotales: 0,
         _clicksTotales: 0
       };
@@ -154,37 +156,45 @@ function TeacherDashboardLayout() {
 
     // Procesamos y agrupamos cada registro verídico inyectado desde la base de datos
     metricasReales.forEach(fila => {
+      if (!fila || !fila.student_email) return;
       const emailLimpio = fila.student_email.toLowerCase().trim();
       
-      // Buscamos a cuál de tus 4 alumnos le corresponde la métrica
+      // Buscamos a cuál de tus 7 alumnos le corresponde la métrica
       const alumno = Object.values(mapaEstudiantes).find(a => a.email === emailLimpio);
       if (!alumno) return; // Ignora registros externos no autorizados
 
       alumno.wordsCompletedToday += 1;
       alumno._segundosTotales += (fila.tiempo_total_segundos || 0);
       alumno._clicksTotales += (fila.clics_menu || 0);
-      alumno.lastWordPracticed = fila.palabra;
+      alumno.lastWordPracticed = fila.palabra || "Palabra Desconocida";
 
       // Desglosamos las métricas dinámicas de aciertos y errores por pregunta
       const detalles = fila.detalles_preguntas || {};
-      
-      // Mapeo adaptativo para simular la línea de tiempo micro-pasos con datos reales
-      alumno.questionsTimeline = Object.entries(detalles).map(([qKey, qValue], index) => {
-        const esCorrecto = !qValue.toString().includes("error") && qValue !== "";
-        if (esCorrecto) alumno.correctAnswers += 1;
-        else alumno.wrongAnswers += 1;
+      const entradasDetalles = Object.entries(detalles);
 
-        return {
-          qNum: index + 1,
-          label: index === 0 ? "Sonidos totales" : index === 1 ? "Consonantes" : index === 2 ? "Vocales" : "Fonema",
-          timeTaken: "Real",
-          isCorrect: esCorrecto,
-          input: qValue
-        };
-      });
+      if (entradasDetalles.length > 0) {
+        alumno.correctAnswers = 0;
+        alumno.wrongAnswers = 0;
+
+        alumno.questionsTimeline = entradasDetalles.map(([qKey, qValue], index) => {
+          const valorString = qValue !== undefined && qValue !== null ? qValue.toString() : "";
+          const esCorrecto = !valorString.includes("error") && valorString !== "" && !valorString.includes("incorrecta");
+          
+          if (esCorrecto) alumno.correctAnswers += 1;
+          else alumno.wrongAnswers += 1;
+
+          return {
+            qNum: index + 1,
+            label: index === 0 ? "Sonidos totales" : index === 1 ? "Consonantes" : index === 2 ? "Vocales" : index === 3 ? "Acento (Stress)" : "Posición Fonema",
+            timeTaken: fila.tiempo_total_segundos ? `${Math.round(fila.tiempo_total_segundos / entradasDetalles.length)}s` : "Real",
+            isCorrect: esCorrecto,
+            input: valorString || "(vacío)"
+          };
+        });
+      }
 
       // Calibración de alarmas de frustración en base a tiempos de duda reales
-      if (fila.tiempo_total_segundos > 120) {
+      if ((fila.tiempo_total_segundos || 0) > 120) {
         alumno.riskOfFrustration = true;
       }
     });
@@ -198,7 +208,7 @@ function TeacherDashboardLayout() {
         ...alumno,
         totalActiveTime: `${Math.round(alumno._segundosTotales / 60)}m`,
         vocalAccuracy: precisionBase,
-        consonantAccuracy: precisionBase > 0 ? Math.min(precisionBase + 10, 100) : 0, // Estimaciones adaptativas
+        consonantAccuracy: precisionBase > 0 ? Math.min(precisionBase + 10, 100) : 0, 
         stressAccuracy: precisionBase > 0 ? Math.max(precisionBase - 15, 0) : 0
       };
     });
@@ -268,8 +278,6 @@ function TeacherDashboardLayout() {
           <button onClick={() => setViewMode("lineaTiempo")} className={`px-4 py-2.5 rounded-full text-xs uppercase tracking-wider font-bold transition-all ${viewMode === "lineaTiempo" ? "bg-sky-600 text-white shadow-sm" : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"}`}>
             ⏱️ Línea de Tiempo (Micro-pasos)
           </button>
-          
-          {/* 🚀 NUEVA PESTAÑA SOLICITADA: Botón para acceder a la Lista de Espera */}
           <button onClick={() => setViewMode("solicitudes")} className={`px-4 py-2.5 rounded-full text-xs uppercase tracking-wider font-bold transition-all ${viewMode === "solicitudes" ? "bg-emerald-600 text-white shadow-sm" : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"}`}>
             ✉️ Solicitudes de Acceso ({solicitudesEspera.length})
           </button>
@@ -277,7 +285,7 @@ function TeacherDashboardLayout() {
 
         {/* RENDERS DINÁMICOS BASADOS EN EL MÓDULO SELECCIONADO */}
         
-        {/* 🚀 NUEVA VISTA SOLICITADA: CONTROL DE LA LISTA DE ESPERA Y EXPORTACIÓN REAL */}
+        {/* VISTA: CONTROL DE LA LISTA DE ESPERA Y EXPORTACIÓN REAL */}
         {viewMode === "solicitudes" && (
           <div className="flex flex-col gap-4 animate-fade-in">
             <div className="flex justify-between items-center bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex-wrap gap-3">
@@ -285,7 +293,6 @@ function TeacherDashboardLayout() {
                 <h3 className="text-base font-bold text-slate-800">Buzón de Solicitudes Pendientes</h3>
                 <p className="text-xs text-slate-500">Usuarios externos que intentaron acceder a la Beta Privada y solicitan tu autorización.</p>
               </div>
-              {/* Botón oficial para exportar la lista de Supabase a archivo CSV */}
               <button
                 onClick={exportarListaEsperaCSV}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-sm active:scale-95 transition-all"
@@ -333,17 +340,17 @@ function TeacherDashboardLayout() {
                 <h3 className="text-base font-bold text-orange-800 flex items-center gap-2">⚠️ Alerta de Frustración Inmediata (ZDP Crítica)</h3>
                 {studentsMetrics.filter(s => s.riskOfFrustration && (selectedStudent === "todos" || s.id === selectedStudent)).map(s => (
                   <p key={s.id} className="text-sm text-orange-700 mt-2 font-medium">
-                    <strong>{s.name}</strong> está estancada. Sus tiempos de duda en patrones rítmicos de palabras polisílabas se triplicaron (promedio de {s.questionsTimeline[3].timeTaken}). <em>Acción sugerida: Detener tareas mecánicas individuales; requiere intervención explícita de división silábica con estímulos corporales (aplausos).</em>
+                    <strong>{s.name}</strong> está estancada. Sus tiempos de duda en patrones rítmicos de palabras polisílabas se triplicaron (promedio de {s.questionsTimeline?.[3]?.timeTaken || "N/A"}). <em>Acción sugerida: Detener tareas mecánicas individuales; requiere intervención explícita de división silábica con estímulos corporales (aplausos).</em>
                   </p>
                 ))}
-                {selectedStudent !== "todos" && !studentsMetrics.find(s => s.id === selectedStudent)?.riskOfFrustration && (
-                  <p className="text-sm text-slate-600 mt-2">Este estudiante mantiene una curva de tolerancia al error estable. No hay riesgo detectado.</p>
+                {(selectedStudent === "todos" ? studentsMetrics.filter(s => s.riskOfFrustration).length === 0 : !studentsMetrics.find(s => s.id === selectedStudent)?.riskOfFrustration) && (
+                  <p className="text-sm text-slate-600 mt-2">Todos los estudiantes seleccionados mantienen una curva de tolerancia al error estable. No hay riesgo detectado.</p>
                 )}
               </div>
               <div className="bg-sky-50 border-l-4 border-sky-500 p-5 rounded-r-2xl shadow-sm">
                 <h3 className="text-base font-bold text-sky-800">👥 Agrupamiento Inteligente Recomendado para Trabajo en Pares</h3>
                 <p className="text-sm text-sky-700 mt-2 leading-relaxed">
-                  Para la sesión colaborativa de hoy, sienta a <strong>Carlos Mendoza</strong> (90% en consonantes, 40% en vocales) junto a <strong>Ana María Silva</strong> (45% en consonantes, 85% en vocales). La tutoría entre pares equilibrará los desbalances de discriminación auditiva de forma natural.
+                  Para la sesión colaborativa de hoy, sienta a un estudiante con alta precisión en consonantes junto a uno con alta precisión en vocales. La tutoría entre pares equilibrará los desbalances de discriminación auditiva de forma natural.
                 </p>
               </div>
             </div>
@@ -352,7 +359,7 @@ function TeacherDashboardLayout() {
               <div className="bg-red-50 p-4 rounded-2xl text-center border border-red-100">
                 <span className="text-4xl font-black text-red-600 font-mono">/ð/</span>
                 <p className="text-xs font-bold text-red-800 uppercase mt-2">Confusión por Grafema</p>
-                <p className="text-sm text-slate-600 mt-2 leading-tight">El 75% del aula confunde la aproximante dental sonora con la oclusiva en palabras de la Práctica 3. Dedicar los primeros 3 minutos a modelado de espejo labiodental.</p>
+                <p className="text-sm text-slate-600 mt-2 leading-tight">El aula tiende a confundir la aproximante dental sonora con la oclusiva en palabras de la Práctica 3. Dedicar los primeros 3 minutos a modelado de espejo labiodental.</p>
               </div>
             </div>
           </div>
@@ -382,14 +389,20 @@ function TeacherDashboardLayout() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 justify-center">
-                  {/* Corregido usando entidades HTML para evitar el error de Unexpected Token */}
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">🟩 Fonemas Dominados (&gt;85%)</span>
-                  <div className="flex flex-wrap gap-2">{student.masteredPhonemes.map(p => <span key={p} className="bg-emerald-50 text-emerald-700 font-mono text-sm font-black px-3 py-1 rounded-xl border border-emerald-100">{p}</span>)}</div>
+                  {student.masteredPhonemes.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">{student.masteredPhonemes.map(p => <span key={p} className="bg-emerald-50 text-emerald-700 font-mono text-sm font-black px-3 py-1 rounded-xl border border-emerald-100">{p}</span>)}</div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No se han registrado fonemas dominados aún.</span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2 justify-center">
-                  {/* Corregido usando entidades HTML para evitar el error de Unexpected Token */}
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">🟥 Fonemas Críticos (&lt;50%)</span>
-                  <div className="flex flex-wrap gap-2">{student.criticalPhonemes.map(p => <span key={p} className="bg-red-50 text-red-700 font-mono text-sm font-black px-3 py-1 rounded-xl border border-red-100">{p}</span>)}</div>
+                  {student.criticalPhonemes.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">{student.criticalPhonemes.map(p => <span key={p} className="bg-red-50 text-red-700 font-mono text-sm font-black px-3 py-1 rounded-xl border border-red-100">{p}</span>)}</div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No se han registrado fonemas críticos por el momento.</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -405,7 +418,6 @@ function TeacherDashboardLayout() {
                   <tr>
                     <th scope="col" className="px-6 py-4">Estudiante</th>
                     <th scope="col" className="px-6 py-4">Tiempo Activo</th>
-                    <th scope="col" className="px-6 py-4">Clicks Menú</th>
                     <th scope="col" className="px-6 py-4">Aciertos (OK)</th>
                     <th scope="col" className="px-6 py-4">Errores (Fail)</th>
                     <th scope="col" className="px-6 py-4">Precisión Fónica</th>
@@ -417,7 +429,6 @@ function TeacherDashboardLayout() {
                     .map(student => {
                       const totalQuestions = student.correctAnswers + student.wrongAnswers;
                       const globalAccuracy = totalQuestions > 0 ? Math.round((student.correctAnswers / totalQuestions) * 100) : 0;
-                      const totalClicks = student.sectionClicks.vocabulario + student.sectionClicks.fonemas + student.sectionClicks.polisilabas;
 
                       return (
                         <tr key={student.id} className="hover:bg-slate-50/70 transition-colors">
@@ -426,7 +437,6 @@ function TeacherDashboardLayout() {
                             <div className="text-xs text-slate-400">{student.email}</div>
                           </td>
                           <td className="px-6 py-4 font-medium text-slate-700">{student.totalActiveTime}</td>
-                          <td className="px-6 py-4 text-slate-500">{totalClicks} clics</td>
                           <td className="px-6 py-4"><span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">{student.correctAnswers}</span></td>
                           <td className="px-6 py-4"><span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-700">{student.wrongAnswers}</span></td>
                           <td className="px-6 py-4">
@@ -474,6 +484,7 @@ function TeacherDashboardLayout() {
                         <div>
                           <div className="text-xs font-semibold text-slate-400">Ingresó:</div>
                           <code className="text-xs font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 block max-w-full truncate">{step.input || "(vacío)"}</code>
+
                           <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs font-bold">
                             <span className="text-slate-400">⏱️ {step.timeTaken}</span>
                             <span className={step.isCorrect ? 'text-emerald-600' : 'text-orange-600'}>
