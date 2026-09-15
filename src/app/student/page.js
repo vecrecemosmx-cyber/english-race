@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // IMPORTACIÓN DE LAS PIEZAS DEL ROMPECABEZAS (Las crearemos a continuación)
-import PracticaVocales from './components/PracticaVocales';
-import PracticaDiptongos from './components/PracticaDiptongos';
-import PracticaConsonantes from './components/PracticaConsonantes';
-import AprenderIpa from './components/AprenderIpa';
+import PracticaVocales from './components/PracticaVocales.js';
+import PracticaDiptongos from './components/PracticaDiptongos.js';
+import PracticaConsonantes from './components/PracticaConsonantes.js';
+import AprenderIpa from './components/AprenderIPA.js';
 
 export default function Home() {
   return (
