@@ -85,7 +85,7 @@ function PlataformaFonicaMaestra() {
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER ORIGINAL UNIFICADO */}
+      {/* HEADER ORIGINAL UNIFICADO (Totalmente visible y en su lugar) */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={handleToggleSidebarUnificado}>
@@ -101,8 +101,8 @@ function PlataformaFonicaMaestra() {
         </div>
       </header>
 
-      {/* 🚀 REPARACIÓN DE BALANCEO: Rompe el Grid/Flex lateral cuando el menú está cerrado para centrar simétricamente todo */}
-      <div className={`app-layout ${isSidebarOpen ? '' : '!flex !justify-center !w-full'}`}>
+      {/* Flujo de layout original respetado para no romper el Header */}
+      <div className="app-layout">
         
         {/* SIDEBAR ORIGINAL VINCULADO */}
         <aside 
@@ -125,8 +125,8 @@ function PlataformaFonicaMaestra() {
           </ul>
         </aside>
 
-        {/* CONTENEDOR PRINCIPAL BALANCEADO Y EN ANCHO COMPLETO CENTRADO */}
-        <main className={`main-container transition-all duration-300 w-full flex justify-center`}>
+        {/* 🚀 REPARACIÓN DE CENTRADO SIMÉTRICO: El alineamiento balanceado se aplica aquí dentro sin alterar la estructura externa */}
+        <main className={`main-container transition-all duration-300 w-full flex flex-col items-center justify-start`}>
           {currentPractice === '3' && (
             <PracticaVocales 
               userEmail={session?.user?.email} 
