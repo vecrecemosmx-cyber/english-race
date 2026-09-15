@@ -24,7 +24,7 @@ function PlataformaFonicaMaestra() {
   const [audioSpeed, setAudioSpeed] = useState(1.25);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
 
-  // 🚀 REPARACIÓN MENÚ: FUNCIÓN ORIGINAL PARA ALTERNAR LA CLASE .OPEN DEL SIDEBAR
+  // 🚀 REPARACIÓN 1: El menú inicia CERRADO en ambos. Solo abre/cierra al pulsar la hamburguesa.
   const handleToggleSidebarOriginal = (e) => {
     if (e) e.stopPropagation();
     const sidebar = document.getElementById('sidebar');
@@ -33,8 +33,9 @@ function PlataformaFonicaMaestra() {
     }
   };
 
+  // 🚀 REPARACIÓN 2: Audio de bienvenida restaurado en el montado principal (Celular y Compu)
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) {
+    if (status === "authenticated" && session?.user?.email && currentPractice !== 'ipa') {
       const emailLimpio = session.user.email.toLowerCase().trim();
       const llaveMemoria = `efa_welcome_played_${emailLimpio}`;
       const yaEscuchoBienvenida = localStorage.getItem(llaveMemoria);
@@ -53,7 +54,7 @@ function PlataformaFonicaMaestra() {
         return () => clearTimeout(timer);
       }
     }
-  }, [status, session]);
+  }, [status, session, currentPractice]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -74,7 +75,7 @@ function PlataformaFonicaMaestra() {
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER ORIGINAL RESTAURADO (Hamburguesa visible en computadora y funcional en celular) */}
+      {/* HEADER ORIGINAL COMPLETO */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={handleToggleSidebarOriginal}>
@@ -92,7 +93,7 @@ function PlataformaFonicaMaestra() {
 
       <div className="app-layout">
         
-        {/* SIDEBAR ORIGINAL CON SUS 9 OPCIONES Y ESTILOS CSS INTACTOS */}
+        {/* SIDEBAR ORIGINAL CON SUS 9 OPCIONES INTACTAS */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
@@ -108,7 +109,6 @@ function PlataformaFonicaMaestra() {
           </ul>
         </aside>
 
-        {/* 🚀 REPARACIÓN COMPU: CONTENEDOR MAIN ORIGINAL EN ANCHO COMPLETO SIN RESTRICCIÓN DE 2XL */}
         <main className="main-container">
           {currentPractice === '3' && (
             <PracticaVocales 

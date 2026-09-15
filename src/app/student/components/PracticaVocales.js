@@ -20,13 +20,19 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
   const [savedFonicBlocks, setSavedFonicBlocks] = useState(0);
   const [triggerShake, setTriggerShake] = useState(false);
 
-  // --- REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS (ORIGINAL) ---
+  // --- REFERENCIAS Y ESTADOS ANALÍTICOS INTACTOS ---
   const startTimeWordRef = useRef(null);     
   const startTimeQuestionRef = useRef(null); 
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [tiemposPreguntas, setTiemposPreguntas] = useState({});
   const [respuestasInputs, setRespuestasInputs] = useState({});
   const answerInputRef = useRef(null);
+
+  // Rangos numéricos para el mapa dinámico declarados con corchetes
+  const botonesRangoFonic =[3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const botonesRangoFonicCorto =[3, 4, 5, 6];
+  const botonesConsonantes =[1, 2, 3, 4, 5, 6, 7];
+  const botonesVocales =[1, 2, 3, 4, 5];
 
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const questionsTexts = [
@@ -41,7 +47,6 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     "ə": "PHONEME-DUST.mp3", "ɪ": "PHONEME-PINK.mp3", "ɛ": "PHONEME-RED.mp3", "æ": "PHONEME-SAND.mp3", "ʌ": "PHONEME-CUP.mp3"
   };
 
-  // --- FILTRADO DINÁMICO REAL DE PALABRAS POR ID NUMÉRICO SEGÚN TU DATASET ORIGINAL ---
   const palabrasFiltradas = datasetP1.filter(item => {
     const symbol = mappingP1[String(item.fonema_id)] || item.fonema_simbolo;
     return symbol === currentFonema;
@@ -51,7 +56,6 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
 
   const currentData = palabrasFiltradas[currentWordIndex] || null;
 
-  // Lógica original de enfoque automático al cambiar de pregunta o palabra
   useEffect(() => {
     if (answerInputRef.current && currentQuestionIndex < 4) {
       answerInputRef.current.focus();
@@ -72,6 +76,27 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     setCurrentFonema(nuevoFonema);
     setCurrentWordIndex(0);
     setCurrentQuestionIndex(0);
+  };
+
+  // 🚀 RESTAURACIÓN: FUNCIÓN CENTRALIZADA PARA REPRODUCIR LAS INSTRUCCIONES (es-MX ORIGINAL)
+  const handlePlayInstructions = (e) => {
+    if (e) e.preventDefault();
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const guionCompleto = "Bienvenido a la práctica de hoy, el objetivo de este ejercicio es crear conciencia fonológica del idioma inglés. Lo haremos primero con palabras y luego con frases. En este caso debes presionar el botón Palabra para escuchar una palabra en inglés y practicar el entendimiento de los sonidos consonantes y vocales uno por uno. Puedes acelerar la velocidad de reproducción conforme vayas mejorando o puedes disminuirla para cuando no entiendas bien la pronunciación. Por favor lee con atención y recuerda enfocarte en los sonidos y no en las letras que pudieras visualizar de forma automática al escuchar las palabras. Elige el fonema que quieres practicar hoy y comencemos.";
+        const utterance = new SpeechSynthesisUtterance(guionCompleto);
+        utterance.lang = 'es-MX';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        const voces = window.speechSynthesis.getVoices();
+        const vozMx = voces.find(v => v.lang === 'es-MX' || v.lang.startsWith('es_MX'));
+        if (vozMx) utterance.voice = vozMx;
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.log("Error al reproducir instrucciones:", err);
+      }
+    }
   };
 
   const handlePlayWordAudio = (e) => {
@@ -117,7 +142,8 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     startTimeQuestionRef.current = ahora; 
   };
 
-  const handleCheckAnswer = (e, valorDirectoBoton = null) => {
+  // 🚀 REPARACIÓN: Motor original SIN la alerta inventada de "revise la respuesta antes de avanzar"
+  const handleCheckAnswer = (e, valorBotonP5 = null, valorDirectoBoton = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
 
@@ -143,22 +169,10 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       setErrorMessage("");
       let correctValue = "";
       switch(currentQuestionIndex) {
-        case 0:
-          correctValue = String(currentData.f).trim(); 
-          successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; 
-          break;
-        case 1:
-          correctValue = String(currentData.fc).trim(); 
-          successNote = `¡Correcto! Tiene ${correctValue} sonidos consonantes.`; 
-          break;
-        case 2:
-          correctValue = String(currentData.fv).trim(); 
-          successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; 
-          break;
-        case 3:
-          correctValue = String(currentData.stress).trim(); 
-          successNote = `¡Exacto! El acento o énfasis está en la sílaba ${correctValue}.`; 
-          break;
+        case 0: correctValue = String(currentData.f).trim(); successNote = `¡Excelente! Esta palabra está compuesta por ${correctValue} sonidos.`; break;
+        case 1: correctValue = String(currentData.fc).trim(); successNote = `¡Correcto! Tiene ${correctValue} sonidos consonantes.`; break;
+        case 2: correctValue = String(currentData.fv).trim(); successNote = `¡Muy bien! Tiene ${currentData.fv} sonidos vocálicos.`; break;
+        case 3: correctValue = String(currentData.stress).trim(); successNote = `¡Exacto! El acento o énfasis está en la sílaba ${correctValue}.`; break;
       }
       
       isCorrect = (value === correctValue);
@@ -171,8 +185,7 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       if (value === "") { setErrorMessage("⚠️ Elige tu respuesta antes de comprobar."); setShowFeedback(false); return; }
       const dbValue = String(currentData.posVocal).trim();
       if (dbValue.length === 2) {
-        const digitoA = dbValue.charAt(0);
-        const digitoB = dbValue.charAt(1);
+        const digitoA = dbValue.charAt(0); const digitoB = dbValue.charAt(1);
         if (value === digitoA || value === digitoB) {
           isCorrect = true;
           successNote = `¡Felicidades! La vocal /${currentFonema}/ se ubica en la sílaba ${value}. También aparece en la sílaba ${value === digitoA ? digitoB : digitoA}.`;
@@ -293,19 +306,37 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       </div>
 
       <div className="practice-card unified-media-card">
-        <div className="w-full grid grid-cols-1 pb-2 items-center">
-          <select 
-            id="fonema-select"
-            className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl" 
-            value={currentFonema} 
-            onChange={changeFonemaDropdown}
-          >
-            <option value="ə">Fonema /ə/</option>
-            <option value="ɪ">Fonema /ɪ/</option>
-            <option value="ɛ">Fonema /ɛ/</option>
-            <option value="æ">Fonema /æ/</option>
-            <option value="ʌ">Fonema /ʌ/</option>
-          </select>
+        {/* DISTRIBUCIÓN SIMÉTRICA AL 50% ORIGINAL RESTAURADA */}
+        <div className="w-full grid grid-cols-2 gap-3 pb-2 items-center">
+          <div className="w-full">
+            <button
+              id="play-instructions-btn"
+              onClick={handlePlayInstructions}
+              type="button"
+              style={{ backgroundColor: '#F4F7FA', color: '#475569', fontSize: '13px', borderRadius: '12px' }}
+              className="audio-btn hover:opacity-85 !font-black tracking-tight flex items-center justify-center gap-1 !py-2.5 !px-2 !w-full h-10 rounded-xl transition-all duration-200"
+            >
+              <div className="scale-75 flex items-center justify-center flex-shrink-0 text-[#475569]">
+                <IconoBocina />
+              </div>
+              <span className="truncate">Instrucciones</span>
+            </button>
+          </div>
+
+          <div className="w-full">
+            <select 
+              id="fonema-select"
+              className="font-dropdown-top !w-full text-center h-10 !py-1 !px-2 font-bold text-xs sm:text-sm border border-zinc-200 rounded-xl bg-white text-slate-800" 
+              value={currentFonema} 
+              onChange={changeFonemaDropdown}
+            >
+              <option value="ə">Fonema /ə/</option>
+              <option value="ɪ">Fonema /ɪ/</option>
+              <option value="ɛ">Fonema /ɛ/</option>
+              <option value="æ">Fonema /æ/</option>
+              <option value="ʌ">Fonema /ʌ/</option>
+            </select>
+          </div>
         </div>
 
         <div className="media-buttons-row">
@@ -316,13 +347,20 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
             <button id="play-vocal-btn" onClick={handlePlayVocalAudio} className="audio-btn vocal-btn"><IconoNota /><span>Vocal</span></button>
           </div>
         </div>
+
+        <div className="media-slider-row">
+          <div className="interactive-wave-box">
+            <div className="wave-container"><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div></div>
+            <span id="speed-bubble" className="speed-bubble-indicator">{globalSpeed.toFixed(2)}x</span>
+          </div>
+        </div>
       </div>
 
       {currentQuestionIndex === 0 ? (
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full flex flex-col items-center gap-6">
           <span className="response-title !text-xs !tracking-widest">Selecciona el número de sonidos.</span>
           <div className="flex flex-wrap justify-center gap-3">
-            {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(n => isFonicExpanded || n <= 6).map((numero) => (
+            {botonesRangoFonic.filter(n => isFonicExpanded || n <= 6).map((numero) => (
               <button
                 key={numero}
                 type="button"
@@ -354,7 +392,7 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm w-full flex flex-col items-center gap-4">
           <span className="response-title !text-xs !tracking-widest">{currentQuestionIndex === 1 ? '¿Cuántos fonemas consonantes tiene?' : '¿Cuántos fonemas vocales tiene?'}</span>
           <div className="flex flex-wrap justify-center gap-2">
-            {[1, 2, 3, 4, 5, 6, 7].filter(n => currentQuestionIndex === 1 ? n <= 7 : n <= 5).map((numero) => (
+            {botonesConsonantes.filter(n => currentQuestionIndex === 1 ? n <= 7 : n <= 5).map((numero) => (
               <button
                 key={numero}
                 type="button"
