@@ -23,17 +23,15 @@ function PlataformaFonicaMaestra() {
   const [currentFonema, setCurrentFonema] = useState('ə'); 
   const [audioSpeed, setAudioSpeed] = useState(1.25);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // 🚀 REPARACIÓN SIDEBAR ÚNICO: Controla el menú oculto por defecto en Computadora y Celular
+  // 🚀 REPARACIÓN SIDEBAR UNIFICADO: Sincroniza el estado reactivo con el DOM original
   const handleToggleSidebarUnificado = (e) => {
     if (e) e.stopPropagation();
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.classList.toggle('open');
-    }
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // 🚀 REPARACIÓN SCROLL INICIAL: Desliza al contenedor de la pregunta al iniciar sesión
+  // SCROLL INICIAL AL CONTENEDOR DE LA PREGUNTA AL INICIAR SESIÓN
   useEffect(() => {
     if (status === "authenticated") {
       setTimeout(() => {
@@ -83,10 +81,11 @@ function PlataformaFonicaMaestra() {
       </div>
     );
   }
+
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER ORIGINAL UNIFICADO (Funciona igual en Computadora y Celular) */}
+      {/* HEADER ORIGINAL UNIFICADO (Mismo botón de hamburguesa para ambos) */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={handleToggleSidebarUnificado}>
@@ -104,23 +103,23 @@ function PlataformaFonicaMaestra() {
 
       <div className="app-layout">
         
-        {/* SIDEBAR ORIGINAL CON TÍTULOS IDÉNTICOS (Se oculta al hacer clic y hace scroll a la pregunta) */}
-        <aside id="sidebar" className="sidebar">
+        {/* SIDEBAR REPARADO (Oculto por defecto en computadora y móvil. Se auto-cierra al hacer click) */}
+        <aside id="sidebar" className={`sidebar transition-all duration-300 ${isSidebarOpen ? 'open block z-50' : 'hidden md:hidden'}`}>
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
-            <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
-            <li className="menu-item" id="menu-alfabeto" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
-            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span></li>
-            <li className="menu-item" id="menu-diptongos" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span></li>
-            <li className="menu-item" id="menu-practica-2" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span></li>
-            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
-            <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
-            <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
-            <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
+            <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
+            <li className="menu-item" id="menu-alfabeto" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">2</span><span className="menu-text">Alfabeto de fonemas (sonidos).</span></li>
+            <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span></li>
+            <li className="menu-item" id="menu-diptongos" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span></li>
+            <li className="menu-item" id="menu-practica-2" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span></li>
+            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
+            <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
+            <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
           </ul>
         </aside>
 
-        {/* CONTENEDOR PRINCIPAL: ORIGINAL EN ANCHO COMPLETO RESPONSIVO */}
+        {/* CONTENEDOR PRINCIPAL RESPONSIVO */}
         <main className="main-container">
           {currentPractice === '3' && (
             <PracticaVocales 
