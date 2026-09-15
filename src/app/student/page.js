@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import PracticaVocales from './components/PracticaVocales.js';
 import PracticaDiptongos from './components/PracticaDiptongos.js';
 import PracticaConsonantes from './components/PracticaConsonantes.js';
-import AprenderIPA from './components/AprenderIPA.js';
+import AprenderIpa from './components/AprenderIPA.js';
 
 export default function Home() {
   return (
@@ -152,7 +152,7 @@ function PlataformaFonicaMaestra() {
             <PracticaConsonantes userEmail={session?.user?.email} globalSpeed={audioSpeed} setGlobalSpeed={setAudioSpeed} menuClics={clicsMenuContador} />
           )}
 
-          {currentPractice === '6' && (
+          {currentPractice === 'ipa' && (
             <AprenderIpa />
           )}
         </main>
