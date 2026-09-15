@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 // IMPORTACIÓN DE LAS PIEZAS DEL ROMPECABEZAS (COMPONENTES MODULARES)
 import PracticaVocales from './components/PracticaVocales';
+import PracticaDiptongos from './components/PracticaDiptongos'; // 🚀 AÑADIR ESTA LÍNEA
 
 export default function Home() {
   return (
@@ -126,6 +127,16 @@ function PlataformaFonicaMaestra() {
         <main className="main-container">
           {currentPractice === '3' && (
             <PracticaVocales 
+              userEmail={session?.user?.email} 
+              globalSpeed={audioSpeed} 
+              setGlobalSpeed={setAudioSpeed}
+              menuClics={clicsMenuContador}
+            />
+          )}
+          
+          {/* 🚀 AÑADIR ESTE BLOQUE PARA LA PRÁCTICA 2 */}
+          {currentPractice === '4' && (
+            <PracticaDiptongos 
               userEmail={session?.user?.email} 
               globalSpeed={audioSpeed} 
               setGlobalSpeed={setAudioSpeed}
