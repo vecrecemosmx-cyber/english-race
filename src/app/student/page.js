@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // IMPORTACIÓN DE LAS PIEZAS DEL ROMPECABEZAS (COMPONENTES MODULARES)
-import PracticaVocales from './components/PracticaVocales';
-import PracticaDiptongos from './components/PracticaDiptongos'; // 🚀 AÑADIR ESTA LÍNEA
+import PracticaVocales from './components/PracticaVocales.js';
+import PracticaDiptongos from './components/PracticaDiptongos.js'; // 🚀 AÑADIR ESTA LÍNEA
 
 export default function Home() {
   return (
