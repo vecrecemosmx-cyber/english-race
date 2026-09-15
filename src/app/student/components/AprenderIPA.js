@@ -1,141 +1,66 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { IconoBocina } from '@/Iconos';
 
-// CARGA DE DATASET OFICIAL
-import datasetP1 from '../../database_practice1.json';
-
 export default function AprenderIpa() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [audioSpeed, setAudioSpeed] = useState(1.25);
-  const [showIllustration, setShowIllustration] = useState(false);
-  const audioContextRef = useRef(null);
+  const [activeCard, setActiveCard] = useState(null);
 
-  // BASE DE DATOS FONÉTIQUICA ACADÉMICA E ILUSTRACIONES MINIMALISTAS DE RESPALDO
-  const diccionarioIpa = {
-    "allow": { ipa: "/əˈlaʊ/", img: "https://unsplash.com" },
-    "company": { ipa: "/ˈkʌm.pə.ni/", img: "https://unsplash.com" },
-    "problem": { ipa: "/ˈprɑː.bləm/", img: "https://unsplash.com" },
-    "system": { ipa: "/ˈsɪs.təm/", img: "https://unsplash.com" },
-    "important": { ipa: "/ɪmˈpɔːr.tənt/", img: "https://unsplash.com" },
-    "provide": { ipa: "/prəˈvaɪd/", img: "https://unsplash.com" },
-    "society": { ipa: "/səˈsaɪ.ə.t̬i/", img: "https://unsplash.com" }
-  };
+  const ipaData = [
+    { id: 1, symbol: "ə", name: "Schwa", desc: "El sonido vocálico más común en inglés. Es corto, relajado y neutro. Aparece en sílabas no acentuadas.", word: "about", example: "/əˈbaʊt/" },
+    { id: 2, symbol: "ɪ", name: "I corta", desc: "Vocal corta producida con los labios relajados. No es una 'i' del español extendida.", word: "pink", example: "/pɪŋk/" },
+    { id: 3, symbol: "æ", name: "Ash", desc: "Sonido abierto entre la 'a' y la 'e'. Requiere abrir la boca ampliamente hacia abajo.", word: "sand", example: "/sænd/" },
+    { id: 4, symbol: "θ", name: "Theta", desc: "Consonante sorda fricativa. Se produce colocando la punta de la lengua entre los dientes sin vibrar.", word: "think", example: "/θɪŋk/" }
+  ];
 
-  // Mapeamos el listado plano completo de palabras
-  const palabras = datasetP1.map(item => item.word);
-  const wordTarget = palabras[currentWordIndex] || "system";
-  const wordKey = wordTarget.toLowerCase().trim();
-
-  // Obtenemos los metadatos fónicos confiables o un fallback por si no existe en el diccionario temporal
-  const datosFonicos = diccionarioIpa[wordKey] || { 
-    ipa: `/${wordTarget.toLowerCase()}/`, 
-    img: "https://unsplash.com" 
-  };
-
-  // Limpiamos la ilustración cada vez que el estudiante cambie de palabra
-  useEffect(() => {
-    setShowIllustration(false);
-  }, [currentWordIndex]);
-
-  const handlePlayWordAudio = (e) => {
-    if (e) e.preventDefault();
+  const handlePlayIPA = (texto) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const cleanWord = wordTarget.replace(/\(.*\)/, "").trim();
-      const utterance = new SpeechSynthesisUtterance(cleanWord);
+      const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = 'en-US';
-      utterance.rate = audioSpeed;
+      utterance.rate = 0.85;
       window.speechSynthesis.speak(utterance);
-      
-      // LÓGICA SOLICITADA: Al presionar Palabra, se revela la ilustración explicativa
-      setShowIllustration(true);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col gap-6 animate-fade-in p-2 sm:p-4">
-      
-      {/* 📋 CONTENEDOR DE LA PREGUNTA CON LIMITACIÓN ESTRICTA A 2 LÍNEAS */}
-      <div id="instruction-card-root" className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm text-center">
-        <p className="font-black text-slate-800 tracking-tight leading-tight text-xl sm:text-2xl md:text-3xl line-clamp-2 overflow-hidden">
-          Pronuncia la palabra y luego presiona el botón Palabra para mejorar tu pronunciación
-        </p>
+    <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 p-2" id="instruction-card-root">
+      <div className="instruction-card bg-white p-5 rounded-3xl border border-slate-200 shadow-sm text-center">
+        <p className="instruction-text text-xl font-bold text-slate-800">Alfabeto Fonético Internacional (IPA) — Guía Visual</p>
       </div>
 
-      {/* 🔤 CONTENEDOR CENTRAL: VERSIÓN IPA, BOTÓN Y DESLIZADOR */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center gap-6 min-h-[220px]">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Transcripción Fonética Oficial (IPA)</span>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-sky-600 font-mono tracking-wide break-words max-w-full px-2">
-            {datosFonicos.ipa}
-          </h2>
-        </div>
-
-        {/* CONTROLES MULTIMEDIA AGRUPADOS ABAJO DEL TEXTO */}
-        <div className="w-full max-w-md flex flex-col gap-4 mt-2">
-          <button 
-            id="play-word-btn" 
-            onClick={handlePlayWordAudio} 
-            className="w-full h-14 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-95"
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+        {ipaData.map((item) => (
+          <div 
+            key={item.id} 
+            onClick={() => setActiveCard(item.id)}
+            className={`bg-white p-5 rounded-3xl border transition-all duration-200 shadow-sm cursor-pointer hover:border-sky-400 ${activeCard === item.id ? 'border-sky-500 ring-2 ring-sky-500/10' : 'border-slate-200'}`}
           >
-            <IconoBocina />
-            <span>Escuchar Palabra</span>
-          </button>
-
-          {/* DESLIZADOR DE VELOCIDAD */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Velocidad de reproducción</span>
-              <span className="bg-sky-100 text-sky-700 px-2 py-0.5 rounded-md font-mono">{audioSpeed.toFixed(2)}x</span>
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex flex-col">
+                <span className="text-4xl font-black text-sky-600 mb-1">/{item.symbol}/</span>
+                <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">{item.name}</span>
+              </div>
+              <button 
+                onClick={(e) => { e.stopPropagation(); handlePlayIPA(item.word); }}
+                className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 hover:bg-sky-50 hover:text-sky-600 transition-colors text-slate-500"
+              >
+                <IconoBocina />
+              </button>
             </div>
-            <input 
-              type="range" 
-              min="0.5" 
-              max="2.0" 
-              step="0.25" 
-              value={audioSpeed} 
-              onChange={(e) => setAudioSpeed(parseFloat(e.target.value))} 
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600" 
-            />
-          </div>
-        </div>
-      </div>
+            
+            {/* 🚀 REQUISITO: TEXTO GRANDE FIJADO ESTRICTAMENTE A MÁXIMO DOS LÍNEAS */}
+            <p className="text-slate-600 text-sm mt-3 line-clamp-2 min-h-[40px]" title={item.desc}>
+              {item.desc}
+            </p>
 
-      {/* 🖼️ CONTENEDOR DE RESPUESTAS ADAPTADO A ILUSTRACIÓN INTERACTIVA */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center min-h-[200px] flex flex-col items-center justify-center gap-3">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Significado Visual Ilustrado</span>
-        
-        {showIllustration ? (
-          <div className="animate-fade-in flex flex-col items-center gap-2">
-            <div className="w-36 h-36 rounded-2xl overflow-hidden border-4 border-slate-50 shadow-sm bg-slate-100 flex items-center justify-center">
-              <img 
-                src={datosFonicos.img} 
-                alt={`Ilustración de ${wordTarget}`}
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.src = "https://unsplash.com"; }}
-              />
+            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs font-bold">
+              <span className="text-slate-400">Palabra clave: <span className="text-slate-700 underline">{item.word}</span></span>
+              <span className="text-sky-600 font-black">{item.example}</span>
             </div>
-            <span className="text-xl font-black text-slate-700 capitalize tracking-tight">"{wordTarget}"</span>
           </div>
-        ) : (
-          <p className="text-sm font-medium text-slate-400 italic max-w-xs mx-auto leading-relaxed">
-            La ilustración del significado aparecerá automáticamente en esta zona tras presionar el botón "Escuchar Palabra".
-          </p>
-        )}
+        ))}
       </div>
-
-      {/* BOTÓN DE NAVEGACIÓN ENTRE PALABRAS */}
-      <div className="flex justify-end mt-2">
-        <button 
-          onClick={() => setCurrentWordIndex((prev) => (prev < palabras.length - 1 ? prev + 1 : 0))}
-          className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase tracking-widest py-3 px-6 rounded-xl transition-all shadow-sm active:scale-95"
-        >
-          Siguiente Palabra ➔
-        </button>
-      </div>
-
     </div>
   );
 }

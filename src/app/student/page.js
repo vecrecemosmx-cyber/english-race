@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import PracticaVocales from './components/PracticaVocales.js';
 import PracticaDiptongos from './components/PracticaDiptongos.js';
 import PracticaConsonantes from './components/PracticaConsonantes.js';
+import AprenderIPA from './components/AprenderIPA.js';
 
 export default function Home() {
   return (
@@ -117,7 +118,7 @@ function PlataformaFonicaMaestra() {
             <li className={`menu-item ${currentPractice === '3' ? 'active' : ''}`} id="menu-practica-1" onClick={() => { setCurrentPractice('3'); setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">3</span><span className="menu-text">Práctica 1 Listening De Vocales Cortas.</span></li>
             <li className={`menu-item ${currentPractice === '4' ? 'active' : ''}`} id="menu-diptongos" onClick={() => { setCurrentPractice('4'); setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">4</span><span className="menu-text">Práctica 2 Listening de Diptóngos.</span></li>
             <li className={`menu-item ${currentPractice === '5' ? 'active' : ''}`} id="menu-consonantes" onClick={() => { setCurrentPractice('5'); setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">5</span><span className="menu-text">Práctica 3 Listening de Consonantes.</span></li>
-            <li className="menu-item" id="menu-grafemas" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">6</span><span className="menu-text">Primeros Grafemas.</span></li>
+            <li className={`menu-item ${currentPractice === '6' ? 'active' : ''}`} id="menu-aprender-ipa" onClick={() => { setCurrentPractice('6'); setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); setTimeout(() => { document.getElementById('instruction-card-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }}><span className="menu-number">6</span><span className="menu-text">Aprender a leer IPA.</span></li>
             <li className="menu-item" id="menu-sopa" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">7</span><span className="menu-text">Sopa de letras.</span></li>
             <li className="menu-item" id="menu-flashcards" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">8</span><span className="menu-text">Flashcards significados.</span></li>
             <li className="menu-item" id="menu-frases" onClick={() => { setClicsMenuContador(prev => prev + 1); document.getElementById('sidebar')?.classList.remove('open'); }}><span className="menu-number">9</span><span className="menu-text">Frases.</span></li>
@@ -146,6 +147,13 @@ function PlataformaFonicaMaestra() {
           )}
           {currentPractice === '5' && (
             <PracticaConsonantes userEmail={session?.user?.email} globalSpeed={audioSpeed} setGlobalSpeed={setAudioSpeed} menuClics={clicsMenuContador} />
+          )}
+                    {currentPractice === '5' && (
+            <PracticaConsonantes userEmail={session?.user?.email} globalSpeed={audioSpeed} setGlobalSpeed={setAudioSpeed} menuClics={clicsMenuContador} />
+          )}
+
+          {currentPractice === 'ipa' && (
+            <AprenderIpa />
           )}
         </main>
 
