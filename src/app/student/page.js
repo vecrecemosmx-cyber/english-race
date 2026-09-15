@@ -152,7 +152,7 @@ function PlataformaFonicaMaestra() {
             <PracticaConsonantes userEmail={session?.user?.email} globalSpeed={audioSpeed} setGlobalSpeed={setAudioSpeed} menuClics={clicsMenuContador} />
           )}
 
-          {currentPractice === 'ipa' && (
+          {currentPractice === '6' && (
             <AprenderIpa />
           )}
         </main>
