@@ -25,13 +25,13 @@ function PlataformaFonicaMaestra() {
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // 🚀 REPARACIÓN SIDEBAR UNIFICADO: Sincroniza el estado reactivo con el DOM original
+  // Sincronización reactiva del botón de hamburguesa único
   const handleToggleSidebarUnificado = (e) => {
     if (e) e.stopPropagation();
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // SCROLL INICIAL AL CONTENEDOR DE LA PREGUNTA AL INICIAR SESIÓN
+  // Scroll automático inicial a la pregunta
   useEffect(() => {
     if (status === "authenticated") {
       setTimeout(() => {
@@ -43,7 +43,7 @@ function PlataformaFonicaMaestra() {
     }
   }, [status]);
 
-  // AUDIO DE BIENVENIDA AUTOMÁTICO EN ESPAÑOL ORIGINAL
+  // Audio de bienvenida automático en español original
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email && currentPractice !== 'ipa') {
       const emailLimpio = session.user.email.toLowerCase().trim();
@@ -85,7 +85,7 @@ function PlataformaFonicaMaestra() {
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER ORIGINAL UNIFICADO (Mismo botón de hamburguesa para ambos) */}
+      {/* HEADER ORIGINAL UNIFICADO */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={handleToggleSidebarUnificado}>
@@ -103,8 +103,13 @@ function PlataformaFonicaMaestra() {
 
       <div className="app-layout">
         
-        {/* SIDEBAR REPARADO (Oculto por defecto en computadora y móvil. Se auto-cierra al hacer click) */}
-        <aside id="sidebar" className={`sidebar transition-all duration-300 ${isSidebarOpen ? 'open block z-50' : 'hidden md:hidden'}`}>
+        {/* 🚀 REPARACIÓN SÚPER RESPONSIVA: Oculto por defecto, abre con .open y colapsa a 0px protegiendo el Flexbox original */}
+        <aside 
+          id="sidebar" 
+          className={`sidebar transition-all duration-300 overflow-hidden ${
+            isSidebarOpen ? 'open block w-64' : 'w-0 -translate-x-full opacity-0 invisible md:invisible'
+          }`}
+        >
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
             <li className="menu-item" id="menu-metodologia" onClick={() => { setClicsMenuContador(prev => prev + 1); setIsSidebarOpen(false); }}><span className="menu-number">1</span><span className="menu-text">Metodología.</span></li>
@@ -119,8 +124,8 @@ function PlataformaFonicaMaestra() {
           </ul>
         </aside>
 
-        {/* CONTENEDOR PRINCIPAL RESPONSIVO */}
-        <main className="main-container">
+        {/* 🚀 CONTENEDOR PRINCIPAL: Recupera el 100% del ancho fluido nativo en computadora al estar cerrado el menú */}
+        <main className={`main-container transition-all duration-300 w-full`}>
           {currentPractice === '3' && (
             <PracticaVocales 
               userEmail={session?.user?.email} 
