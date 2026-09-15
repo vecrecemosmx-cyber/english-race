@@ -20,7 +20,7 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
   const [savedFonicBlocks, setSavedFonicBlocks] = useState(0);
   const [triggerShake, setTriggerShake] = useState(false);
 
-  // --- REFERENCIAS Y ESTADOS ANALÍTICOS INTACTOS ---
+  // --- REFERENCIAS Y ESTADOS PARA CAPTURA INVISIBLE DE TIEMPOS (ORIGINAL) ---
   const startTimeWordRef = useRef(null);     
   const startTimeQuestionRef = useRef(null); 
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
@@ -28,11 +28,11 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
   const [respuestasInputs, setRespuestasInputs] = useState({});
   const answerInputRef = useRef(null);
 
-  // Rangos numéricos para el mapa dinámico declarados con corchetes
+  // Rangos numéricos para los bucles generados con corchetes
   const botonesRangoFonic =[3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const botonesRangoFonicCorto =[3, 4, 5, 6];
   const botonesConsonantes =[1, 2, 3, 4, 5, 6, 7];
-  const botonesVocales =[1, 2, 3, 4, 5];
+  const botonesVocales = [1, 2, 3, 4, 5];
 
   const mappingP1 = { "1": "ə", "2": "ɪ", "3": "ɛ", "4": "æ", "5": "ʌ" };
   const questionsTexts = [
@@ -78,7 +78,6 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     setCurrentQuestionIndex(0);
   };
 
-  // 🚀 RESTAURACIÓN: FUNCIÓN CENTRALIZADA PARA REPRODUCIR LAS INSTRUCCIONES (es-MX ORIGINAL)
   const handlePlayInstructions = (e) => {
     if (e) e.preventDefault();
     if ('speechSynthesis' in window) {
@@ -142,7 +141,6 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     startTimeQuestionRef.current = ahora; 
   };
 
-  // 🚀 REPARACIÓN: Motor original SIN la alerta inventada de "revise la respuesta antes de avanzar"
   const handleCheckAnswer = (e, valorBotonP5 = null, valorDirectoBoton = null) => {
     if (e) e.preventDefault();
     if (!currentData) return;
@@ -208,6 +206,17 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
     } else {
       setTriggerShake(false);
     }
+
+    // 🚀 RESTAURACIÓN: SCROLL AUTOMÁTICO AL EVALUAR RESPUESTA (BIEN ABAJO / MAL MENSAJE)
+    setTimeout(() => {
+      if (isCorrect) {
+        const botonSiguiente = document.getElementById('action-btn');
+        if (botonSiguiente) botonSiguiente.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        const tarjetaFeedback = document.getElementById('feedback-card');
+        if (tarjetaFeedback) tarjetaFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 120);
   };
 
   const handleNextQuestion = async (e) => {
@@ -221,11 +230,10 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       setHasAnsweredCorrectly(false);
       setTriggerShake(false);
 
+      // 🚀 RESTAURACIÓN: SCROLL SUAVE AL TOPE DE LA PREGUNTA AL AVANZAR
       setTimeout(() => {
         const contenedorPregunta = document.getElementById('instruction-card-root');
-        if (contenedorPregunta) {
-          contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (contenedorPregunta) contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 80);
     } 
     else {
@@ -267,11 +275,10 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       
       setCurrentQuestionIndex(0);
       
+      // 🚀 RESTAURACIÓN: SCROLL SUAVE AL TOPE EN NUEVA PALABRA
       setTimeout(() => {
         const contenedorPregunta = document.getElementById('instruction-card-root');
-        if (contenedorPregunta) {
-          contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (contenedorPregunta) contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 120);
       
       alert(`📝 Siguiente reto cargado. Presiona 'Palabra' para practicar.`);
@@ -289,11 +296,10 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
       setTriggerShake(false);
       startTimeQuestionRef.current = Date.now(); 
 
+      // 🚀 RESTAURACIÓN: SCROLL SUAVE AL TOPE EN RETROCESO
       setTimeout(() => {
         const contenedorPregunta = document.getElementById('instruction-card-root');
-        if (contenedorPregunta) {
-          contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (contenedorPregunta) contenedorPregunta.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
   };
@@ -332,7 +338,7 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
             >
               <option value="ə">Fonema /ə/</option>
               <option value="ɪ">Fonema /ɪ/</option>
-              <option value="ɛ">Fonema /ɛ/</option>
+              <option value="ɛ">Fonema /ə/</option>
               <option value="æ">Fonema /æ/</option>
               <option value="ʌ">Fonema /ʌ/</option>
             </select>
@@ -348,9 +354,11 @@ export default function PracticaVocales({ userEmail, globalSpeed, setGlobalSpeed
           </div>
         </div>
 
+        {/* 🚀 REPARACIÓN CRÍTICA: DESLIZADOR CON LA BOLITA ORIGINAL Y CAJA DE ONDAS RESTAURADA */}
         <div className="media-slider-row">
           <div className="interactive-wave-box">
             <div className="wave-container"><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div><div className="wave-bar"></div></div>
+            <input type="range" min="0.5" max="2.0" step="0.25" id="speed-slider" value={globalSpeed} onChange={(e) => setGlobalSpeed(parseFloat(e.target.value))} className="over-wave-slider" />
             <span id="speed-bubble" className="speed-bubble-indicator">{globalSpeed.toFixed(2)}x</span>
           </div>
         </div>
