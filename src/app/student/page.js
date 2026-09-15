@@ -101,13 +101,14 @@ function PlataformaFonicaMaestra() {
         </div>
       </header>
 
-      <div className="app-layout">
+      {/* 🚀 REPARACIÓN DE BALANCEO: Rompe el Grid/Flex lateral cuando el menú está cerrado para centrar simétricamente todo */}
+      <div className={`app-layout ${isSidebarOpen ? '' : '!flex !justify-center !w-full'}`}>
         
-        {/* 🚀 REPARACIÓN SÚPER RESPONSIVA: Oculto por defecto, abre con .open y colapsa a 0px protegiendo el Flexbox original */}
+        {/* SIDEBAR ORIGINAL VINCULADO */}
         <aside 
           id="sidebar" 
           className={`sidebar transition-all duration-300 overflow-hidden ${
-            isSidebarOpen ? 'open block w-64' : 'w-0 -translate-x-full opacity-0 invisible md:invisible'
+            isSidebarOpen ? 'open block w-64' : 'w-0 -translate-x-full opacity-0 invisible'
           }`}
         >
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
@@ -124,8 +125,8 @@ function PlataformaFonicaMaestra() {
           </ul>
         </aside>
 
-        {/* 🚀 CONTENEDOR PRINCIPAL: Recupera el 100% del ancho fluido nativo en computadora al estar cerrado el menú */}
-        <main className={`main-container transition-all duration-300 w-full`}>
+        {/* CONTENEDOR PRINCIPAL BALANCEADO Y EN ANCHO COMPLETO CENTRADO */}
+        <main className={`main-container transition-all duration-300 w-full flex justify-center`}>
           {currentPractice === '3' && (
             <PracticaVocales 
               userEmail={session?.user?.email} 
