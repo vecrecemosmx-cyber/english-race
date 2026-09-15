@@ -24,7 +24,7 @@ function PlataformaFonicaMaestra() {
   const [audioSpeed, setAudioSpeed] = useState(1.25);
   const [clicsMenuContador, setClicsMenuContador] = useState(0);
 
-  // FUNCIÓN ORIGINAL PURA PARA ALTERNAR LA CLASE CORRESPONDIENTE AL SIDEBAR
+  // FUNCIÓN NATIVA ORIGINAL PARA MANEJAR EL TOGGLE DEL SIDEBAR EN CELULARES
   const handleToggleSidebarOriginal = (e) => {
     if (e) e.stopPropagation();
     const sidebar = document.getElementById('sidebar');
@@ -33,7 +33,7 @@ function PlataformaFonicaMaestra() {
     }
   };
 
-  // SCROLL AUTOMÁTICO INICIAL NATIVO
+  // SCROLL AUTOMÁTICO INICIAL AL NÚCLEO DE LA PREGUNTA
   useEffect(() => {
     if (status === "authenticated") {
       setTimeout(() => {
@@ -87,7 +87,7 @@ function PlataformaFonicaMaestra() {
   return (
     <div className="plataforma-body w-full min-h-screen text-[#1E293B]" style={{ fontFamily: 'var(--font-redondeada), sans-serif' }}>
 
-      {/* HEADER ORIGINAL PURO (Tu botón original garantizado) */}
+      {/* HEADER ORIGINAL COMPLETO */}
       <header className="app-header">
         <div className="header-left">
           <button id="menu-toggle" className="menu-toggle-btn" onClick={handleToggleSidebarOriginal}>
@@ -103,10 +103,10 @@ function PlataformaFonicaMaestra() {
         </div>
       </header>
 
-      {/* MAQUETACIÓN ESTRUCTURAL ORIGINAL INTACTA */}
+      {/* LAYOUT ORIGINAL CON RESPONSIVIDAD INTEGRADA EN TU HOJA DE ESTILOS CSS */}
       <div className="app-layout">
         
-        {/* SIDEBAR ORIGINAL CON TÍTULOS IDÉNTICOS */}
+        {/* SIDEBAR ORIGINAL CON SUS 9 OPCIONES IDÉNTICAS */}
         <aside id="sidebar" className="sidebar">
           <h3 className="sidebar-title">Ejercicios de Práctica</h3>
           <ul className="sidebar-menu">
@@ -122,7 +122,7 @@ function PlataformaFonicaMaestra() {
           </ul>
         </aside>
 
-        {/* CONTENEDOR PRINCIPAL FIEL A TU DISEÑO ADAPTATIVO */}
+        {/* CONTENEDOR PRINCIPAL FLUIDO Y ORIGINAL */}
         <main className="main-container">
           {currentPractice === '3' && (
             <PracticaVocales 
