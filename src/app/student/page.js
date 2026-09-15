@@ -144,6 +144,9 @@ function PlataformaFonicaMaestra() {
               menuClics={clicsMenuContador}
             />
           )}
+          {currentPractice === '5' && (
+            <PracticaConsonantes userEmail={session?.user?.email} globalSpeed={audioSpeed} setGlobalSpeed={setAudioSpeed} menuClics={clicsMenuContador} />
+          )}
         </main>
 
       </div>
