@@ -91,7 +91,8 @@ export default function PlataformaInversionEducativa() {
               <div className="flex flex-col gap-6">
                 <div className="bg-slate-950 border border-slate-800 rounded-3xl p-5 flex flex-col gap-4 shadow-xl">
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
-                    <iframe ref={iframeRef} className="w-full h-full" src={`https://youtube.com{reproduciendoAntonimo ? fraseActual.antonimo.youtube_id : fraseActual.youtube_id}?enablejsapi=1&autoplay=1&controls=1&rel=0&start=${reproduciendoAntonimo ? fraseActual.antonimo.start_time : fraseActual.start_time}`} allow="autoplay; encrypted-media" />
+                    // REEMPLAZA EL BLOQUE DEL IFRAME EN src/app/student/page.js POR ESTE:
+                    <iframe ref={iframeRef} className="w-full h-full border-0" src={`https://youtube.com{reproduciendoAntonimo ? fraseActual.antonimo.youtube_id : fraseActual.youtube_id}?enablejsapi=1&autoplay=1&controls=1&rel=0&start=${reproduciendoAntonimo ? fraseActual.antonimo.start_time : fraseActual.start_time}`} allow="autoplay; encrypted-media" allowFullScreen/>
                   </div>
                   <div className="flex items-center gap-3 justify-end bg-slate-900 p-3 rounded-2xl border border-slate-800/60">
                     <input type="range" min="0.75" max="1.25" step="0.25" value={velocidadVideo} onChange={(e) => setVelocidadVideo(parseFloat(e.target.value))} className="w-24 accent-sky-500 h-1.5 rounded-lg cursor-pointer" />
