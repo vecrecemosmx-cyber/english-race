@@ -4,11 +4,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Inicialización segura del cliente de Supabase en el lado del servidor
+// REEMPLAZA LA LÍNEA 11 DE TUS ENDPOINTS POR ESTA ESTRUCTURA PROTEGIDA:
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Se usa Service Role para bypass de RLS en consultas de IA
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Validamos la existencia de las llaves antes de instanciar el cliente para no romper el build de Vercel
+const supabase = (supabaseUrl && supabaseServiceKey) 
+  ? createClient(supabaseUrl, supabaseServiceKey) 
+  : null;
 
 // NOTA DE ARQUITECTURA: En producción, aquí invocarías a Hugging Face o OpenAI 
 // para transformar el sueño del alumno en un vector numérico de 384 dimensiones.
