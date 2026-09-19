@@ -3,11 +3,15 @@
 
 'use client';
 
+// CÓDIGO MAESTRO DE IMPORTACIONES (src/app/student/page.js)
+// Aplica alias absolutos. Evita la fragilidad de los puntos y diagonales (../../)
+
 import React, { useState, useEffect, useRef } from 'react';
-import { IconoFlecha, IconoMicrofono } from '../../components/ui/Iconos';
-import { PanelSemaforo, PanelAndamiaje } from '../../components/PanelesAccion';
-import { useRecorder } from '../../hooks/useRecorder';
-import { DATASET_FRASES_VIDEO, LECCIONES_MOCK } from '../../data/corpus';
+import { IconoFlecha, IconoMicrofono } from '@/components/ui/Iconos';
+import { PanelSemaforo, PanelAndamiaje } from '@/components/PanelesAccion';
+import { useRecorder } from '@/hooks/useRecorder';
+import { DATASET_FRASES_VIDEO, LECCIONES_MOCK } from '@/data/corpus';
+
 
 export default function PlataformaInversionEducativa() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
