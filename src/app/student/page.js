@@ -94,7 +94,7 @@ export default function PlataformaInversionEducativa() {
                 <div className="bg-slate-950 border border-slate-800 rounded-3xl p-5 flex flex-col gap-4 shadow-xl">
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
                     {idVideoActivo && (
-                      <iframe ref={iframeRef} className="w-full h-full border-0" src={`https://youtube.com/watch?v=$cDAjDDdPqvA&enablejsapi=1&autoplay=1&controls=1&rel=0&start=${tiempoInicioActivo}`} allow="autoplay; encrypted-media" allowFullScreen />
+                      <iframe ref={iframeRef} className="w-full h-full border-0" src={`https://youtube.com{cDAjDDdPqvA}?enablejsapi=1&autoplay=1&controls=1&rel=0&start=${tiempoInicioActivo}`} allow="autoplay; encrypted-media" allowFullScreen />
                     )}
                   </div>
                   <div className="flex items-center gap-3 justify-end bg-slate-900 p-3 rounded-2xl border border-slate-800/60">
