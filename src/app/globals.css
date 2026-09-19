@@ -1,49 +1,48 @@
+/* Configuración Profesional para Tailwind CSS v4 */
+/* Guardar exactamente en: src/app/globals.css */
+
 @import "tailwindcss";
 
-/* --- BLINDAJE ESTILÍSTICO DE EMERGENCIA (EFA GLOBAL) --- */
-body, .min-h-screen { 
-  background-color: #0f172a !important; 
-  color: #f8fafc !important; 
-  min-height: 100vh;
-  margin: 0;
+@theme {
+  /* Enlazamos la variable de Next.js directamente a la clase font-sans */
+  --font-sans: var(--font-redondeada), 'Comfortaa', system-ui, sans-serif;
 }
 
-/* Menú Lateral */
-aside { 
-  background-color: #020617 !important; 
-  border-right: 1px solid #1e293b !important;
+:root {
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
-/* Paneles del Dashboard Asimétrico */
-.bg-slate-950 { 
-  background-color: #020617 !important; 
-  border: 1px solid #1e293b !important; 
-  border-radius: 1.5rem !important; 
-  padding: 1.5rem !important; 
+body {
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
-.bg-slate-900 { 
-  background-color: #0f172a !important; 
-  border: 1px solid #1e293b !important; 
-  border-radius: 1rem !important; 
-  padding: 1rem !important; 
+/* --- ANIMACIONES DE NEUROEDUCACIÓN PARA EL PROTOTIPO --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Botones del Semáforo Amable */
-button { 
-  cursor: pointer; 
-  font-family: 'Comfortaa', sans-serif !important;
-  transition: all 0.2s ease;
+.animate-fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-button:hover {
-  opacity: 0.9;
+/* Custom scrollbar minimalista para no romper la estética del Split View */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Selectores y Cajas de Texto */
-input, textarea { 
-  background-color: #0f172a !important; 
-  border: 1px solid #1e293b !important; 
-  color: #f8fafc !important;
-  border-radius: 1rem !important;
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0ea5e9;
 }
