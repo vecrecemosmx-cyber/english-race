@@ -15,7 +15,7 @@ export default function PlataformaInversionEducativa() {
   const [leccionActiva, setLeccionActiva] = useState(null);
   const [sueñoTexto, setSueñoTexto] = useState('');
   const [procesandoProgreso, setProcesandoProgreso] = useState(false);
-  const [fraseActual, setFraseActual] = useState(null);
+  const [fraseActual, setFraseActual] = useState(DATASET_FRASES_VIDEO[0]); // 🫵 Añade [0] aquí
   const [estadoSemaforo, setEstadoSemaforo] = useState(null); 
   const [capaAndamiaje, setCapaAndamiaje] = useState('nucleo'); 
   const [reproduciendoAntonimo, setReproduciendoAntonimo] = useState(false);
