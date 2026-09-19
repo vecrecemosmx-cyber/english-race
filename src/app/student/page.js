@@ -1,6 +1,3 @@
-// Archivo Maestro e Inmune a Errores: src/app/student/page.js
-// Diseñado con alias absolutos (@/) y carga inicial de datos.
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -16,7 +13,7 @@ export default function PlataformaInversionEducativa() {
   const [sueñoTexto, setSueñoTexto] = useState('');
   const [procesandoProgreso, setProcesandoProgreso] = useState(false);
   
-  // 🍿 CARGA INICIAL: Pasamos el objeto completo (primer elemento del arreglo) como estado base
+  // 🍿 CORRECCIÓN ABSOLUTA: Cargamos el primer objeto del arreglo [0] para que lea las variables correctamente
   const [fraseActual, setFraseActual] = useState(DATASET_FRASES_VIDEO[0]);
   
   const [estadoSemaforo, setEstadoSemaforo] = useState(null); 
@@ -28,7 +25,6 @@ export default function PlataformaInversionEducativa() {
   const iframeRef = useRef(null);
   const { grabando, audioBlobUrl, iniciarGrabacion, detenerGrabacion, setAudioBlobUrl } = useRecorder();
 
-  // Control asíncrono para inyectar los cambios del speed-slider a la API de YouTube
   useEffect(() => {
     if (iframeRef.current) {
       iframeRef.current.contentWindow.postMessage(
@@ -42,6 +38,7 @@ export default function PlataformaInversionEducativa() {
     if (!sueñoTexto.trim()) return;
     setProcesandoProgreso(true);
     setTimeout(() => {
+      // Al simular la IA, volvemos a inyectar el objeto limpio del índice 0
       setFraseActual(DATASET_FRASES_VIDEO[0]);
       setProcesandoProgreso(false);
       setEstadoSemaforo(null);
@@ -49,7 +46,7 @@ export default function PlataformaInversionEducativa() {
     }, 1000);
   };
 
-  // Extracción quirúrgica de parámetros para la API de incrustación segura
+  // Extracción segura de metadatos de los parámetros del objeto activo
   const idVideoActivo = reproduciendoAntonimo ? fraseActual?.antonimo?.youtube_id : fraseActual?.youtube_id;
   const tiempoInicioActivo = reproduciendoAntonimo ? fraseActual?.antonimo?.start_time : fraseActual?.start_time;
 
@@ -84,12 +81,20 @@ export default function PlataformaInversionEducativa() {
           )}
 
           <div className={`${panelModo === 'split' ? 'w-1/2' : 'w-full'} flex flex-col overflow-y-auto p-6 gap-6 transition-all duration-300`}>
+            {!fraseActual && (
+              <form onSubmit={dispararProcesamientoSueño} className="bg-slate-950 border border-slate-800 p-6 rounded-3xl flex flex-col gap-4 shadow-xl">
+                <h3 className="text-base font-black text-slate-100">Introduce tu Sueño o Meta</h3>
+                <textarea value={sueñoTexto} onChange={(e) => setSueñoTexto(e.target.value)} placeholder="Ej. Quiero viajar a Nueva York y trabajar en una empresa..." className="w-full h-24 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm font-semibold text-slate-200 resize-none" />
+                <button type="submit" disabled={procesandoProgreso} className="w-full py-3.5 bg-sky-600 font-black text-sm uppercase rounded-xl shadow-lg">{procesandoProgreso ? "🧠 Generando Ruta..." : "🚀 Iniciar Ruta Personalizada"}</button>
+              </form>
+            )}
+
             {fraseActual && (
               <div className="flex flex-col gap-6">
                 <div className="bg-slate-950 border border-slate-800 rounded-3xl p-5 flex flex-col gap-4 shadow-xl">
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black">
                     {idVideoActivo && (
-                      <iframe ref={iframeRef} className="w-full h-full border-0 absolute top-0 left-0" src={`https://youtube.com{idVideoActivo}?enablejsapi=1&autoplay=1&controls=1&rel=0&start=${tiempoInicioActivo}`} allow="autoplay; encrypted-media" allowFullScreen />
+                      <iframe ref={iframeRef} className="w-full h-full border-0" src={`https://youtube.com/watch?v=${idVideoActivo}&enablejsapi=1&autoplay=1&controls=1&rel=0&start=${tiempoInicioActivo}`} allow="autoplay; encrypted-media" allowFullScreen />
                     )}
                   </div>
                   <div className="flex items-center gap-3 justify-end bg-slate-900 p-3 rounded-2xl border border-slate-800/60">
