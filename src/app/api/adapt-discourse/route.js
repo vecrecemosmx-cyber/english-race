@@ -22,7 +22,7 @@ export async function POST(request) {
     const hfResponse = await fetch(MODEL_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.HF_TOKEN}`,
+        "Authorization": `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
