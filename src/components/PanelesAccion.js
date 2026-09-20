@@ -45,12 +45,19 @@ export function PanelAndamiaje({
               Meaning of <span className="text-red-400">"{frase.palabra_clave}"</span>: {frase.cefr_control}
             </p>
           </div>
+          {/* REEMPLAZA EL CONTENEDOR DE COLOCACIONES DENTRO DE PanelesAccion.js POR ESTE BLOCK BLINDADO */}
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
             <span className="text-[10px] font-black uppercase text-sky-400 tracking-wider block mb-1">Pragmatic Collocations</span>
             <div className="flex flex-wrap gap-2 mt-1">
-              {frase.colocaciones.map((col, idx) => (
-                <code key={idx} className="text-xs bg-slate-950 border border-slate-800 text-slate-300 font-mono font-bold px-2 py-1 rounded-xl">{col}</code>
+              {/* Usamos el operador ?. y un array vacío de respaldo para evitar crasheos si Supabase cambia el nombre del campo */}
+              {(frase?.colocaciones || frase?.colocaciones_json || []).map((col, idx) => (
+                <code key={idx} className="text-xs bg-slate-950 border border-slate-800 text-slate-300 font-mono font-bold px-2 py-1 rounded-xl">
+                  {col}
+                </code>
               ))}
+              {!(frase?.colocaciones || frase?.colocaciones_json) && (
+                <span className="text-xs font-semibold text-slate-600 italic">No collocations loaded for this block.</span>
+              )}
             </div>
           </div>
         </div>

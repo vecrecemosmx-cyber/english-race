@@ -97,8 +97,8 @@ export default function PlataformaInversionEducativa() {
           <div className="text-xs font-mono font-bold text-sky-400 bg-sky-950 px-3 py-1.5 rounded-full border border-sky-900 tracking-wider">Modo Inmersión Conectado</div>
         </header>
 
-// Pieza 2 de 2: MAQUETACIÓN DEL DASHBOARD DE INMERSIÓN DINÁMICA CON CONEXIÓN EN RED
-// Guarda en: src/app/student/page.js (Longitud segura menor que 4,000 caracteres)
+{/*// Pieza 2 de 2: MAQUETACIÓN DEL DASHBOARD DE INMERSIÓN DINÁMICA CON CONEXIÓN EN RED
+// Guarda en: src/app/student/page.js (Longitud segura menor que 4,000 caracteres)*/}
 
         <div className="flex-1 flex overflow-hidden">
           {/* PANEL IZQUIERDO: LECCIONES CONCEPTUALES (SOLO EN VISTA SPLIT) */}
