@@ -58,9 +58,9 @@ export default function PlataformaInversionEducativa() {
 
       const datos = await respuesta.json();
 
+      // Busca esto dentro de tu src/app/student/page.js y cámbialo para capturar el elemento 0:
       if (datos.exito && datos.discurso_personalizado?.linea_tiempo_frases?.length > 0) {
-        const fraseExtraida = datos.discurso_personalizado.linea_tiempo_frases[0];
-        // Sincronizamos la interfaz con los metadatos vectoriales dinámicos de Supabase
+        const fraseExtraida = datos.discurso_personalizado.linea_tiempo_frases[0]; // 🫵 SE AGREGA EL [0] AQUÍ
         setFraseActual(fraseExtraida);
         setMotivoAdaptacion(fraseExtraida.motivo_adaptacion);
       } else {
