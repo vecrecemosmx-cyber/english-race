@@ -1,48 +1,26 @@
-/* Configuración Profesional para Tailwind CSS v4 */
-/* Guardar exactamente en: src/app/globals.css */
-
 @import "tailwindcss";
 
-@theme {
-  /* Enlazamos la variable de Next.js directamente a la clase font-sans */
-  --font-sans: var(--font-redondeada), 'Comfortaa', system-ui, sans-serif;
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
-:root {
-  background-color: #0f172a;
-  color: #f8fafc;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  background-color: #0f172a;
-  color: #f8fafc;
-}
-
-/* --- ANIMACIONES DE NEUROEDUCACIÓN PARA EL PROTOTIPO --- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Custom scrollbar minimalista para no romper la estética del Split View */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #020617;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
