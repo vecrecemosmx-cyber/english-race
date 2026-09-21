@@ -35,11 +35,10 @@ export const mockEducationalData: EducationalContentResponse = {
             "Careless mistakes tear down valuable work."
           ]
         },
-        youtubeContextQuery: "Steve Jobs talk build company",
-        // Discurso universal de Steve Jobs en Stanford (Permite incrustación en cualquier web)
+        youtubeContextQuery: "Steve Jobs Stanford speech build company",
         videoContext: {
-          videoId: "UF8uR6Z6KLc",
-          startSeconds: 524, // Minuto exacto donde habla sobre construir algo con pasión
+          videoId: "UF8uR6Z6KLc", // Steve Jobs Commencement Address
+          startSeconds: 524,
           endSeconds: 545,
           targetPhrase: "I want to build modern software.",
           contextNote: "Authentic speaker talking about building meaningful work."
@@ -76,14 +75,13 @@ export const mockEducationalData: EducationalContentResponse = {
             "Fear forces people to isolate themselves from reality."
           ]
         },
-        youtubeContextQuery: "travel documentary exploring the world",
-        // Video educativo abierto (Permite incrustación)
+        youtubeContextQuery: "Matt Cutts TED Talk try new things",
         videoContext: {
-          videoId: "bO7SFz05dG0",
-          startSeconds: 45,
-          endSeconds: 65,
+          videoId: "JnfBXjWm7hc", // Matt Cutts TED Talk - 100% libre para inserción
+          startSeconds: 22,
+          endSeconds: 42,
           targetPhrase: "I want to explore different countries.",
-          contextNote: "Traveler describing the experience of stepping into new cultures."
+          contextNote: "Speaker sharing the experience of stepping out to explore new challenges."
         }
       }
     }
