@@ -8,18 +8,17 @@ import { HeroPhrase } from '@/components/HeroPhrase';
 import { SummaryView } from '@/components/SummaryView';
 
 export default function Home() {
-  // Estado inicial alimentado con los datos pedagógicos acordados
   const [data, setData] = useState<EducationalContentResponse>(mockEducationalData);
-  // Frase actualmente seleccionada para el Hero (por defecto la primera)
   const [selectedSentence, setSelectedSentence] = useState<SentenceItem>(
     mockEducationalData.sentences[0]
   );
   const [isLoading, setIsLoading] = useState(false);
+  // Estado para controlar el colapso del contenedor de entrada
+  const [isInputCollapsed, setIsInputCollapsed] = useState(false);
 
   // Manejador del botón "Aprender"
   const handleProcessInput = (text: string, type: SummaryType) => {
     setIsLoading(true);
-    // Simulación de respuesta inmediata. En la siguiente iteración conectaremos Gemini aquí.
     setTimeout(() => {
       setData((prev) => ({
         ...prev,
@@ -27,19 +26,20 @@ export default function Home() {
         summaryType: type,
       }));
       setIsLoading(false);
+      // Ocultar el formulario tras generar el contenido
+      setIsInputCollapsed(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 300);
   };
 
-  // Manejador del botón "Estudiar frase" de la lista
   const handleSelectPhrase = (phrase: SentenceItem) => {
     setSelectedSentence(phrase);
-    // Desplazamiento suave hacia arriba para enfocar la atención
-    window.scrollTo({ top: 380, behavior: 'smooth' });
+    window.scrollTo({ top: 180, behavior: 'smooth' });
   };
 
   return (
     <main className="min-h-screen bg-slate-100/60 text-slate-900 pb-16">
-      {/* Barra de cabecera */}
+      {/* Cabecera */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -58,8 +58,19 @@ export default function Home() {
 
       {/* Contenedor Principal */}
       <div className="max-w-5xl mx-auto px-4 pt-8">
-        {/* Sección de Entrada */}
-        <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
+        {/* Contenedor de Entrada vs Botón Colapsado */}
+        {!isInputCollapsed ? (
+          <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
+        ) : (
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setIsInputCollapsed(false)}
+              className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-white border-2 border-indigo-200 hover:border-indigo-400 text-indigo-700 font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95"
+            >
+              <span>✍ Introducir otro texto para aprender</span>
+            </button>
+          </div>
+        )}
 
         {/* 1. Elemento Protagonista (Hero Phrase) */}
         {selectedSentence && (
