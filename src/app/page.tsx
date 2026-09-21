@@ -13,33 +13,43 @@ export default function Home() {
     mockEducationalData.sentences[0]
   );
   const [isLoading, setIsLoading] = useState(false);
-  // Estado para controlar el colapso del contenedor de entrada
+
+  // Estado 1: Controla si el estudiante ya presionó "Aprender" al menos una vez
+  const [hasLearned, setHasLearned] = useState(false);
+
+  // Estado 2: Controla si el formulario está colapsado u oculto tras generar
   const [isInputCollapsed, setIsInputCollapsed] = useState(false);
 
-  // Manejador del botón "Aprender"
+  // Manejador del disparador "Aprender"
   const handleProcessInput = (text: string, type: SummaryType) => {
     setIsLoading(true);
+
     setTimeout(() => {
       setData((prev) => ({
         ...prev,
         userInputOriginal: text,
         summaryType: type,
       }));
-      setIsLoading(false);
-      // Ocultar el formulario tras generar el contenido
+      // 1. Activamos la visualización de los resultados
+      setHasLearned(true);
+      // 2. Colapsamos el contenedor de entrada
       setIsInputCollapsed(true);
+      setIsLoading(false);
+
+      // Desplazamiento suave al inicio de los resultados
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 300);
+    }, 400);
   };
 
+  // Manejador del botón "Estudiar frase" de la lista
   const handleSelectPhrase = (phrase: SentenceItem) => {
     setSelectedSentence(phrase);
-    window.scrollTo({ top: 180, behavior: 'smooth' });
+    window.scrollTo({ top: 100, behavior: 'smooth' });
   };
 
   return (
     <main className="min-h-screen bg-slate-100/60 text-slate-900 pb-16">
-      {/* Cabecera */}
+      {/* Barra de Cabecera */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -58,10 +68,14 @@ export default function Home() {
 
       {/* Contenedor Principal */}
       <div className="max-w-5xl mx-auto px-4 pt-8">
-        {/* Contenedor de Entrada vs Botón Colapsado */}
-        {!isInputCollapsed ? (
+        {/* ============================================================ */}
+        {/* FASE 1: ENTRADA DE DATOS (Visible al inicio o al expandir)   */}
+        {/* ============================================================ */}
+        {!hasLearned ? (
+          // Estado Inicial: ÚNICAMENTE se muestra el formulario de entrada
           <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
-        ) : (
+        ) : isInputCollapsed ? (
+          // Estado Colapsado: Solo el botón para volver a ingresar otro texto
           <div className="flex justify-center mb-8">
             <button
               onClick={() => setIsInputCollapsed(false)}
@@ -70,21 +84,33 @@ export default function Home() {
               <span>✍ Introducir otro texto para aprender</span>
             </button>
           </div>
+        ) : (
+          // Estado Expandido (cuando el usuario quiere editar o escribir otro texto tras haber generado)
+          <div className="mb-8">
+            <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
+          </div>
         )}
 
-        {/* 1. Elemento Protagonista (Hero Phrase) */}
-        {selectedSentence && (
-          <HeroPhrase sentence={selectedSentence} />
-        )}
+        {/* ============================================================ */}
+        {/* FASE 2: RESULTADOS (Solo se muestran tras pulsar "Aprender") */}
+        {/* ============================================================ */}
+        {hasLearned && (
+          <div className="transition-all animate-fadeIn">
+            {/* 1. Elemento Protagonista (Hero Phrase) */}
+            {selectedSentence && (
+              <HeroPhrase sentence={selectedSentence} />
+            )}
 
-        {/* 2. Resumen en Párrafo y Lista de Frases */}
-        {data && (
-          <SummaryView
-            summaryParagraph={data.summaryParagraph}
-            sentences={data.sentences}
-            currentSelectedId={selectedSentence.id}
-            onSelectPhrase={handleSelectPhrase}
-          />
+            {/* 2. Resumen en Párrafo y Lista de Frases */}
+            {data && (
+              <SummaryView
+                summaryParagraph={data.summaryParagraph}
+                sentences={data.sentences}
+                currentSelectedId={selectedSentence.id}
+                onSelectPhrase={handleSelectPhrase}
+              />
+            )}
+          </div>
         )}
       </div>
     </main>
