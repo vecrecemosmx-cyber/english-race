@@ -35,8 +35,15 @@ export const mockEducationalData: EducationalContentResponse = {
             "Careless mistakes tear down valuable work."
           ]
         },
-        youtubeContextQuery: "how software engineers build applications",
-        youtubeVideoId: "kJQP7kiw5Fk" // Video de ejemplo educativo
+        youtubeContextQuery: "Steve Jobs talk build company",
+        // Discurso universal de Steve Jobs en Stanford (Permite incrustación en cualquier web)
+        videoContext: {
+          videoId: "UF8uR6Z6KLc",
+          startSeconds: 524, // Minuto exacto donde habla sobre construir algo con pasión
+          endSeconds: 545,
+          targetPhrase: "I want to build modern software.",
+          contextNote: "Authentic speaker talking about building meaningful work."
+        }
       }
     },
     {
@@ -69,8 +76,15 @@ export const mockEducationalData: EducationalContentResponse = {
             "Fear forces people to isolate themselves from reality."
           ]
         },
-        youtubeContextQuery: "solo travel exploring new countries vlog",
-        youtubeVideoId: "bO7SFz05dG0"
+        youtubeContextQuery: "travel documentary exploring the world",
+        // Video educativo abierto (Permite incrustación)
+        videoContext: {
+          videoId: "bO7SFz05dG0",
+          startSeconds: 45,
+          endSeconds: 65,
+          targetPhrase: "I want to explore different countries.",
+          contextNote: "Traveler describing the experience of stepping into new cultures."
+        }
       }
     }
   ]

@@ -62,9 +62,9 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({ layer2, onClose 
         </ul>
       </div>
 
-      {/* Video Contextual YouGlish / YouTube */}
+      {/* Reproductor YouGlish con Marcas de Tiempo, Repetición y Velocidad */}
       <YouTubeEmbed 
-        videoId={layer2.youtubeVideoId} 
+        videoContext={layer2.videoContext} 
         query={layer2.youtubeContextQuery} 
       />
     </div>

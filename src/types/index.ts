@@ -22,6 +22,14 @@ export interface OppositeTrigger {
   contrastPhrases: string[];
 }
 
+export interface VideoContextData {
+  videoId: string;
+  startSeconds: number;
+  endSeconds?: number;
+  targetPhrase: string;
+  contextNote?: string;
+}
+
 export interface Layer2Data {
   keyword: string;
   partOfSpeech: string;
@@ -29,7 +37,7 @@ export interface Layer2Data {
   primaryTechnique: BaseTechnique;
   secondaryTechnique: OppositeTrigger;
   youtubeContextQuery: string;
-  youtubeVideoId?: string; // ID opcional directo de YouTube para embeber
+  videoContext?: VideoContextData; // Configuración estilo YouGlish
 }
 
 export interface SentenceItem {
