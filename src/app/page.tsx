@@ -13,35 +13,49 @@ export default function Home() {
     mockEducationalData.sentences[0]
   );
   const [isLoading, setIsLoading] = useState(false);
-
-  // Estado 1: Controla si el estudiante ya presionó "Aprender" al menos una vez
   const [hasLearned, setHasLearned] = useState(false);
-
-  // Estado 2: Controla si el formulario está colapsado u oculto tras generar
   const [isInputCollapsed, setIsInputCollapsed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Manejador del disparador "Aprender"
-  const handleProcessInput = (text: string, type: SummaryType) => {
+  // MANEJADOR REAL CONECTADO A GEMINI
+  const handleProcessInput = async (text: string, type: SummaryType) => {
     setIsLoading(true);
+    setErrorMessage(null);
 
-    setTimeout(() => {
-      setData((prev) => ({
-        ...prev,
-        userInputOriginal: text,
-        summaryType: type,
-      }));
-      // 1. Activamos la visualización de los resultados
+    try {
+      // Llamada en vivo a Gemini a través de nuestro endpoint seguro
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, summaryType: type }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al generar el contenido con Gemini.');
+      }
+
+      const generatedData: EducationalContentResponse = await res.json();
+
+      setData(generatedData);
+      // Seleccionamos por defecto la primera frase como Hero
+      if (generatedData.sentences && generatedData.sentences.length > 0) {
+        setSelectedSentence(generatedData.sentences[0]);
+      }
+
       setHasLearned(true);
-      // 2. Colapsamos el contenedor de entrada
       setIsInputCollapsed(true);
-      setIsLoading(false);
-
-      // Desplazamiento suave al inicio de los resultados
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 400);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(
+        'Hubo un inconveniente al generar con Gemini. Verifica que tu clave GEMINI_API_KEY esté en .env.local.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Manejador del botón "Estudiar frase" de la lista
+  // Manejador de "Estudiar frase"
   const handleSelectPhrase = (phrase: SentenceItem) => {
     setSelectedSentence(phrase);
     window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -49,7 +63,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-100/60 text-slate-900 pb-16">
-      {/* Barra de Cabecera */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -61,21 +74,21 @@ export default function Home() {
             </span>
           </div>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Plataforma Activa
+            IA Activa (Gemini)
           </span>
         </div>
       </header>
 
-      {/* Contenedor Principal */}
       <div className="max-w-5xl mx-auto px-4 pt-8">
-        {/* ============================================================ */}
-        {/* FASE 1: ENTRADA DE DATOS (Visible al inicio o al expandir)   */}
-        {/* ============================================================ */}
+        {errorMessage && (
+          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+            ⚠️ {errorMessage}
+          </div>
+        )}
+
         {!hasLearned ? (
-          // Estado Inicial: ÚNICAMENTE se muestra el formulario de entrada
           <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
         ) : isInputCollapsed ? (
-          // Estado Colapsado: Solo el botón para volver a ingresar otro texto
           <div className="flex justify-center mb-8">
             <button
               onClick={() => setIsInputCollapsed(false)}
@@ -85,23 +98,17 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          // Estado Expandido (cuando el usuario quiere editar o escribir otro texto tras haber generado)
           <div className="mb-8">
             <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* FASE 2: RESULTADOS (Solo se muestran tras pulsar "Aprender") */}
-        {/* ============================================================ */}
         {hasLearned && (
           <div className="transition-all animate-fadeIn">
-            {/* 1. Elemento Protagonista (Hero Phrase) */}
             {selectedSentence && (
               <HeroPhrase sentence={selectedSentence} />
             )}
 
-            {/* 2. Resumen en Párrafo y Lista de Frases */}
             {data && (
               <SummaryView
                 summaryParagraph={data.summaryParagraph}

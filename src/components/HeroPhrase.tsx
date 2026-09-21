@@ -31,7 +31,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
     <section className="mb-8 rounded-3xl bg-white border-2 border-indigo-500/20 p-6 md:p-8 shadow-xl shadow-indigo-100/50">
       <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-indigo-600 mb-3">
         <span>Foco de Estudio Principal</span>
-        <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
+        <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 font-bold">
           American English
         </span>
       </div>
@@ -47,10 +47,9 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
           </p>
         </div>
 
-        {/* Botón de Audio */}
         <button
           onClick={handlePlayAudio}
-          className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all shadow-sm shrink-0 ${
+          className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm transition-all shadow-sm shrink-0 ${
             isPlaying
               ? 'bg-amber-500 text-white ring-4 ring-amber-200'
               : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
@@ -69,7 +68,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1">
           Significado en Contexto (CEFR Control - English only)
         </span>
-        <p className="text-base text-slate-800 font-medium leading-relaxed">
+        <p className="text-base md:text-lg text-slate-800 font-medium leading-relaxed">
           {sentence.cefrDefinition}
         </p>
       </div>
@@ -98,16 +97,18 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
       <div className="pt-2">
         <button
           onClick={() => setShowLayer2(!showLayer2)}
-          className="w-full md:w-auto px-5 py-2.5 rounded-xl border border-dashed border-indigo-300 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100/70 font-semibold text-xs tracking-wide transition flex items-center justify-center gap-2"
+          className="w-full md:w-auto px-6 py-3 rounded-xl border-2 border-dashed border-indigo-300 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100/70 font-bold text-xs md:text-sm tracking-wide transition flex items-center justify-center gap-2 shadow-sm"
         >
           <span>{showLayer2 ? '▲ Ocultar técnicas' : '💡 No entendí completamente'}</span>
         </button>
       </div>
 
-      {/* Capa 2 Adaptativa: Le pasamos la frase y sus colocaciones */}
+      {/* Capa 2 Adaptativa: Paso de la estructura y complementos precisos */}
       {showLayer2 && (
         <Layer2Adaptive 
           targetPhrase={sentence.text}
+          coreStructure={sentence.coreStructure}
+          targetComplement={sentence.targetComplement}
           collocations={sentence.collocations}
           layer2={sentence.layer2} 
           onClose={() => setShowLayer2(false)} 

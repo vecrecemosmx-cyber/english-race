@@ -27,19 +27,14 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
   const fullSpokenText = videoContext?.fullSpokenText || videoContext?.targetPhrase || query;
   const highlightPhrase = videoContext?.highlightPhrase || videoContext?.targetPhrase || '';
 
-  // Función para resaltar visualmente la frase objetivo dentro del texto completo hablado
   const renderHighlightedSpokenText = (text: string, highlight: string) => {
-    if (!highlight.trim()) {
-      return <span>"{text}"</span>;
-    }
+    if (!highlight.trim()) return <span>"{text}"</span>;
 
     const lowerText = text.toLowerCase();
     const lowerHighlight = highlight.toLowerCase();
     const startIndex = lowerText.indexOf(lowerHighlight);
 
-    if (startIndex === -1) {
-      return <span>"{text}"</span>;
-    }
+    if (startIndex === -1) return <span>"{text}"</span>;
 
     const endIndex = startIndex + highlight.length;
     const before = text.slice(0, startIndex);
@@ -49,7 +44,7 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
     return (
       <span>
         "{before}
-        <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-md shadow-sm ring-1 ring-amber-300">
+        <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-md shadow-sm ring-2 ring-amber-300">
           {match}
         </span>
         {after}"
@@ -150,30 +145,32 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
   const youglishUrl = `https://youglish.com/pronounce/${encodeURIComponent(query)}/english/us`;
 
   return (
-    <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-900 text-white p-4 shadow-lg">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-slate-800 pb-2">
+    // CONTENEDOR EXPANDIDO: Ancho total responsivo sin restricciones
+    <div className="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-900 text-white p-4 md:p-6 shadow-2xl">
+      {/* Cabecera */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Aparición Exacta en Inglés Americano
+          <span className="flex h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
+          <h4 className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-200">
+            Aparición Exacta en Video (American English)
           </h4>
         </div>
         <a
           href={youglishUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-indigo-400 hover:text-indigo-300 transition underline flex items-center gap-1"
+          className="text-xs text-indigo-400 hover:text-indigo-300 transition underline flex items-center gap-1 font-semibold"
         >
-          Buscar más ejemplos en YouGlish ↗
+          Abrir en YouGlish ↗
         </a>
       </div>
 
-      {/* Proyección con Resaltado Dinámico */}
-      <div className="mb-3 rounded-xl bg-slate-800/90 border border-slate-700 p-4 text-center">
+      {/* Frase Hablada Sincronizada */}
+      <div className="mb-4 rounded-xl bg-slate-800/90 border border-slate-700 p-4 text-center shadow-inner">
         <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono mb-2">
           Transcripción hablada (Frase en estudio resaltada):
         </p>
-        <p className="text-base md:text-lg text-slate-100 font-medium leading-relaxed">
+        <p className="text-base md:text-xl text-slate-100 font-medium leading-relaxed">
           {renderHighlightedSpokenText(fullSpokenText, highlightPhrase)}
         </p>
         {videoContext?.contextNote && (
@@ -183,17 +180,19 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
         )}
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-xl bg-black aspect-video shadow-inner">
+      {/* EL REPRODUCTOR: Ocupa el 100% del ancho con relación de aspecto 16:9 */}
+      <div className="relative w-full overflow-hidden rounded-2xl bg-black aspect-video shadow-2xl border border-slate-800">
         <div ref={wrapperRef} className="w-full h-full"></div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+      {/* Controles Interactivos */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleRewind5s}
             disabled={!isPlayerReady}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white font-bold text-xs md:text-sm border border-slate-700 transition disabled:opacity-50"
             title="Retrocede 5 segundos a partir del segundo actual"
           >
             <span>⏪ -5s (Punto actual)</span>
@@ -203,20 +202,21 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
             type="button"
             onClick={handleReplayPhrase}
             disabled={!isPlayerReady}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-md transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs md:text-sm shadow-md transition disabled:opacity-50"
           >
             <span>↺ Repetir frase</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
-          <span className="text-[10px] uppercase font-bold text-slate-400 px-1.5">Vel:</span>
+        {/* Velocidades */}
+        <div className="flex items-center gap-1 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] uppercase font-bold text-slate-400 px-2">Velocidad:</span>
           {[0.75, 1, 1.25].map((speed) => (
             <button
               key={speed}
               type="button"
               onClick={() => handleSetSpeed(speed)}
-              className={`px-2 py-1 rounded-lg text-xs font-bold transition ${
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
                 currentSpeed === speed
                   ? 'bg-amber-400 text-slate-900 shadow'
                   : 'text-slate-300 hover:text-white hover:bg-slate-700'
