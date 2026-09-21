@@ -27,9 +27,23 @@ export interface VideoContextData {
   startSeconds: number;
   endSeconds?: number;
   targetPhrase: string;
-  fullSpokenText?: string;      // Oración completa pronunciada en ese segundo
-  highlightPhrase?: string;     // Frase específica a resaltar dentro de la oración
+  fullSpokenText?: string;
+  highlightPhrase?: string;
   contextNote?: string;
+}
+
+// Estados de coincidencia del motor de video
+export type VideoMatchType = 'exact_phrase' | 'collocation_match' | 'none';
+
+export interface VideoSearchResult {
+  found: boolean;
+  matchType: VideoMatchType;
+  matchedPhrase?: string;
+  videoId?: string;
+  startSeconds?: number;
+  fullSpokenText?: string;
+  highlightPhrase?: string;
+  message?: string;
 }
 
 export interface Layer2Data {

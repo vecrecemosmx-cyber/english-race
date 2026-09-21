@@ -36,7 +36,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </span>
       </div>
 
-      {/* FRASE EN TAMAÑO PROTAGONISTA (Hero) */}
+      {/* Frase Hero */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6 mb-6">
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
@@ -47,7 +47,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
           </p>
         </div>
 
-        {/* Botón de Pronunciación */}
+        {/* Botón de Audio */}
         <button
           onClick={handlePlayAudio}
           className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all shadow-sm shrink-0 ${
@@ -64,19 +64,17 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </button>
       </div>
 
-      {/* 1. Definición Simplificada por Niveles (CEFR A1-A2) */}
+      {/* Definición Simplificada CEFR */}
       <div className="mb-6 bg-slate-50 rounded-2xl p-5 border border-slate-200/80">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Significado en Contexto (CEFR Control - English only)
-          </span>
-        </div>
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1">
+          Significado en Contexto (CEFR Control - English only)
+        </span>
         <p className="text-base text-slate-800 font-medium leading-relaxed">
           {sentence.cefrDefinition}
         </p>
       </div>
 
-      {/* 2. Claves de Contexto Pragmático (Colocaciones de Sustitución) */}
+      {/* Colocaciones de Sustitución */}
       <div className="mb-6">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
           Claves Pragmáticas: Cómo usar esta estructura para más situaciones
@@ -96,7 +94,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </div>
       </div>
 
-      {/* 3. Botón de auxilio cognitivo "No entendí completamente" */}
+      {/* Botón "No entendí completamente" */}
       <div className="pt-2">
         <button
           onClick={() => setShowLayer2(!showLayer2)}
@@ -106,9 +104,11 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </button>
       </div>
 
-      {/* Capa 2 Adaptativa */}
+      {/* Capa 2 Adaptativa: Le pasamos la frase y sus colocaciones */}
       {showLayer2 && (
         <Layer2Adaptive 
+          targetPhrase={sentence.text}
+          collocations={sentence.collocations}
           layer2={sentence.layer2} 
           onClose={() => setShowLayer2(false)} 
         />
