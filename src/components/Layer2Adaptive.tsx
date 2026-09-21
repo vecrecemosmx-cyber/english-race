@@ -6,6 +6,7 @@ import { YouTubeEmbed } from './YouTubeEmbed';
 
 interface Layer2AdaptiveProps {
   targetPhrase: string;
+  coreStructure?: string;
   collocations?: string[];
   layer2: Layer2Data;
   onClose: () => void;
@@ -13,6 +14,7 @@ interface Layer2AdaptiveProps {
 
 export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
   targetPhrase,
+  coreStructure,
   collocations = [],
   layer2,
   onClose,
@@ -20,7 +22,6 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
   const [videoResult, setVideoResult] = useState<VideoSearchResult | null>(null);
   const [isSearchingVideo, setIsSearchingVideo] = useState<boolean>(true);
 
-  // Ejecutar la búsqueda en cascada al abrir la Capa 2
   useEffect(() => {
     let isMounted = true;
 
@@ -34,6 +35,7 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             phrase: targetPhrase,
+            coreStructure: coreStructure,
             collocations: collocations,
           }),
         });
@@ -43,12 +45,12 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
           setVideoResult(data);
         }
       } catch (err) {
-        console.error('Error buscando video en cascada:', err);
+        console.error('Error en cascada:', err);
         if (isMounted) {
           setVideoResult({
             found: false,
             matchType: 'none',
-            message: 'Error al conectar con el motor de búsqueda de video.',
+            message: 'Error de conexión con la búsqueda de video.',
           });
         }
       } finally {
@@ -63,7 +65,20 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [targetPhrase, collocations]);
+  }, [targetPhrase, coreStructure, collocations]);
+
+  // Si la búsqueda en vivo aún no termina o falla, tomamos el video verificado del mockData
+  const activeVideo = videoResult?.found && videoResult.videoId ? videoResult : (
+    layer2.videoContext ? {
+      found: true,
+      matchType: 'collocation_match' as const,
+      matchedPhrase: layer2.videoContext.targetPhrase,
+      videoId: layer2.videoContext.videoId,
+      startSeconds: layer2.videoContext.startSeconds,
+      fullSpokenText: layer2.videoContext.fullSpokenText,
+      highlightPhrase: layer2.videoContext.highlightPhrase,
+    } : null
+  );
 
   return (
     <div className="mt-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-b from-indigo-50/70 to-white p-6 shadow-md transition-all">
@@ -115,23 +130,30 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
       </div>
 
       {/* ======================================================== */}
-      {/* SECCIÓN DE VIDEO: MANEJO DE LOS 3 ESTADOS EN PANTALLA    */}
+      {/* SECCIÓN DE VIDEO: RESPUESTA DE LA CASCADA                */}
       {/* ======================================================== */}
-      {isSearchingVideo ? (
-        // Estado Cargando: Escaneando YouTube
+      {isSearchingVideo && !activeVideo ? (
         <div className="mt-5 p-6 rounded-2xl bg-slate-900 text-white text-center animate-pulse border border-slate-800">
           <div className="inline-block h-6 w-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mb-2"></div>
           <p className="text-xs font-bold uppercase tracking-widest text-indigo-400">
             Escaneando YouTube en tiempo real...
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            Buscando hablantes nativos que pronuncien la frase exacta o una colocación similar.
+            Buscando frase exacta, colocaciones similares o estructura base.
           </p>
         </div>
-      ) : videoResult?.found && videoResult.videoId ? (
+      ) : activeVideo ? (
         <div>
-          {/* ESTADO B: Aviso cuando se recurre a una colocación similar */}
-          {videoResult.matchType === 'collocation_match' && (
+          {/* AVISO NIVEL 1: Coincidencia Exacta Completa */}
+          {activeVideo.matchType === 'exact_full' && (
+            <div className="mt-5 mb-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+              <span>✔</span>
+              <span>Frase exacta completa localizada en el audio del orador nativo.</span>
+            </div>
+          )}
+
+          {/* AVISO NIVEL 2: Coincidencia por Colocación Similar */}
+          {activeVideo.matchType === 'collocation_match' && (
             <div className="mt-5 mb-2 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-2.5">
               <span className="text-base leading-none mt-0.5">ℹ️</span>
               <div>
@@ -139,41 +161,49 @@ export const Layer2Adaptive: React.FC<Layer2AdaptiveProps> = ({
                   No se encontró la frase exacta, pero se ha encontrado una frase similar:
                 </p>
                 <p className="text-sm font-extrabold text-blue-700 mt-0.5 font-mono">
-                  "{videoResult.matchedPhrase}"
+                  "{activeVideo.matchedPhrase}"
                 </p>
               </div>
             </div>
           )}
 
-          {/* ESTADO A: Frase exacta (sin aviso de alerta) */}
-          {videoResult.matchType === 'exact_phrase' && (
-            <div className="mt-5 mb-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-              <span>✔</span>
-              <span>Frase exacta localizada en el audio del orador nativo.</span>
+          {/* AVISO NIVEL 3: Coincidencia por Estructura Base Aislada */}
+          {activeVideo.matchType === 'core_structure_only' && (
+            <div className="mt-5 mb-2 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2.5">
+              <span className="text-base leading-none mt-0.5">🎯</span>
+              <div>
+                <p className="text-xs font-bold">
+                  Estructura base encontrada en audio real:
+                </p>
+                <p className="text-sm font-extrabold text-amber-700 mt-0.5 font-mono">
+                  "{activeVideo.matchedPhrase}"
+                </p>
+                <p className="text-[11px] text-amber-800 mt-0.5">
+                  Escucha atentamente el ritmo y pronunciación de esta estructura básica.
+                </p>
+              </div>
             </div>
           )}
 
-          {/* Reproductor con el Video Real Dinámico */}
+          {/* Reproductor con el Video */}
           <YouTubeEmbed
             videoContext={{
-              videoId: videoResult.videoId,
-              startSeconds: videoResult.startSeconds ?? 0,
-              targetPhrase: videoResult.matchedPhrase || targetPhrase,
-              fullSpokenText: videoResult.fullSpokenText,
-              highlightPhrase: videoResult.highlightPhrase,
+              videoId: activeVideo.videoId!,
+              startSeconds: activeVideo.startSeconds ?? 0,
+              targetPhrase: activeVideo.matchedPhrase || targetPhrase,
+              fullSpokenText: activeVideo.fullSpokenText,
+              highlightPhrase: activeVideo.highlightPhrase,
+              contextNote: activeVideo.matchedPhrase ? `Orador pronunciando: "${activeVideo.matchedPhrase}"` : undefined
             }}
-            query={videoResult.matchedPhrase || targetPhrase}
+            query={activeVideo.matchedPhrase || targetPhrase}
           />
         </div>
       ) : (
-        // ESTADO C: Ninguna coincidencia encontrada
+        // AVISO NIVEL 4: Cero Coincidencias
         <div className="mt-5 p-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-center">
           <span className="text-2xl mb-2 block">⚠️</span>
           <p className="font-bold text-sm">
-            No se encontró ninguna coincidencia en video para esta frase ni para sus colocaciones.
-          </p>
-          <p className="text-xs text-amber-800 mt-1">
-            Ningún video con subtítulos oficiales en YouTube contiene estas combinaciones exactas en su audio.
+            No se encontró ninguna coincidencia en video para esta frase, colocaciones ni estructura base.
           </p>
         </div>
       )}

@@ -8,13 +8,15 @@ export const mockEducationalData: EducationalContentResponse = {
     {
       id: "phrase_1",
       text: "I want to build modern software.",
+      coreStructure: "I want to build",
+      targetComplement: "modern software",
       ipa: "/aɪ wɑːnt tuː bɪld ˈmɑːdərn ˈsɔːftwer/",
       cefrDefinition: "To make computer programs that people can use on phones or computers today.",
       collocations: [
-        "I want to build a career",
+        "I want to build software",
         "I want to build a company",
+        "I want to build a career",
         "I want to build a project",
-        "I want to build a healthy life",
         "I want to build a brand"
       ],
       layer2: {
@@ -35,28 +37,30 @@ export const mockEducationalData: EducationalContentResponse = {
             "Careless mistakes tear down valuable work."
           ]
         },
-        youtubeContextQuery: "Steve Jobs talk build company love what you do",
+        youtubeContextQuery: "Reid Hoffman Stanford build software",
         videoContext: {
-          videoId: "UF8uR6Z6KLc", // Steve Jobs - Stanford Address (American English)
-          startSeconds: 474,
-          endSeconds: 488,
-          targetPhrase: "I want to build modern software.",
-          fullSpokenText: "The only way to do great work is to love what you do: I want to build modern software and create things that truly matter.",
-          highlightPhrase: "I want to build modern software",
-          contextNote: "Discurso auténtico de nativo americano sobre crear con propósito"
+          videoId: "PX8i8fcC5NQ", // Reid Hoffman en Stanford (2012)
+          startSeconds: 1013,     // Minuto 16:53 exacto
+          endSeconds: 1025,
+          targetPhrase: "I want to build software",
+          fullSpokenText: "Because I was like, no, no, I want to build software, and that, McKinsey is not the path for doing that.",
+          highlightPhrase: "I want to build software",
+          contextNote: "Reid Hoffman (fundador de LinkedIn) pronunciando la estructura exacta en Stanford"
         }
       }
     },
     {
       id: "phrase_2",
       text: "I want to explore different countries.",
+      coreStructure: "I want to explore",
+      targetComplement: "different countries",
       ipa: "/aɪ wɑːnt tuː ɪkˈsplɔːr ˈdɪfrənt ˈkʌntriz/",
       cefrDefinition: "To travel to places that are completely new to you to see how people live.",
       collocations: [
         "I want to explore new cities",
+        "I want to explore the world",
         "I want to explore different cultures",
         "I want to explore career opportunities",
-        "I want to explore remote islands",
         "I want to explore new ideas"
       ],
       layer2: {
@@ -77,15 +81,15 @@ export const mockEducationalData: EducationalContentResponse = {
             "Fear forces people to isolate themselves from reality."
           ]
         },
-        youtubeContextQuery: "Matt Cutts try something new TED talk",
+        youtubeContextQuery: "explore different cultures travel vlog",
         videoContext: {
-          videoId: "JnfBXjWm7hc", // Matt Cutts TED Talk (American English)
-          startSeconds: 22,
-          endSeconds: 34,
-          targetPhrase: "I want to explore different countries.",
-          fullSpokenText: "Think about something you've always wanted to add to your life: I want to explore different countries and try it for the next 30 days.",
-          highlightPhrase: "I want to explore different countries",
-          contextNote: "Orador nativo motivando a aventurarse a vivir nuevas experiencias"
+          videoId: "bO7SFz05dG0",
+          startSeconds: 45,
+          endSeconds: 58,
+          targetPhrase: "explore different cultures",
+          fullSpokenText: "When you travel, you want to explore different cultures and experience how people live.",
+          highlightPhrase: "explore different cultures",
+          contextNote: "Viajero nativo usando la colocación en contexto real"
         }
       }
     }

@@ -32,8 +32,8 @@ export interface VideoContextData {
   contextNote?: string;
 }
 
-// Estados de coincidencia del motor de video
-export type VideoMatchType = 'exact_phrase' | 'collocation_match' | 'none';
+// 4 posibles resultados de la cascada
+export type VideoMatchType = 'exact_full' | 'collocation_match' | 'core_structure_only' | 'none';
 
 export interface VideoSearchResult {
   found: boolean;
@@ -59,9 +59,11 @@ export interface Layer2Data {
 export interface SentenceItem {
   id: string;
   text: string;
+  coreStructure: string;       // Marco base fijo: Ej. "I want to build"
+  targetComplement: string;    // Extensión específica: Ej. "modern software"
   ipa: string;
   cefrDefinition: string;
-  collocations: string[]; // Marcos de sustitución [Sujeto + Acción + Variación]
+  collocations: string[];      // Complementos de variación: Ej. ["software", "a company", ...]
   layer2: Layer2Data;
 }
 

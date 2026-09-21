@@ -6,7 +6,7 @@ interface SubtitleCue {
   duration: number;
 }
 
-// 1. Búsqueda en YouTube filtrando solo videos con subtítulos/Closed Captions (CC)
+// Búsqueda en YouTube con filtro CC
 async function searchYouTubeCandidateVideos(phrase: string): Promise<string[]> {
   try {
     const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
@@ -31,7 +31,7 @@ async function searchYouTubeCandidateVideos(phrase: string): Promise<string[]> {
       if (!candidateIds.includes(id)) {
         candidateIds.push(id);
       }
-      if (candidateIds.length >= 4) break; // Límite de candidatos para mantener hipervelocidad
+      if (candidateIds.length >= 4) break;
     }
 
     return candidateIds;
@@ -41,7 +41,7 @@ async function searchYouTubeCandidateVideos(phrase: string): Promise<string[]> {
   }
 }
 
-// 2. Descarga de subtítulos oficiales en inglés
+// Descarga de subtítulos
 async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
   try {
     const videoPageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
@@ -92,7 +92,7 @@ async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
   }
 }
 
-// 3. Algoritmo de coincidencia estricta (Ventana de subtítulos)
+// Comparación estricta con ventana deslizante
 function findExactPhraseInCues(cues: SubtitleCue[], targetPhrase: string) {
   const cleanTarget = targetPhrase
     .toLowerCase()
@@ -121,7 +121,7 @@ function findExactPhraseInCues(cues: SubtitleCue[], targetPhrase: string) {
   return null;
 }
 
-// Función auxiliar para inspeccionar una lista de candidatos
+// Auxiliar para probar una cadena
 async function testPhraseCandidates(phraseToSearch: string) {
   const candidateIds = await searchYouTubeCandidateVideos(phraseToSearch);
   for (const videoId of candidateIds) {
@@ -141,55 +141,82 @@ async function testPhraseCandidates(phraseToSearch: string) {
   return null;
 }
 
-// ENDPOINT PRINCIPAL: Cascada (Frase principal -> Colocaciones una por una -> Cero resultados)
+// ENDPOINT PRINCIPAL: CASCADA DE 3 NIVELES
 export async function POST(req: Request) {
   try {
-    const { phrase, collocations } = await req.json();
+    const { phrase, coreStructure, collocations } = await req.json();
 
     if (!phrase || typeof phrase !== 'string') {
       return NextResponse.json({ error: 'La frase es requerida' }, { status: 400 });
     }
 
-    // PASO 1: Intentar con la Frase Principal
-    const exactMatch = await testPhraseCandidates(phrase);
-    if (exactMatch) {
+    // ========================================================================
+    // NIVEL 1: Probar frase original completa (Estructura base + final original)
+    // Ej: "I want to build modern software"
+    // ========================================================================
+    const level1Match = await testPhraseCandidates(phrase);
+    if (level1Match) {
       return NextResponse.json({
         found: true,
-        matchType: 'exact_phrase',
+        matchType: 'exact_full',
         matchedPhrase: phrase,
-        videoId: exactMatch.videoId,
-        startSeconds: exactMatch.startSeconds,
-        fullSpokenText: exactMatch.fullSpokenText,
+        videoId: level1Match.videoId,
+        startSeconds: level1Match.startSeconds,
+        fullSpokenText: level1Match.fullSpokenText,
         highlightPhrase: phrase,
       });
     }
 
-    // PASO 2: Cascada por cada una de las Colocaciones en orden
+    // ========================================================================
+    // NIVEL 2: Probar con los finales de las colocaciones en orden
+    // Ej: "I want to build software", "I want to build a company"...
+    // ========================================================================
     if (collocations && Array.isArray(collocations) && collocations.length > 0) {
       for (const colloc of collocations) {
         if (!colloc || typeof colloc !== 'string') continue;
 
-        const collocMatch = await testPhraseCandidates(colloc);
-        if (collocMatch) {
-          // ESTADO B: Encontrada en una colocación similar
+        const level2Match = await testPhraseCandidates(colloc);
+        if (level2Match) {
           return NextResponse.json({
             found: true,
             matchType: 'collocation_match',
             matchedPhrase: colloc,
-            videoId: collocMatch.videoId,
-            startSeconds: collocMatch.startSeconds,
-            fullSpokenText: collocMatch.fullSpokenText,
+            videoId: level2Match.videoId,
+            startSeconds: level2Match.startSeconds,
+            fullSpokenText: level2Match.fullSpokenText,
             highlightPhrase: colloc,
           });
         }
       }
     }
 
-    // PASO 3: ESTADO C — Ninguna coincidencia
+    // ========================================================================
+    // NIVEL 3: Probar la ESTRUCTURA BÁSICA en solitario (Ancla acústica)
+    // Ej: "I want to build"
+    // ========================================================================
+    const baseToSearch = coreStructure || phrase.split(' ').slice(0, 4).join(' ');
+    if (baseToSearch && baseToSearch.trim().length > 3) {
+      const level3Match = await testPhraseCandidates(baseToSearch);
+      if (level3Match) {
+        return NextResponse.json({
+          found: true,
+          matchType: 'core_structure_only',
+          matchedPhrase: baseToSearch,
+          videoId: level3Match.videoId,
+          startSeconds: level3Match.startSeconds,
+          fullSpokenText: level3Match.fullSpokenText,
+          highlightPhrase: baseToSearch,
+        });
+      }
+    }
+
+    // ========================================================================
+    // NIVEL 4: Cero coincidencias
+    // ========================================================================
     return NextResponse.json({
       found: false,
       matchType: 'none',
-      message: 'No se encontró ninguna coincidencia en video para esta frase ni para sus colocaciones.',
+      message: 'No se encontró ninguna coincidencia en video para esta frase, colocaciones ni estructura base.',
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
