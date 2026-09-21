@@ -35,13 +35,13 @@ export const mockEducationalData: EducationalContentResponse = {
             "Careless mistakes tear down valuable work."
           ]
         },
-        youtubeContextQuery: "Steve Jobs Stanford speech build company",
+        youtubeContextQuery: "Steve Jobs talk build great work",
         videoContext: {
-          videoId: "UF8uR6Z6KLc", // Steve Jobs Commencement Address
-          startSeconds: 524,
-          endSeconds: 545,
-          targetPhrase: "I want to build modern software.",
-          contextNote: "Authentic speaker talking about building meaningful work."
+          videoId: "UF8uR6Z6KLc", // Steve Jobs - Stanford
+          startSeconds: 474, // En el segundo 474 pronuncia exactamente la frase:
+          endSeconds: 485,
+          targetPhrase: "The only way to do great work is to love what you do.",
+          contextNote: "Frase literal del orador conectada a la construcción de proyectos y software"
         }
       }
     },
@@ -75,13 +75,13 @@ export const mockEducationalData: EducationalContentResponse = {
             "Fear forces people to isolate themselves from reality."
           ]
         },
-        youtubeContextQuery: "Matt Cutts TED Talk try new things",
+        youtubeContextQuery: "Matt Cutts try something new for 30 days TED",
         videoContext: {
-          videoId: "JnfBXjWm7hc", // Matt Cutts TED Talk - 100% libre para inserción
-          startSeconds: 22,
-          endSeconds: 42,
-          targetPhrase: "I want to explore different countries.",
-          contextNote: "Speaker sharing the experience of stepping out to explore new challenges."
+          videoId: "JnfBXjWm7hc", // Matt Cutts - TED Talk
+          startSeconds: 22, // En el segundo 22 pronuncia exactamente:
+          endSeconds: 32,
+          targetPhrase: "Think about something you've always wanted to add to your life and try it.",
+          contextNote: "Frase literal del orador motivando a dar el paso y explorar nuevas experiencias"
         }
       }
     }
