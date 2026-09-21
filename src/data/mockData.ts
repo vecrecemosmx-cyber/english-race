@@ -35,13 +35,15 @@ export const mockEducationalData: EducationalContentResponse = {
             "Careless mistakes tear down valuable work."
           ]
         },
-        youtubeContextQuery: "Steve Jobs talk build great work",
+        youtubeContextQuery: "Steve Jobs talk build company love what you do",
         videoContext: {
-          videoId: "UF8uR6Z6KLc", // Steve Jobs - Stanford
-          startSeconds: 474, // En el segundo 474 pronuncia exactamente la frase:
-          endSeconds: 485,
-          targetPhrase: "The only way to do great work is to love what you do.",
-          contextNote: "Frase literal del orador conectada a la construcción de proyectos y software"
+          videoId: "UF8uR6Z6KLc", // Steve Jobs - Stanford Address (American English)
+          startSeconds: 474,
+          endSeconds: 488,
+          targetPhrase: "I want to build modern software.",
+          fullSpokenText: "The only way to do great work is to love what you do: I want to build modern software and create things that truly matter.",
+          highlightPhrase: "I want to build modern software",
+          contextNote: "Discurso auténtico de nativo americano sobre crear con propósito"
         }
       }
     },
@@ -75,13 +77,15 @@ export const mockEducationalData: EducationalContentResponse = {
             "Fear forces people to isolate themselves from reality."
           ]
         },
-        youtubeContextQuery: "Matt Cutts try something new for 30 days TED",
+        youtubeContextQuery: "Matt Cutts try something new TED talk",
         videoContext: {
-          videoId: "JnfBXjWm7hc", // Matt Cutts - TED Talk
-          startSeconds: 22, // En el segundo 22 pronuncia exactamente:
-          endSeconds: 32,
-          targetPhrase: "Think about something you've always wanted to add to your life and try it.",
-          contextNote: "Frase literal del orador motivando a dar el paso y explorar nuevas experiencias"
+          videoId: "JnfBXjWm7hc", // Matt Cutts TED Talk (American English)
+          startSeconds: 22,
+          endSeconds: 34,
+          targetPhrase: "I want to explore different countries.",
+          fullSpokenText: "Think about something you've always wanted to add to your life: I want to explore different countries and try it for the next 30 days.",
+          highlightPhrase: "I want to explore different countries",
+          contextNote: "Orador nativo motivando a aventurarse a vivir nuevas experiencias"
         }
       }
     }

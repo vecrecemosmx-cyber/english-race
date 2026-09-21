@@ -18,6 +18,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   onSelectPhrase,
 }) => {
   const [playingSentenceId, setPlayingSentenceId] = useState<string | null>(null);
+  const [copiedParagraph, setCopiedParagraph] = useState(false);
+  const [copiedPhraseId, setCopiedPhraseId] = useState<string | null>(null);
 
   const handlePlayPhrase = (id: string, text: string) => {
     setPlayingSentenceId(id);
@@ -39,27 +41,65 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     );
   };
 
+  // Copiar Párrafo Completo
+  const handleCopyParagraph = async () => {
+    try {
+      await navigator.clipboard.writeText(summaryParagraph);
+      setCopiedParagraph(true);
+      setTimeout(() => setCopiedParagraph(false), 2000);
+    } catch (err) {
+      console.error('Error al copiar al portapapeles:', err);
+    }
+  };
+
+  // Copiar Frase Individual
+  const handleCopyPhrase = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPhraseId(id);
+      setTimeout(() => setCopiedPhraseId(null), 2000);
+    } catch (err) {
+      console.error('Error al copiar frase:', err);
+    }
+  };
+
   return (
     <section className="space-y-6">
-      {/* 1. Formato Párrafo */}
+      {/* 1. Formato Párrafo con botón de Copiar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Resumen en Párrafo
           </h3>
-          <button
-            onClick={handlePlayFullParagraph}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-          >
-            <span>{playingSentenceId === 'full_paragraph' ? '🔊 Escuchando...' : '▶ Escuchar todo el párrafo'}</span>
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Botón Copiar Párrafo */}
+            <button
+              onClick={handleCopyParagraph}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition flex items-center gap-1.5 ${
+                copiedParagraph
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Copiar párrafo completo"
+            >
+              <span>{copiedParagraph ? '✔ ¡Copiado!' : '📋 Copiar párrafo'}</span>
+            </button>
+
+            {/* Botón Escuchar Párrafo */}
+            <button
+              onClick={handlePlayFullParagraph}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            >
+              <span>{playingSentenceId === 'full_paragraph' ? '🔊 Escuchando...' : '▶ Escuchar todo'}</span>
+            </button>
+          </div>
         </div>
         <p className="text-base md:text-lg text-slate-800 font-normal leading-relaxed">
           {summaryParagraph}
         </p>
       </div>
 
-      {/* 2. Formato Lista de Frases Sencillas */}
+      {/* 2. Formato Lista con botones de Copiar y Estudiar Frase */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
           Resumen en Frases Cortas (Desglose de Aprendizaje)
@@ -67,6 +107,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         <div className="space-y-3">
           {sentences.map((phrase, index) => {
             const isSelected = phrase.id === currentSelectedId;
+            const isCopied = copiedPhraseId === phrase.id;
+
             return (
               <div
                 key={phrase.id}
@@ -91,6 +133,19 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  {/* Botón Copiar Frase */}
+                  <button
+                    onClick={() => handleCopyPhrase(phrase.id, phrase.text)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition flex items-center gap-1 ${
+                      isCopied
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                    title="Copiar frase al portapapeles"
+                  >
+                    <span>{isCopied ? '✔ Copiado' : '📋 Copiar'}</span>
+                  </button>
+
                   {/* Botón Escuchar Pronunciación */}
                   <button
                     onClick={() => handlePlayPhrase(phrase.id, phrase.text)}

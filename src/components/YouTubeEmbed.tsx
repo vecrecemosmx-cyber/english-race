@@ -23,13 +23,43 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
 
   const startSeconds = videoContext?.startSeconds ?? 0;
   const videoId = videoContext?.videoId;
-  // Frase literal exacta pronunciada por el orador
-  const exactSpokenPhrase = videoContext?.targetPhrase ?? query;
+
+  const fullSpokenText = videoContext?.fullSpokenText || videoContext?.targetPhrase || query;
+  const highlightPhrase = videoContext?.highlightPhrase || videoContext?.targetPhrase || '';
+
+  // Función para resaltar visualmente la frase objetivo dentro del texto completo hablado
+  const renderHighlightedSpokenText = (text: string, highlight: string) => {
+    if (!highlight.trim()) {
+      return <span>"{text}"</span>;
+    }
+
+    const lowerText = text.toLowerCase();
+    const lowerHighlight = highlight.toLowerCase();
+    const startIndex = lowerText.indexOf(lowerHighlight);
+
+    if (startIndex === -1) {
+      return <span>"{text}"</span>;
+    }
+
+    const endIndex = startIndex + highlight.length;
+    const before = text.slice(0, startIndex);
+    const match = text.slice(startIndex, endIndex);
+    const after = text.slice(endIndex);
+
+    return (
+      <span>
+        "{before}
+        <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-md shadow-sm ring-1 ring-amber-300">
+          {match}
+        </span>
+        {after}"
+      </span>
+    );
+  };
 
   useEffect(() => {
     if (!videoId) return;
 
-    // Si el reproductor ya existe, solo cargamos el nuevo video en su marca de inicio
     if (playerRef.current && typeof playerRef.current.cueVideoById === 'function') {
       try {
         playerRef.current.cueVideoById({
@@ -43,7 +73,6 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
       return;
     }
 
-    // Inyección del script de la API oficial de YouTube Iframe
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -54,7 +83,6 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
     const initPlayer = () => {
       if (!wrapperRef.current || !window.YT || !window.YT.Player) return;
 
-      // Montaje limpio del elemento para React
       wrapperRef.current.innerHTML = '';
       const mountNode = document.createElement('div');
       mountNode.style.width = '100%';
@@ -96,7 +124,6 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
     };
   }, [videoId, startSeconds]);
 
-  // 1. Botón: Repetir desde la marca inicial de la frase
   const handleReplayPhrase = () => {
     if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
       playerRef.current.seekTo(startSeconds, true);
@@ -104,18 +131,15 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
     }
   };
 
-  // 2. Botón: Retroceder 5 segundos dinámicos a partir del punto actual de reproducción
   const handleRewind5s = () => {
     if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
       const currentTime = playerRef.current.getCurrentTime();
-      // Retrocede 5 segundos del segundo exacto en el que está el video en este instante
       const newTime = Math.max(0, currentTime - 5);
       playerRef.current.seekTo(newTime, true);
       playerRef.current.playVideo();
     }
   };
 
-  // 3. Botón: Control de velocidad
   const handleSetSpeed = (rate: number) => {
     setCurrentSpeed(rate);
     if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
@@ -127,12 +151,11 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
 
   return (
     <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-900 text-white p-4 shadow-lg">
-      {/* Cabecera del Reproductor */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-slate-800 pb-2">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Aparición Exacta en Inglés Hablado
+            Aparición Exacta en Inglés Americano
           </h4>
         </div>
         <a
@@ -145,41 +168,37 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
         </a>
       </div>
 
-      {/* Proyección sincronizada de la frase literal dicha por el orador */}
-      <div className="mb-3 rounded-xl bg-slate-800/90 border border-slate-700 p-3 text-center">
-        <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono mb-1">
-          Frase literal hablada en este segundo:
+      {/* Proyección con Resaltado Dinámico */}
+      <div className="mb-3 rounded-xl bg-slate-800/90 border border-slate-700 p-4 text-center">
+        <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono mb-2">
+          Transcripción hablada (Frase en estudio resaltada):
         </p>
-        <p className="text-base md:text-lg font-bold text-amber-300 tracking-wide">
-          "{exactSpokenPhrase}"
+        <p className="text-base md:text-lg text-slate-100 font-medium leading-relaxed">
+          {renderHighlightedSpokenText(fullSpokenText, highlightPhrase)}
         </p>
         {videoContext?.contextNote && (
-          <p className="text-xs text-slate-400 mt-1 italic">
+          <p className="text-xs text-slate-400 mt-2 italic">
             ({videoContext.contextNote})
           </p>
         )}
       </div>
 
-      {/* Contenedor del Iframe de YouTube */}
       <div className="relative w-full overflow-hidden rounded-xl bg-black aspect-video shadow-inner">
         <div ref={wrapperRef} className="w-full h-full"></div>
       </div>
 
-      {/* Barra de Controles */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
         <div className="flex flex-wrap items-center gap-2">
-          {/* Botón dinámico: -5s desde el punto actual */}
           <button
             type="button"
             onClick={handleRewind5s}
             disabled={!isPlayerReady}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition disabled:opacity-50"
-            title="Retrocede 5 segundos a partir del segundo actual del video"
+            title="Retrocede 5 segundos a partir del segundo actual"
           >
             <span>⏪ -5s (Punto actual)</span>
           </button>
 
-          {/* Botón: Repetir desde el inicio de la frase */}
           <button
             type="button"
             onClick={handleReplayPhrase}
@@ -190,9 +209,8 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
           </button>
         </div>
 
-        {/* Control de Velocidades */}
         <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
-          <span className="text-[10px] uppercase font-bold text-slate-400 px-1.5">Velocidad:</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400 px-1.5">Vel:</span>
           {[0.75, 1, 1.25].map((speed) => (
             <button
               key={speed}

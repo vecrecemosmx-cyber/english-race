@@ -27,6 +27,8 @@ export interface VideoContextData {
   startSeconds: number;
   endSeconds?: number;
   targetPhrase: string;
+  fullSpokenText?: string;      // Oración completa pronunciada en ese segundo
+  highlightPhrase?: string;     // Frase específica a resaltar dentro de la oración
   contextNote?: string;
 }
 
@@ -37,7 +39,7 @@ export interface Layer2Data {
   primaryTechnique: BaseTechnique;
   secondaryTechnique: OppositeTrigger;
   youtubeContextQuery: string;
-  videoContext?: VideoContextData; // Configuración estilo YouGlish
+  videoContext?: VideoContextData;
 }
 
 export interface SentenceItem {
