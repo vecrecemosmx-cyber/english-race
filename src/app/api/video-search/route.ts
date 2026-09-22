@@ -1,147 +1,43 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-interface SubtitleCue {
-  text: string;
-  start: number;
-  duration: number;
+// Cliente Supabase seguro para el servidor (latencia mínima)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Extrae de 1 a 2 palabras clave significativas de cualquier complemento
+function extractKeywords(text: string, count: number = 2): string {
+  if (!text) return '';
+  const cleanWords = text
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(word => word.length > 1); // descarta letras sueltas
+  
+  return cleanWords.slice(0, count).join(' ');
 }
 
-// Búsqueda en YouTube con filtro CC
-async function searchYouTubeCandidateVideos(phrase: string): Promise<string[]> {
-  try {
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
-      `"${phrase}"`
-    )}&sp=EgIoAQ%253D%253D`;
+// Consulta hiperveloz a la tabla video_transcripts de Supabase
+async function queryTranscriptInDB(searchString: string) {
+  if (!searchString || searchString.trim().length < 2) return null;
 
-    const res = await fetch(searchUrl, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      next: { revalidate: 300 },
-    });
+  const { data, error } = await supabase
+    .from('video_transcripts')
+    .select('id, video_id, start_time, duration, text')
+    .ilike('text', `%${searchString}%`)
+    .limit(1)
+    .single();
 
-    const html = await res.text();
-    const videoIdMatches = html.matchAll(/\/watch\?v=([a-zA-Z0-9_-]{11})/g);
-    const candidateIds: string[] = [];
+  if (error || !data) return null;
 
-    for (const match of videoIdMatches) {
-      const id = match[1];
-      if (!candidateIds.includes(id)) {
-        candidateIds.push(id);
-      }
-      if (candidateIds.length >= 4) break;
-    }
-
-    return candidateIds;
-  } catch (err) {
-    console.error('Error buscando candidatos en YouTube:', err);
-    return [];
-  }
+  return {
+    videoId: data.video_id,
+    startSeconds: Math.max(0, Math.floor(data.start_time || 0)),
+    fullSpokenText: data.text,
+  };
 }
 
-// Descarga de subtítulos
-async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
-  try {
-    const videoPageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
-    const html = await videoPageRes.text();
-
-    const captionsMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
-    if (!captionsMatch) return [];
-
-    const captionTracks = JSON.parse(captionsMatch[1]);
-    const englishTrack = captionTracks.find(
-      (t: any) => t.languageCode === 'en' || t.vssId?.includes('.en')
-    );
-    if (!englishTrack?.baseUrl) return [];
-
-    const transcriptRes = await fetch(englishTrack.baseUrl);
-    const xmlText = await transcriptRes.text();
-
-    const cues: SubtitleCue[] = [];
-    const textRegex = /<text\s+start="([\d.]+)"\s+dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
-    let match;
-
-    while ((match = textRegex.exec(xmlText)) !== null) {
-      const cleanText = match[3]
-        .replace(/&amp;/g, '&')
-        .replace(/&#39;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/\n/g, ' ')
-        .trim();
-
-      cues.push({
-        start: parseFloat(match[1]),
-        duration: parseFloat(match[2]),
-        text: cleanText,
-      });
-    }
-
-    return cues;
-  } catch (error) {
-    return [];
-  }
-}
-
-// Comparación estricta con ventana deslizante
-function findExactPhraseInCues(cues: SubtitleCue[], targetPhrase: string) {
-  const cleanTarget = targetPhrase
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .trim();
-
-  if (!cleanTarget) return null;
-
-  for (let i = 0; i < cues.length; i++) {
-    const windowCues = cues.slice(i, i + 4);
-    const combinedSpoken = windowCues.map((c) => c.text).join(' ');
-    const cleanCombined = combinedSpoken
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .trim();
-
-    if (cleanCombined.includes(cleanTarget)) {
-      return {
-        startSeconds: Math.max(0, Math.floor(windowCues[0].start)),
-        fullSpokenText: combinedSpoken,
-        highlightPhrase: targetPhrase,
-      };
-    }
-  }
-
-  return null;
-}
-
-// Auxiliar para probar una cadena
-async function testPhraseCandidates(phraseToSearch: string) {
-  const candidateIds = await searchYouTubeCandidateVideos(phraseToSearch);
-  for (const videoId of candidateIds) {
-    const cues = await fetchVideoSubtitles(videoId);
-    if (cues.length === 0) continue;
-
-    const match = findExactPhraseInCues(cues, phraseToSearch);
-    if (match) {
-      return {
-        videoId,
-        startSeconds: match.startSeconds,
-        fullSpokenText: match.fullSpokenText,
-        highlightPhrase: match.highlightPhrase,
-      };
-    }
-  }
-  return null;
-}
-
-// ENDPOINT PRINCIPAL: CASCADA DE 3 NIVELES
 export async function POST(req: Request) {
   try {
     const { phrase, coreStructure, collocations } = await req.json();
@@ -150,62 +46,93 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'La frase es requerida' }, { status: 400 });
     }
 
+    const cleanCore = (coreStructure || phrase.split(' ').slice(0, 3).join(' ')).trim();
+    
+    // Obtenemos el complemento restante de la frase original
+    let complement = '';
+    if (phrase.toLowerCase().startsWith(cleanCore.toLowerCase())) {
+      complement = phrase.slice(cleanCore.length).trim();
+    } else {
+      complement = phrase.split(' ').slice(3).join(' ').trim();
+    }
+
+    console.log(`\n🔍 Búsqueda de video para frase: "${phrase}"`);
+    console.log(`   Núcleo: "${cleanCore}" | Complemento: "${complement}"`);
+
     // ========================================================================
-    // NIVEL 1: Probar frase original completa (Estructura base + final original)
-    // Ej: "I want to build modern software"
+    // NIVEL 1: CoreStructure + 1 o 2 palabras clave del complemento original
     // ========================================================================
-    const level1Match = await testPhraseCandidates(phrase);
+    const complementKeywords = extractKeywords(complement, 2);
+    const queryLevel1 = `${cleanCore} ${complementKeywords}`.trim();
+    console.log(`[Nivel 1] Buscando en Supabase: "${queryLevel1}"...`);
+
+    const level1Match = await queryTranscriptInDB(queryLevel1);
     if (level1Match) {
+      console.log(`✓ [Nivel 1] Encontrado con "${queryLevel1}" en video ${level1Match.videoId} en segundo ${level1Match.startSeconds}`);
       return NextResponse.json({
         found: true,
         matchType: 'exact_full',
-        matchedPhrase: phrase,
+        matchedPhrase: queryLevel1,
         videoId: level1Match.videoId,
         startSeconds: level1Match.startSeconds,
         fullSpokenText: level1Match.fullSpokenText,
-        highlightPhrase: phrase,
+        highlightPhrase: queryLevel1,
       });
     }
 
     // ========================================================================
-    // NIVEL 2: Probar con los finales de las colocaciones en orden
-    // Ej: "I want to build software", "I want to build a company"...
+    // NIVEL 2: CoreStructure + 1 o 2 palabras clave de cada colocación
     // ========================================================================
     if (collocations && Array.isArray(collocations) && collocations.length > 0) {
-      for (const colloc of collocations) {
+      console.log(`[Nivel 2] Probando variaciones de colocaciones (${collocations.length})...`);
+
+      for (let i = 0; i < collocations.length; i++) {
+        const colloc = collocations[i];
         if (!colloc || typeof colloc !== 'string') continue;
 
-        const level2Match = await testPhraseCandidates(colloc);
+        // Extraer complemento de la colocación
+        let colVariation = colloc;
+        if (colloc.toLowerCase().startsWith(cleanCore.toLowerCase())) {
+          colVariation = colloc.slice(cleanCore.length).trim();
+        }
+
+        const colKeywords = extractKeywords(colVariation, 2);
+        const queryLevel2 = `${cleanCore} ${colKeywords}`.trim();
+        console.log(`  ➔ [Nivel 2.${i + 1}] Buscando variación: "${queryLevel2}"...`);
+
+        const level2Match = await queryTranscriptInDB(queryLevel2);
         if (level2Match) {
+          console.log(`✓ [Nivel 2] Encontrado con colocación "${queryLevel2}"`);
           return NextResponse.json({
             found: true,
             matchType: 'collocation_match',
-            matchedPhrase: colloc,
+            matchedPhrase: queryLevel2,
             videoId: level2Match.videoId,
             startSeconds: level2Match.startSeconds,
             fullSpokenText: level2Match.fullSpokenText,
-            highlightPhrase: colloc,
+            highlightPhrase: queryLevel2,
           });
         }
       }
     }
 
     // ========================================================================
-    // NIVEL 3: Probar la ESTRUCTURA BÁSICA en solitario (Ancla acústica)
-    // Ej: "I want to build"
+    // NIVEL 3: Red de seguridad - Coincidencia sólo con el CoreStructure
     // ========================================================================
-    const baseToSearch = coreStructure || phrase.split(' ').slice(0, 4).join(' ');
-    if (baseToSearch && baseToSearch.trim().length > 3) {
-      const level3Match = await testPhraseCandidates(baseToSearch);
+    if (cleanCore && cleanCore.length > 2) {
+      console.log(`[Nivel 3] Buscando sólo el CoreStructure: "${cleanCore}"...`);
+      const level3Match = await queryTranscriptInDB(cleanCore);
+
       if (level3Match) {
+        console.log(`✓ [Nivel 3] Encontrado ancla acústica: "${cleanCore}"`);
         return NextResponse.json({
           found: true,
           matchType: 'core_structure_only',
-          matchedPhrase: baseToSearch,
+          matchedPhrase: cleanCore,
           videoId: level3Match.videoId,
           startSeconds: level3Match.startSeconds,
           fullSpokenText: level3Match.fullSpokenText,
-          highlightPhrase: baseToSearch,
+          highlightPhrase: cleanCore,
         });
       }
     }
@@ -213,12 +140,15 @@ export async function POST(req: Request) {
     // ========================================================================
     // NIVEL 4: Cero coincidencias
     // ========================================================================
+    console.log(`✖ No se encontró ninguna coincidencia en la base de datos.`);
     return NextResponse.json({
       found: false,
       matchType: 'none',
-      message: 'No se encontró ninguna coincidencia en video para esta frase, colocaciones ni estructura base.',
+      message: 'No se encontró coincidencia en video para esta frase, colocaciones ni estructura base.',
     });
+
   } catch (error: any) {
+    console.error('Error en /api/video-search:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
