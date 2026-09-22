@@ -3,8 +3,9 @@ import { NextResponse } from 'next/server';
 // Modelos en orden jerárquico de respaldo (100% gratuitos)
 const FALLBACK_MODELS = [
   'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-2.5-flash',
 ];
 
 export async function POST(req: Request) {
