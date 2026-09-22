@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { SentenceItem } from '@/types';
 import { audioService } from '@/services/audioService';
 import { Layer2Adaptive } from './Layer2Adaptive';
+import { HeroIntonationBoard } from './HeroIntonationBoard'; // 👈 Importamos el nuevo componente
 
 interface HeroPhraseProps {
   sentence: SentenceItem;
@@ -41,31 +42,28 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </span>
       </div>
 
-      {/* Frase Hero + Fonética IPA + Botón Audio */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6 mb-6">
-        <div>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
-            {sentence.text}
-          </h2>
-          <p className="font-mono text-base md:text-lg text-amber-600 dark:text-amber-400 mt-1 font-semibold">
-            {sentence.ipa}
-          </p>
-        </div>
+      {/* Botón Audio y Nueva Pizarra con Onda de Entonación + Trazo Libre */}
+      <div className="border-b border-slate-100 dark:border-slate-800 pb-6 mb-6">
+        
+        {/* 🌟 AQUÍ ESTÁ LA NUEVA ONDA PROPORCIONAL Y PIZARRA IPA INTERACTIVA */}
+        <HeroIntonationBoard phrase={sentence.text} ipa={sentence.ipa} />
 
-        <button
-          onClick={handlePlayAudio}
-          className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md shrink-0 active:scale-95 ${
-            isPlaying
-              ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-300 dark:ring-amber-500/30'
-              : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
-          }`}
-          title="Escuchar en inglés americano nativo"
-        >
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
-          <span>{isPlaying ? 'Reproduciendo...' : 'Pronunciación'}</span>
-        </button>
+        <div className="flex justify-end">
+          <button
+            onClick={handlePlayAudio}
+            className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md active:scale-95 ${
+              isPlaying
+                ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-300 dark:ring-amber-500/30'
+                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+            }`}
+            title="Escuchar en inglés americano nativo"
+          >
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+            <span>{isPlaying ? 'Reproduciendo...' : 'Pronunciación Completa'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Definición Simplificada CEFR A1-A2 (Sin traducción al español) */}
@@ -112,7 +110,7 @@ export const HeroPhrase: React.FC<HeroPhraseProps> = ({ sentence }) => {
         </button>
       </div>
 
-      {/* Capa 2 Adaptativa: Pasa la estructura y abre el reproductor */}
+      {/* Capa 2 Adaptativa */}
       {showLayer2 && (
         <div className="mt-6">
           <Layer2Adaptive 
