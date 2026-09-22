@@ -42,41 +42,39 @@ export default function Home() {
     }
   };
 
-  // MANEJADOR REAL CONECTADO A GEMINI
-  const handleProcessInput = async (text: string, type: SummaryType) => {
-    setIsLoading(true);
-    setErrorMessage(null);
+// En src/app/page.tsx:
+const handleProcessInput = async (text: string) => {
+  setIsLoading(true);
+  setErrorMessage(null);
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, summaryType: type }),
-      });
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }), // Envío directo de la meta/pasión
+    });
 
-      if (!res.ok) {
-        throw new Error('Error al generar el contenido con Gemini.');
-      }
-
-      const generatedData: EducationalContentResponse = await res.json();
-
-      setData(generatedData);
-      if (generatedData.sentences && generatedData.sentences.length > 0) {
-        setSelectedSentence(generatedData.sentences[0]);
-      }
-
-      setHasLearned(true);
-      setIsInputCollapsed(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err: any) {
-      console.error(err);
-      setErrorMessage(
-        'Hubo un inconveniente al generar con Gemini. Verifica que tu clave GEMINI_API_KEY esté en Vercel o en .env.local.'
-      );
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      throw new Error('Error al generar el contenido.');
     }
-  };
+
+    const generatedData: EducationalContentResponse = await res.json();
+    setData(generatedData);
+
+    if (generatedData.sentences && generatedData.sentences.length > 0) {
+      setSelectedSentence(generatedData.sentences[0]);
+    }
+
+    setHasLearned(true);
+    setIsInputCollapsed(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err: any) {
+    console.error(err);
+    setErrorMessage('Hubo un inconveniente al conectar con el servidor.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSelectPhrase = (phrase: SentenceItem) => {
     setSelectedSentence(phrase);

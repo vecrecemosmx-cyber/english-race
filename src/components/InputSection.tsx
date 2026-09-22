@@ -1,151 +1,149 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SummaryType } from '@/types';
 
 interface InputSectionProps {
-  onProcess: (text: string, type: SummaryType) => void;
-  isLoading?: boolean;
+  onProcess: (text: string) => void;
+  isLoading: boolean;
 }
 
+// Sugerencias de pasiones para romper el bloqueo de la hoja en blanco
+const PASSION_SUGGESTIONS = [
+  {
+    label: '🎵 Música y Conciertos',
+    text: 'Me apasiona la música, aprender a tocar instrumentos, componer canciones y asistir a festivales en vivo.',
+  },
+  {
+    label: '🚀 Tecnología y Software',
+    text: 'Me apasiona la tecnología, crear aplicaciones web modernas, la inteligencia artificial y el desarrollo de software.',
+  },
+  {
+    label: '✈️ Viajes y Culturas',
+    text: 'Mi sueño es viajar por todo el mundo, conocer diferentes culturas, hablar con personas locales y probar nueva gastronomía.',
+  },
+  {
+    label: '💼 Negocios y Emprendimiento',
+    text: 'Quiero liderar proyectos innovadores, crear mi propia empresa y construir soluciones que impacten positivamente a las personas.',
+  },
+  {
+    label: '🎨 Arte y Creatividad',
+    text: 'Disfruto el diseño visual, la fotografía, la pintura y explorar nuevas formas de expresión artística y audiovisual.',
+  },
+];
+
 export const InputSection: React.FC<InputSectionProps> = ({ onProcess, isLoading }) => {
-  const [inputText, setInputText] = useState(
-    'Quiero ser un desarrollador de software y viajar por el mundo aprendiendo nuevas culturas.'
-  );
-  const [summaryType, setSummaryType] = useState<SummaryType>('short');
-  const [isRecording, setIsRecording] = useState(false);
-
-  const handleToggleRecord = () => {
-    if (typeof window === 'undefined') return;
-    
-    // @ts-ignore
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Tu navegador no tiene activado el dictado por voz. Puedes escribir tu texto en el recuadro.');
-      return;
-    }
-
-    if (isRecording) {
-      setIsRecording(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'es-ES';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => setIsRecording(true);
-      recognition.onend = () => setIsRecording(false);
-      recognition.onerror = () => setIsRecording(false);
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
-      };
-
-      recognition.start();
-    } catch (err) {
-      console.error(err);
-      setIsRecording(false);
-    }
-  };
+  const [inputText, setInputText] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
-    onProcess(inputText, summaryType);
+    if (!inputText.trim() || isLoading) return;
+    onProcess(inputText.trim());
+  };
+
+  // Atajo de teclado ergonómico: Ctrl + Enter o Cmd + Enter
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e);
+    }
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm mb-8 transition-all">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-bold text-slate-800 mb-2">
-            ¿Cuáles son tus metas de vida, sueños, pasiones o intereses?
-          </label>
-          <div className="relative">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ejemplo: Quiero emprender un negocio digital, hablar inglés con fluidez y vivir cerca de la playa..."
-              rows={3}
-              className="w-full rounded-2xl border border-slate-300 p-4 text-sm md:text-base text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition resize-none"
-            />
+    <section className="rounded-3xl border-2 transition-all p-6 md:p-8 shadow-xl bg-white dark:bg-slate-900 border-blue-500/20 dark:border-blue-800/40 shadow-blue-500/5">
+      
+      {/* 1. Encabezado pedagógico */}
+      <div className="mb-5">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-sky-300 border border-blue-200 dark:border-blue-800/50 mb-3">
+          <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+          Aprende con tus pasiones reales
+        </div>
+
+        <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+          Aquí verás un video relacionado con lo que escribiste y te facilitaremos el entendimiento del idioma.
+        </h1>
+        <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 mt-2">
+          Escribe tus metas, sueños, pasiones o actividades que más disfrutas. Localizaremos un orador nativo hablando de ello y desglosaremos su lenguaje para que lo domines paso a paso.
+        </p>
+        <span className="inline-block mt-2 text-xs font-semibold text-blue-600 dark:text-sky-400">
+          💡 Puedes escribir libremente en español o en inglés.
+        </span>
+      </div>
+
+      {/* 2. Píldoras de inspiración rápida (Chips clicables) */}
+      <div className="mb-4">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
+          O elige una temática para inspirarte:
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {PASSION_SUGGESTIONS.map((item, idx) => (
+            <button
+              key={idx}
+              type="button"
+              disabled={isLoading}
+              onClick={() => setInputText(item.text)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-sky-300 hover:border-blue-400 active:scale-95 disabled:opacity-50"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Formulario principal con atajo y botón de limpieza */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="relative">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ejemplo: Me apasiona la música, crear aplicaciones web modernas, viajar y conocer diferentes culturas..."
+            rows={4}
+            maxLength={1000}
+            disabled={isLoading}
+            className="w-full p-4 md:p-5 pb-8 rounded-2xl text-sm md:text-base border outline-none transition-all resize-none bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 disabled:opacity-50"
+          />
+
+          {/* Botón de Limpieza Rápida si hay texto */}
+          {inputText && !isLoading && (
             <button
               type="button"
-              onClick={handleToggleRecord}
-              className={`absolute bottom-3 right-3 p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                isRecording
-                  ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-              }`}
-              title="Dictar por audio"
+              onClick={() => setInputText('')}
+              className="absolute top-3 right-3 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-2 py-1 rounded-md bg-slate-200/60 dark:bg-slate-800/80 transition"
+              title="Borrar texto"
             >
-              <span>{isRecording ? '● Grabando...' : '🎤 Dictar'}</span>
+              ✕ Limpiar
             </button>
+          )}
+
+          {/* Contador de caracteres y ayuda de atajo */}
+          <div className="absolute bottom-2.5 right-4 flex items-center gap-3 text-[11px] text-slate-400 dark:text-slate-500 select-none">
+            <span className="hidden sm:inline">Presiona <strong>Ctrl + Enter</strong> para enviar</span>
+            <span>{inputText.length}/1000</span>
           </div>
         </div>
 
-        {/* Selector de Resumen */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
-            Formato de Resumen:
-          </span>
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setSummaryType('normal')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                summaryType === 'normal'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Resumen normal
-            </button>
-            <button
-              type="button"
-              onClick={() => setSummaryType('short')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                summaryType === 'short'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Resumen corto
-            </button>
-          </div>
-        </div>
-
-        {/* PROPUESTA A: Banner Integrado de Acción (Pregunta y Botón con igual relevancia visual) */}
-        <div>
+        {/* 4. Botón de Acción Principal */}
+        <div className="flex justify-end pt-1">
           <button
             type="submit"
-            disabled={isLoading}
-            className="group w-full flex flex-col sm:flex-row items-center justify-between gap-4 p-4 md:p-5 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-white to-indigo-50/90 border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all text-left active:scale-[0.99]"
+            disabled={isLoading || !inputText.trim()}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-sm md:text-base text-slate-950 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 active:scale-95 shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
           >
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white font-bold text-lg shadow-sm group-hover:scale-105 transition">
-                💡
-              </span>
-              <div>
-                <p className="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-snug">
-                  ¿Cómo aprendo a comunicar esto en inglés?
-                </p>
-                <p className="text-xs text-slate-500 font-medium">
-                  Generar resumen interactivo y desglose pedagógico por frases
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 group-hover:bg-indigo-700 text-white font-bold text-sm shadow transition shrink-0">
-              <span>{isLoading ? 'Procesando...' : 'Aprender'}</span>
-              <span className="text-base group-hover:translate-x-1 transition">➜</span>
-            </div>
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                <span>Localizando video y procesando lenguaje...</span>
+              </>
+            ) : (
+              <>
+                <span>Aprender Ahora</span>
+                <span className="text-lg leading-none">➔</span>
+              </>
+            )}
           </button>
         </div>
       </form>
-    </div>
+
+    </section>
   );
 };
