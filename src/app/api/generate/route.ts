@@ -14,10 +14,53 @@ interface SubtitleCue {
   duration: number;
 }
 
-// 1. Búsqueda en YouTube en vivo con filtro de subtítulos en inglés
+// Lista ultrarrápida de Stopwords (Español e Inglés) para purgar palabras vacías
+const STOPWORDS = new Set([
+  'cuando', 'estaba', 'porque', 'entonces', 'habia', 'había', 'como', 'pero', 'para',
+  'este', 'esta', 'estos', 'estas', 'aquel', 'aquella', 'mi', 'mis', 'tu', 'tus',
+  'su', 'sus', 'nuestro', 'nuestra', 'que', 'los', 'las', 'del', 'por', 'con',
+  'sin', 'sobre', 'tras', 'hacia', 'desde', 'hasta', 'para', 'segun', 'según',
+  'entre', 'donde', 'dónde', 'quien', 'quién', 'cual', 'cuál', 'algo', 'nada',
+  'mucho', 'poco', 'todo', 'toda', 'todos', 'todas', 'cada', 'otro', 'otra',
+  'the', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'with', 'a', 'an', 'is',
+  'was', 'were', 'be', 'been', 'have', 'had', 'has', 'do', 'did', 'does', 'can',
+  'could', 'will', 'would', 'should', 'my', 'your', 'our', 'their', 'his', 'her',
+  'its', 'it', 'they', 'we', 'you', 'i', 'me', 'him', 'us', 'them', 'about',
+  'after', 'all', 'also', 'any', 'because', 'but', 'by', 'from', 'here', 'how',
+  'if', 'into', 'just', 'like', 'many', 'more', 'most', 'much', 'no', 'not',
+  'now', 'only', 'other', 'out', 'over', 'some', 'such', 'than', 'that', 'then',
+  'there', 'these', 'this', 'those', 'through', 'time', 'very', 'what', 'when',
+  'where', 'which', 'while', 'who', 'why'
+]);
+
+// 1. EXTRACTOR SEMÁNTICO HIPERVELOZ (< 2 ms)
+function extractCoreKeywordsFromStory(story: string): string {
+  const words = story
+    .toLowerCase()
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'¡!¿\n\r]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 3 && !STOPWORDS.has(w));
+
+  if (words.length === 0) return 'inspiration life goals';
+
+  // Contar frecuencia de palabras relevantes
+  const frequencyMap: { [word: string]: number } = {};
+  for (const word of words) {
+    frequencyMap[word] = (frequencyMap[word] || 0) + 1;
+  }
+
+  // Ordenar por mayor frecuencia y seleccionar las 2 o 3 principales
+  const topKeywords = Object.entries(frequencyMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(entry => entry[0]);
+
+  return topKeywords.join(' ');
+}
+
+// 2. BÚSQUEDA PÚBLICA EN YOUTUBE CON FILTRO CC
 async function searchYouTubeCandidateVideos(query: string): Promise<string[]> {
   try {
-    // Parámetro sp=EgIoAQ%253D%253D fuerza el filtro de subtítulos (Closed Captions)
     const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' english')}&sp=EgIoAQ%253D%253D`;
 
     const res = await fetch(searchUrl, {
@@ -37,7 +80,7 @@ async function searchYouTubeCandidateVideos(query: string): Promise<string[]> {
       if (!candidateIds.includes(id)) {
         candidateIds.push(id);
       }
-      if (candidateIds.length >= 4) break;
+      if (candidateIds.length >= 3) break; // Tomamos los 3 primeros para paralelismo
     }
 
     return candidateIds;
@@ -47,7 +90,7 @@ async function searchYouTubeCandidateVideos(query: string): Promise<string[]> {
   }
 }
 
-// 2. Descarga y parseo de subtítulos de un video específico
+// 3. DESCARGA DE SUBTÍTULOS DE UN VIDEO ESPECÍFICO
 async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
   try {
     const videoPageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
@@ -93,60 +136,62 @@ async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
     }
 
     return cues;
-  } catch (error) {
-    console.warn(`Error al extraer subtítulos de video ${videoId}:`, error);
+  } catch {
     return [];
   }
 }
 
-// 3. Cosecha continua de 250 a 280 palabras buscando en los candidatos
-async function harvest250to280WordsFromYouTube(passionQuery: string) {
-  console.log(`\n🔍 Buscando videos en YouTube en vivo para pasión: "${passionQuery}"...`);
-  const candidateIds = await searchYouTubeCandidateVideos(passionQuery);
+// Procesa una lista de cues para armar el bloque de 250 a 280 palabras
+function extractSliceFromCues(videoId: string, cues: SubtitleCue[]) {
+  if (!cues || cues.length === 0) return null;
 
-  if (candidateIds.length === 0) {
-    console.warn('No se encontraron IDs de videos en YouTube.');
-    return null;
+  let accumulatedWords: string[] = [];
+  const startIndex = cues.length > 5 ? 2 : 0;
+  const startSeconds = Math.max(0, Math.floor(cues[startIndex].start));
+  let endSeconds = startSeconds;
+
+  for (let c = startIndex; c < cues.length; c++) {
+    const cue = cues[c];
+    const wordsInCue = (cue.text || '').trim().split(/\s+/).filter(Boolean);
+    accumulatedWords.push(...wordsInCue);
+    endSeconds = Math.floor(cue.start + cue.duration);
+
+    if (accumulatedWords.length >= 250) {
+      if (accumulatedWords.length > 280) {
+        accumulatedWords = accumulatedWords.slice(0, 275);
+      }
+      break;
+    }
   }
 
-  // Iteramos sobre los candidatos hasta encontrar uno con subtítulos válidos
-  for (let i = 0; i < candidateIds.length; i++) {
-    const videoId = candidateIds[i];
-    console.log(`  ➔ Probando candidato [${i + 1}/${candidateIds.length}]: ${videoId}...`);
+  if (accumulatedWords.length < 120) return null;
 
-    const cues = await fetchVideoSubtitles(videoId);
-    if (cues.length === 0) continue;
+  return {
+    videoId,
+    startSeconds,
+    endSeconds,
+    wordCount: accumulatedWords.length,
+    rawTranscriptText: accumulatedWords.join(' '),
+  };
+}
 
-    // Acumular palabras consecutivas
-    let accumulatedWords: string[] = [];
-    // Iniciamos en cue 1 o 2 para evitar introducciones mudas si hay suficientes cues
-    const startIndex = cues.length > 5 ? 2 : 0;
-    const startSeconds = Math.max(0, Math.floor(cues[startIndex].start));
-    let endSeconds = startSeconds;
+// 4. COSECHADOR CONCURRENTE EN PARALELO
+async function harvestConcurrently(searchQuery: string) {
+  const candidateIds = await searchYouTubeCandidateVideos(searchQuery);
+  if (candidateIds.length === 0) return null;
 
-    for (let c = startIndex; c < cues.length; c++) {
-      const cue = cues[c];
-      const wordsInCue = (cue.text || '').trim().split(/\s+/).filter(Boolean);
-      accumulatedWords.push(...wordsInCue);
-      endSeconds = Math.floor(cue.start + cue.duration);
+  // Consultamos los 3 candidatos simultáneamente en paralelo
+  const subtitlePromises = candidateIds.map(async (id) => {
+    const cues = await fetchVideoSubtitles(id);
+    return extractSliceFromCues(id, cues);
+  });
 
-      if (accumulatedWords.length >= 250) {
-        if (accumulatedWords.length > 280) {
-          accumulatedWords = accumulatedWords.slice(0, 275);
-        }
-        break;
-      }
-    }
+  const results = await Promise.allSettled(subtitlePromises);
 
-    if (accumulatedWords.length >= 150) { // Si logramos una masa crítica de palabras
-      console.log(`✓ ¡Éxito en YouTube! Cosechadas ${accumulatedWords.length} palabras del video https://youtube.com/watch?v=${videoId} (${startSeconds}s a ${endSeconds}s)`);
-      return {
-        videoId,
-        startSeconds,
-        endSeconds,
-        wordCount: accumulatedWords.length,
-        rawTranscriptText: accumulatedWords.join(' '),
-      };
+  // Retornamos el primer candidato exitoso
+  for (const res of results) {
+    if (res.status === 'fulfilled' && res.value !== null) {
+      return res.value;
     }
   }
 
@@ -154,11 +199,15 @@ async function harvest250to280WordsFromYouTube(passionQuery: string) {
 }
 
 export async function POST(req: Request) {
+  const t0 = performance.now();
+  console.log(`\n==================================================`);
+  console.log(`⚡ INICIANDO PIPELINE HIPERVELOZ DE CONTENIDO`);
+
   try {
     const { text } = await req.json();
 
     if (!text || typeof text !== 'string') {
-      return NextResponse.json({ error: 'El texto de meta/pasión es requerido' }, { status: 400 });
+      return NextResponse.json({ error: 'El texto es requerido' }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -169,18 +218,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Cosechar directamente de YouTube en vivo
-    const youtubeSegment = await harvest250to280WordsFromYouTube(text);
+    // PASO 1: Extracción semántica instantánea (< 2ms)
+    const tExtractStart = performance.now();
+    const searchKeywords = extractCoreKeywordsFromStory(text);
+    const tExtractEnd = performance.now();
+    console.log(`⏱️ [Paso 1] Extracción temática de la historia: ${(tExtractEnd - tExtractStart).toFixed(2)} ms`);
+    console.log(`   ➔ Ideas centrales identificadas: "${searchKeywords}"`);
+
+    // PASO 2: Cosecha concurrente en YouTube
+    const tYoutubeStart = performance.now();
+    const youtubeSegment = await harvestConcurrently(searchKeywords);
+    const tYoutubeEnd = performance.now();
+    console.log(`⏱️ [Paso 2] Cosecha concurrente en YouTube: ${(tYoutubeEnd - tYoutubeStart).toFixed(2)} ms`);
+
+    if (youtubeSegment) {
+      console.log(`   ➔ Video localizado: https://youtube.com/watch?v=${youtubeSegment.videoId} (${youtubeSegment.wordCount} palabras)`);
+    } else {
+      console.warn(`   ⚠️ YouTube no devolvió subtítulos inmediatos. Continuando con el texto del alumno.`);
+    }
 
     const sourceContextText = youtubeSegment?.rawTranscriptText
-      ? `TRANSCRIPCIÓN REAL DE YOUTUBE (${youtubeSegment.wordCount} PALABRAS COSECHADAS EN VIVO):\n"${youtubeSegment.rawTranscriptText}"`
+      ? `TRANSCRIPCIÓN REAL DE YOUTUBE (${youtubeSegment.wordCount} PALABRAS COSECHADAS):\n"${youtubeSegment.rawTranscriptText}"`
       : `TEXTO BASE DEL ESTUDIANTE:\n"${text}"`;
 
-    // 2. Prompt con el Filtro Lingüístico Estricto (Sin tecnicismos, sin jerga, sin metáforas)
+    // PASO 3: Generación pedagógica estructurada con Gemini
+    const tGeminiStart = performance.now();
     const systemPrompt = `
 You are an expert American English pedagogue and linguist specialized in teaching native Spanish speakers.
-The student has shared their dreams/passions: "${text}".
-Here is the authentic spoken audio segment directly from YouTube (${youtubeSegment?.wordCount || 260} words):
+The student has shared their personal story/passions: "${text}".
+Here is the authentic spoken audio segment from a related native YouTube video (${youtubeSegment?.wordCount || 260} words):
 ${sourceContextText}
 
 PEDAGOGICAL & LINGUISTIC RULES (MANDATORY):
@@ -214,10 +280,8 @@ Return ONLY the raw JSON object, without markdown formatting.
     let parsedData: any = null;
     let lastErrorDetails: string = '';
 
-    // 3. Cascada de modelos Gemini tolerante a saturación 503
     for (const model of FALLBACK_MODELS) {
       try {
-        console.log(`Llamando a modelo: ${model}...`);
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
         const geminiRes = await fetch(geminiUrl, {
@@ -237,7 +301,6 @@ Return ONLY the raw JSON object, without markdown formatting.
 
         if (!geminiRes.ok) {
           const errText = await geminiRes.text();
-          console.warn(`⚠️ Modelo ${model} no disponible (HTTP ${geminiRes.status}).`);
           lastErrorDetails = errText;
           continue;
         }
@@ -247,14 +310,20 @@ Return ONLY the raw JSON object, without markdown formatting.
 
         if (rawContent) {
           parsedData = JSON.parse(rawContent);
-          console.log(`✓ Generación exitosa con: ${model}`);
           break;
         }
       } catch (err: any) {
-        console.warn(`⚠️ Excepción con ${model}:`, err.message);
         lastErrorDetails = err.message;
       }
     }
+
+    const tGeminiEnd = performance.now();
+    console.log(`⏱️ [Paso 3] Generación pedagógica estructurada (Gemini): ${(tGeminiEnd - tGeminiStart).toFixed(2)} ms`);
+
+    const tTotal = performance.now();
+    console.log(`==================================================`);
+    console.log(`🚀 TIEMPO TOTAL DE RESPUESTA: ${((tTotal - t0) / 1000).toFixed(2)} segundos`);
+    console.log(`==================================================\n`);
 
     if (!parsedData) {
       return NextResponse.json(
