@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { mockEducationalData } from '@/data/mockData';
 import { EducationalContentResponse, SentenceItem } from '@/types';
 import { InputSection } from '@/components/InputSection';
-import { MainVideoSegmentPlayer } from '@/components/MainVideoSegmentPlayer'; // 👈 Importamos el nuevo reproductor
+import { MainVideoSegmentPlayer } from '@/components/MainVideoSegmentPlayer';
 import { HeroPhrase } from '@/components/HeroPhrase';
 import { SummaryView } from '@/components/SummaryView';
 
@@ -44,24 +44,31 @@ export default function Home() {
     }
   };
 
-  // MANEJADOR CONECTADO A YOUTUBE EN VIVO Y GEMINI
+  // MANEJADOR DIRECTO Y BLINDADO
   const handleProcessInput = async (text: string) => {
+    if (!text || !text.trim()) return;
+
     setIsLoading(true);
     setErrorMessage(null);
-    setActiveInputGoal(text);
+    setActiveInputGoal(text.trim());
 
     try {
+      console.log('🚀 Enviando petición a /api/generate con texto:', text.trim());
+
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: text.trim() }),
       });
 
       if (!res.ok) {
-        throw new Error('Error al generar el contenido con Gemini.');
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error del servidor (${res.status})`);
       }
 
       const generatedData = await res.json();
+      console.log('✓ Respuesta recibida con éxito:', generatedData);
+
       setData(generatedData);
 
       if (generatedData.sentences && generatedData.sentences.length > 0) {
@@ -72,9 +79,9 @@ export default function Home() {
       setIsInputCollapsed(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      console.error(err);
+      console.error('Error al procesar entrada:', err);
       setErrorMessage(
-        'Hubo un inconveniente al conectar con el servidor. Verifica que tu clave GEMINI_API_KEY esté activa.'
+        err.message || 'Hubo un inconveniente al conectar con el servidor. Verifica que GEMINI_API_KEY esté activa.'
       );
     } finally {
       setIsLoading(false);
@@ -127,13 +134,15 @@ export default function Home() {
 
       <div className="max-w-5xl mx-auto px-4 pt-8">
         
+        {/* Banner de error si ocurre alguno */}
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 text-sm font-semibold">
-            ⚠️ {errorMessage}
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 text-sm font-semibold flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* 1. Entrada de Metas / Botón colapsado */}
+        {/* 1. Formulario inicial / Barra colapsada */}
         {!hasLearned ? (
           <InputSection onProcess={handleProcessInput} isLoading={isLoading} />
         ) : isInputCollapsed ? (
@@ -154,7 +163,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* 2. SECUENCIA PEDAGÓGICA POST-GENERACIÓN */}
+        {/* 2. SECUENCIA PEDAGÓGICA POST-APRENDIZAJE */}
         {hasLearned && (
           <div className="transition-all animate-fadeIn space-y-8">
             
@@ -163,12 +172,12 @@ export default function Home() {
               <MainVideoSegmentPlayer segment={data.videoSegment} />
             )}
 
-            {/* 🌟 PASO B: HERO PHRASE CON ONDA DE ENTONACIÓN Y PIZARRA IPA */}
+            {/* 🌟 PASO B: HERO PHRASE CON ONDA MULTI-LÍNEA Y PIZARRA IPA INTERACTIVA */}
             {selectedSentence && (
               <HeroPhrase sentence={selectedSentence} />
             )}
 
-            {/* 🌟 PASO C: RESUMEN LINGÜÍSTICO Y LISTA DE FRASES CON CAPA 2 */}
+            {/* 🌟 PASO C: RESUMEN Y FRASES DE ESTUDIO CON CAPA 2 */}
             {data && (
               <SummaryView
                 summaryParagraph={data.summaryParagraph}
