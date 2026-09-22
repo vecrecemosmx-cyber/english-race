@@ -68,6 +68,7 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
       return;
     }
 
+    // Inyección segura de la API Iframe de YouTube (URL corregida)
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -145,12 +146,13 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
   const youglishUrl = `https://youglish.com/pronounce/${encodeURIComponent(query)}/english/us`;
 
   return (
-    // CONTENEDOR EXPANDIDO: Ancho total responsivo sin restricciones
-    <div className="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-900 text-white p-4 md:p-6 shadow-2xl">
+    // Marco cinematográfico responsivo (óptimo para modo claro y oscuro)
+    <div className="mt-5 w-full rounded-3xl border border-slate-700 bg-slate-950 text-white p-4 md:p-6 shadow-2xl">
+      
       {/* Cabecera */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
+          <span className="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-ping"></span>
           <h4 className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-200">
             Aparición Exacta en Video (American English)
           </h4>
@@ -159,15 +161,15 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
           href={youglishUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-indigo-400 hover:text-indigo-300 transition underline flex items-center gap-1 font-semibold"
+          className="text-xs text-sky-400 hover:text-sky-300 transition underline flex items-center gap-1 font-semibold"
         >
           Abrir en YouGlish ↗
         </a>
       </div>
 
-      {/* Frase Hablada Sincronizada */}
-      <div className="mb-4 rounded-xl bg-slate-800/90 border border-slate-700 p-4 text-center shadow-inner">
-        <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono mb-2">
+      {/* Frase Hablada Sincronizada con resaltado */}
+      <div className="mb-4 rounded-2xl bg-slate-900/90 border border-slate-800 p-4 text-center shadow-inner">
+        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono mb-2">
           Transcripción hablada (Frase en estudio resaltada):
         </p>
         <p className="text-base md:text-xl text-slate-100 font-medium leading-relaxed">
@@ -180,36 +182,38 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
         )}
       </div>
 
-      {/* EL REPRODUCTOR: Ocupa el 100% del ancho con relación de aspecto 16:9 */}
+      {/* EL REPRODUCTOR: 100% responsivo con relación de aspecto 16:9 */}
       <div className="relative w-full overflow-hidden rounded-2xl bg-black aspect-video shadow-2xl border border-slate-800">
         <div ref={wrapperRef} className="w-full h-full"></div>
       </div>
 
-      {/* Controles Interactivos */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Controles Interactivos con Dopamina de Acción */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Botón Dinámico -5s */}
           <button
             type="button"
             onClick={handleRewind5s}
             disabled={!isPlayerReady}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 hover:text-white font-bold text-xs md:text-sm border border-slate-700 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-sky-300 hover:text-white font-bold text-xs md:text-sm border border-slate-700 transition disabled:opacity-50 shadow-sm"
             title="Retrocede 5 segundos a partir del segundo actual"
           >
             <span>⏪ -5s (Punto actual)</span>
           </button>
 
+          {/* Botón Repetir Frase en Ámbar Solar */}
           <button
             type="button"
             onClick={handleReplayPhrase}
             disabled={!isPlayerReady}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs md:text-sm shadow-md transition disabled:opacity-50"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 text-slate-950 font-black text-xs md:text-sm shadow-lg shadow-orange-500/20 transition disabled:opacity-50"
           >
             <span>↺ Repetir frase</span>
           </button>
         </div>
 
-        {/* Velocidades */}
-        <div className="flex items-center gap-1 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+        {/* Selector de Velocidades */}
+        <div className="flex items-center gap-1 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
           <span className="text-[10px] uppercase font-bold text-slate-400 px-2">Velocidad:</span>
           {[0.75, 1, 1.25].map((speed) => (
             <button
@@ -218,8 +222,8 @@ export const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoContext, query 
               onClick={() => handleSetSpeed(speed)}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
                 currentSpeed === speed
-                  ? 'bg-amber-400 text-slate-900 shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                  ? 'bg-amber-400 text-slate-950 shadow-md font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
               {speed}x
