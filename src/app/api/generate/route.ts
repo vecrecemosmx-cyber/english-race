@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
 
+// Modelos en orden jerárquico de respaldo (100% gratuitos)
+const FALLBACK_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.5-flash',
+  'gemini-2.5-flash',
+];
+
 export async function POST(req: Request) {
   try {
     const { text, summaryType } = await req.json();
@@ -16,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Prompt estricto con los 10 roles integrados
+    // Prompt estricto con los 10 roles integrados (intacto)
     const systemPrompt = `
 You are an expert American English pedagogue and linguist specialized in teaching native Spanish speakers.
 The user has shared their dreams, life goals, or passions:
@@ -46,41 +53,58 @@ Generate an educational language learning response formatted in STRICT JSON acco
 Return ONLY the raw JSON object, without markdown formatting.
 `;
 
-    // Llamada al modelo oficial Gemini 3.8 Flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+    let parsedData: any = null;
+    let lastErrorDetails: string = '';
 
-    const geminiRes = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: systemPrompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.2,
-        },
-      }),
-    });
+    // Bucle de resiliencia en cascada para soportar saturación 503
+    for (const model of FALLBACK_MODELS) {
+      try {
+        console.log(`Intentando conectar con: ${model}...`);
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Error de Gemini API:', errText);
+        const geminiRes = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.2,
+            },
+          }),
+        });
+
+        if (!geminiRes.ok) {
+          const errText = await geminiRes.text();
+          console.warn(`⚠️ Modelo ${model} no disponible (HTTP ${geminiRes.status}). Detalle:`, errText);
+          lastErrorDetails = errText;
+          continue; // Pasa automáticamente al siguiente modelo de la lista
+        }
+
+        const geminiData = await geminiRes.json();
+        const rawContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (rawContent) {
+          parsedData = JSON.parse(rawContent);
+          console.log(`✓ Generación exitosa usando el modelo: ${model}`);
+          break; // Terminamos el bucle al tener respuesta exitosa
+        }
+      } catch (err: any) {
+        console.warn(`⚠️ Excepción con ${model}:`, err.message);
+        lastErrorDetails = err.message;
+      }
+    }
+
+    if (!parsedData) {
       return NextResponse.json(
-        { error: 'Error al comunicarse con Gemini API', details: errText },
+        { error: 'Ningún modelo de Gemini estuvo disponible temporalmente.', details: lastErrorDetails },
         { status: 502 }
       );
     }
 
-    const geminiData = await geminiRes.json();
-    const rawContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!rawContent) {
-      return NextResponse.json({ error: 'Respuesta vacía de Gemini' }, { status: 502 });
-    }
-
-    const parsedData = JSON.parse(rawContent);
     return NextResponse.json({
       userInputOriginal: text,
       summaryType: summaryType,
@@ -88,7 +112,7 @@ Return ONLY the raw JSON object, without markdown formatting.
       sentences: parsedData.sentences,
     });
   } catch (error: any) {
-    console.error('Error en /api/generate:', error);
+    console.error('Error general en /api/generate:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
