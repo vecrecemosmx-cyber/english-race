@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 // Modelos en orden jerárquico de respaldo (100% gratuitos)
 const FALLBACK_MODELS = [
@@ -9,100 +8,154 @@ const FALLBACK_MODELS = [
   'gemini-3.5-flash',
 ];
 
-// Cliente Supabase en servidor
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Función auxiliar para extraer palabras clave de la pasión del alumno
-function extractSearchKeywords(input: string): string[] {
-  return input
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, '')
-    .toLowerCase()
-    .trim()
-    .split(/\s+/)
-    .filter(w => w.length > 3);
+interface SubtitleCue {
+  text: string;
+  start: number;
+  duration: number;
 }
 
-// Cosechador de 250 a 280 palabras continuas de la transcripción
-async function getContiguousTranscriptSegment(passionText: string) {
-  const keywords = extractSearchKeywords(passionText);
-  let anchorCue: any = null;
+// 1. Búsqueda en YouTube en vivo con filtro de subtítulos en inglés
+async function searchYouTubeCandidateVideos(query: string): Promise<string[]> {
+  try {
+    // Parámetro sp=EgIoAQ%253D%253D fuerza el filtro de subtítulos (Closed Captions)
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' english')}&sp=EgIoAQ%253D%253D`;
 
-  // 1. Buscar una coincidencia temática con las palabras de la pasión
-  for (const word of keywords) {
-    const { data } = await supabase
-      .from('video_transcripts')
-      .select('id, video_id, start_time, duration, text')
-      .ilike('text', `%${word}%`)
-      .limit(1)
-      .single();
+    const res = await fetch(searchUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
 
-    if (data) {
-      anchorCue = data;
-      break;
-    }
-  }
+    const html = await res.text();
+    const videoIdMatches = html.matchAll(/\/watch\?v=([a-zA-Z0-9_-]{11})/g);
+    const candidateIds: string[] = [];
 
-  // Si no hay coincidencia directa, tomar el primer registro disponible como ancla
-  if (!anchorCue) {
-    const { data } = await supabase
-      .from('video_transcripts')
-      .select('id, video_id, start_time, duration, text')
-      .order('start_time', { ascending: true })
-      .limit(1)
-      .single();
-    anchorCue = data;
-  }
-
-  if (!anchorCue) {
-    return null;
-  }
-
-  // 2. Extraer fragmentos cronológicos consecutivos a partir del ancla
-  const { data: subsequentCues } = await supabase
-    .from('video_transcripts')
-    .select('id, video_id, start_time, duration, text')
-    .eq('video_id', anchorCue.video_id)
-    .gte('start_time', anchorCue.start_time)
-    .order('start_time', { ascending: true })
-    .limit(80);
-
-  if (!subsequentCues || subsequentCues.length === 0) {
-    return null;
-  }
-
-  // 3. Acumular texto hasta alcanzar el rango de 250 a 280 palabras
-  let accumulatedWords: string[] = [];
-  let startSeconds = Math.max(0, Math.floor(subsequentCues[0].start_time || 0));
-  let endSeconds = startSeconds;
-
-  for (const cue of subsequentCues) {
-    const wordsInCue = (cue.text || '').trim().split(/\s+/).filter(Boolean);
-    accumulatedWords.push(...wordsInCue);
-    endSeconds = Math.floor((cue.start_time || 0) + (cue.duration || 0));
-
-    if (accumulatedWords.length >= 250) {
-      // Si nos pasamos de 280, recortamos al límite superior exacto
-      if (accumulatedWords.length > 280) {
-        accumulatedWords = accumulatedWords.slice(0, 275);
+    for (const match of videoIdMatches) {
+      const id = match[1];
+      if (!candidateIds.includes(id)) {
+        candidateIds.push(id);
       }
-      break;
+      if (candidateIds.length >= 4) break;
+    }
+
+    return candidateIds;
+  } catch (err) {
+    console.error('Error buscando candidatos en YouTube:', err);
+    return [];
+  }
+}
+
+// 2. Descarga y parseo de subtítulos de un video específico
+async function fetchVideoSubtitles(videoId: string): Promise<SubtitleCue[]> {
+  try {
+    const videoPageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    const html = await videoPageRes.text();
+
+    const captionsMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
+    if (!captionsMatch) return [];
+
+    const captionTracks = JSON.parse(captionsMatch[1]);
+    const englishTrack = captionTracks.find(
+      (t: any) => t.languageCode === 'en' || t.vssId?.includes('.en')
+    );
+    if (!englishTrack?.baseUrl) return [];
+
+    const transcriptRes = await fetch(englishTrack.baseUrl);
+    const xmlText = await transcriptRes.text();
+
+    const cues: SubtitleCue[] = [];
+    const textRegex = /<text\s+start="([\d.]+)"\s+dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
+    let match;
+
+    while ((match = textRegex.exec(xmlText)) !== null) {
+      const cleanText = match[3]
+        .replace(/&amp;/g, '&')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\n/g, ' ')
+        .trim();
+
+      cues.push({
+        start: parseFloat(match[1]),
+        duration: parseFloat(match[2]),
+        text: cleanText,
+      });
+    }
+
+    return cues;
+  } catch (error) {
+    console.warn(`Error al extraer subtítulos de video ${videoId}:`, error);
+    return [];
+  }
+}
+
+// 3. Cosecha continua de 250 a 280 palabras buscando en los candidatos
+async function harvest250to280WordsFromYouTube(passionQuery: string) {
+  console.log(`\n🔍 Buscando videos en YouTube en vivo para pasión: "${passionQuery}"...`);
+  const candidateIds = await searchYouTubeCandidateVideos(passionQuery);
+
+  if (candidateIds.length === 0) {
+    console.warn('No se encontraron IDs de videos en YouTube.');
+    return null;
+  }
+
+  // Iteramos sobre los candidatos hasta encontrar uno con subtítulos válidos
+  for (let i = 0; i < candidateIds.length; i++) {
+    const videoId = candidateIds[i];
+    console.log(`  ➔ Probando candidato [${i + 1}/${candidateIds.length}]: ${videoId}...`);
+
+    const cues = await fetchVideoSubtitles(videoId);
+    if (cues.length === 0) continue;
+
+    // Acumular palabras consecutivas
+    let accumulatedWords: string[] = [];
+    // Iniciamos en cue 1 o 2 para evitar introducciones mudas si hay suficientes cues
+    const startIndex = cues.length > 5 ? 2 : 0;
+    const startSeconds = Math.max(0, Math.floor(cues[startIndex].start));
+    let endSeconds = startSeconds;
+
+    for (let c = startIndex; c < cues.length; c++) {
+      const cue = cues[c];
+      const wordsInCue = (cue.text || '').trim().split(/\s+/).filter(Boolean);
+      accumulatedWords.push(...wordsInCue);
+      endSeconds = Math.floor(cue.start + cue.duration);
+
+      if (accumulatedWords.length >= 250) {
+        if (accumulatedWords.length > 280) {
+          accumulatedWords = accumulatedWords.slice(0, 275);
+        }
+        break;
+      }
+    }
+
+    if (accumulatedWords.length >= 150) { // Si logramos una masa crítica de palabras
+      console.log(`✓ ¡Éxito en YouTube! Cosechadas ${accumulatedWords.length} palabras del video https://youtube.com/watch?v=${videoId} (${startSeconds}s a ${endSeconds}s)`);
+      return {
+        videoId,
+        startSeconds,
+        endSeconds,
+        wordCount: accumulatedWords.length,
+        rawTranscriptText: accumulatedWords.join(' '),
+      };
     }
   }
 
-  return {
-    videoId: anchorCue.video_id,
-    startSeconds,
-    endSeconds,
-    wordCount: accumulatedWords.length,
-    rawTranscriptText: accumulatedWords.join(' '),
-  };
+  return null;
 }
 
 export async function POST(req: Request) {
   try {
-    const { text, summaryType } = await req.json();
+    const { text } = await req.json();
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json({ error: 'El texto de meta/pasión es requerido' }, { status: 400 });
@@ -116,22 +169,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Obtener el segmento real de 250-280 palabras de YouTube/Supabase
-    console.log(`\n========================================`);
-    console.log(`🎯 Buscando video para la pasión: "${text}"`);
-    const transcriptSegment = await getContiguousTranscriptSegment(text);
+    // 1. Cosechar directamente de YouTube en vivo
+    const youtubeSegment = await harvest250to280WordsFromYouTube(text);
 
-    const sourceContextText = transcriptSegment?.rawTranscriptText 
-      ? `TRANSCRIPCIÓN REAL DE VIDEO (250-280 PALABRAS):\n"${transcriptSegment.rawTranscriptText}"`
+    const sourceContextText = youtubeSegment?.rawTranscriptText
+      ? `TRANSCRIPCIÓN REAL DE YOUTUBE (${youtubeSegment.wordCount} PALABRAS COSECHADAS EN VIVO):\n"${youtubeSegment.rawTranscriptText}"`
       : `TEXTO BASE DEL ESTUDIANTE:\n"${text}"`;
-
-    console.log(`✓ Segmento extraído: ${transcriptSegment?.wordCount || 0} palabras del video ${transcriptSegment?.videoId || 'N/A'}`);
 
     // 2. Prompt con el Filtro Lingüístico Estricto (Sin tecnicismos, sin jerga, sin metáforas)
     const systemPrompt = `
 You are an expert American English pedagogue and linguist specialized in teaching native Spanish speakers.
 The student has shared their dreams/passions: "${text}".
-Here is the authentic spoken audio segment from a related native YouTube video (${transcriptSegment?.wordCount || 260} words):
+Here is the authentic spoken audio segment directly from YouTube (${youtubeSegment?.wordCount || 260} words):
 ${sourceContextText}
 
 PEDAGOGICAL & LINGUISTIC RULES (MANDATORY):
@@ -165,7 +214,7 @@ Return ONLY the raw JSON object, without markdown formatting.
     let parsedData: any = null;
     let lastErrorDetails: string = '';
 
-    // 3. Cascada de modelos tolerante a saturación 503
+    // 3. Cascada de modelos Gemini tolerante a saturación 503
     for (const model of FALLBACK_MODELS) {
       try {
         console.log(`Llamando a modelo: ${model}...`);
@@ -214,18 +263,16 @@ Return ONLY the raw JSON object, without markdown formatting.
       );
     }
 
-    // Retornamos los datos estructurados + la metadata del segmento de video cosechado
     return NextResponse.json({
       userInputOriginal: text,
-      summaryType: summaryType,
       summaryParagraph: parsedData.summaryParagraph,
       sentences: parsedData.sentences,
-      videoSegment: transcriptSegment ? {
-        videoId: transcriptSegment.videoId,
-        startSeconds: transcriptSegment.startSeconds,
-        endSeconds: transcriptSegment.endSeconds,
-        wordCount: transcriptSegment.wordCount,
-        rawTranscript: transcriptSegment.rawTranscriptText,
+      videoSegment: youtubeSegment ? {
+        videoId: youtubeSegment.videoId,
+        startSeconds: youtubeSegment.startSeconds,
+        endSeconds: youtubeSegment.endSeconds,
+        wordCount: youtubeSegment.wordCount,
+        rawTranscript: youtubeSegment.rawTranscriptText,
       } : null,
     });
 
